@@ -1,0 +1,12 @@
+{
+  "action": "replan",
+  "planner": "rrt_star",
+  "profile": "avoid_interference",
+  "reason": "比较替代航路",
+  "stage_plan": {
+    "objective": "向目标搜索替代航路",
+    "focus": "goal",
+    "assumption": "未知部分尚待观测",
+    "revision_condition": "新测量偏离估计或求解失败时复核"
+  }
+}

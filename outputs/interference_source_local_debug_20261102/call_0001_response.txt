@@ -1,0 +1,13 @@
+{
+  "action": "probe",
+  "planner": "rrt_star",
+  "profile": "balanced",
+  "target_id": "probe_4_19",
+  "reason": "在预算内补充局部观测",
+  "stage_plan": {
+    "objective": "向目标搜索替代航路",
+    "focus": "goal",
+    "assumption": "未知部分尚待观测",
+    "revision_condition": "新测量偏离估计或求解失败时复核"
+  }
+}

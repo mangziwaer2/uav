@@ -1,0 +1,694 @@
+{
+  "time_seconds": 0.0,
+  "vehicle": {
+    "position_m": [
+      40.0,
+      300.0
+    ],
+    "goal_m": [
+      760.0,
+      300.0
+    ],
+    "altitude_m": 30.0,
+    "speed_mps": 15.0,
+    "remaining_energy_wh": 100.0,
+    "reserve_energy_wh": 15.0
+  },
+  "map": {
+    "bounds_m": [
+      [
+        0.0,
+        0.0
+      ],
+      [
+        800.0,
+        600.0
+      ]
+    ],
+    "obstacles_m": [
+      [
+        280.0,
+        240.0,
+        360.0,
+        360.0
+      ],
+      [
+        520.0,
+        100.0,
+        580.0,
+        260.0
+      ]
+    ],
+    "clearance_m": 5.0
+  },
+  "electromagnetic_estimate": {
+    "observation_count": 1,
+    "current_grid_estimate_dbm": -98.77,
+    "current_grid_error_scale_db": 1.0,
+    "current_grid_supported": true,
+    "measurement_is_at_vehicle_only": true,
+    "uncertainty_is_calibrated": false,
+    "quantity": "aggregate_interference_power_dbm",
+    "higher_value_means_stronger_interference": true,
+    "interference_reference_dbm": -80.0,
+    "supported_fraction": 0.01,
+    "sample_columns": [
+      "x_m",
+      "y_m",
+      "estimate_dbm",
+      "uncertainty_db",
+      "supported"
+    ],
+    "coarse_samples": [
+      [
+        0.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        120.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        260.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        400.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        520.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        660.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        800.0,
+        0.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        0.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        120.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        260.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        400.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        520.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        660.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        800.0,
+        140.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        0.0,
+        300.0,
+        -98.8,
+        4.2,
+        true
+      ],
+      [
+        120.0,
+        300.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        260.0,
+        300.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        400.0,
+        300.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        520.0,
+        300.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        660.0,
+        300.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        800.0,
+        300.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        0.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        120.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        260.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        400.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        520.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        660.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        800.0,
+        440.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        0.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        120.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        260.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        400.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        520.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        660.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ],
+      [
+        800.0,
+        600.0,
+        null,
+        15.0,
+        false
+      ]
+    ],
+    "corridor_summaries": [
+      {
+        "id": "south",
+        "y_range_m": [
+          0.0,
+          200.0
+        ],
+        "supported_fraction": 0.0,
+        "supported_high_interference_fraction": null,
+        "maximum_supported_estimate_dbm": null,
+        "mean_supported_age_seconds": null,
+        "meaning": "estimated interference on supported cells only; unknown is not safe"
+      },
+      {
+        "id": "middle",
+        "y_range_m": [
+          200.0,
+          400.0
+        ],
+        "supported_fraction": 0.036,
+        "supported_high_interference_fraction": 0.0,
+        "maximum_supported_estimate_dbm": -98.77,
+        "mean_supported_age_seconds": 0.0,
+        "meaning": "estimated interference on supported cells only; unknown is not safe"
+      },
+      {
+        "id": "north",
+        "y_range_m": [
+          400.0,
+          600.0
+        ],
+        "supported_fraction": 0.0,
+        "supported_high_interference_fraction": null,
+        "maximum_supported_estimate_dbm": null,
+        "mean_supported_age_seconds": null,
+        "meaning": "estimated interference on supported cells only; unknown is not safe"
+      }
+    ]
+  },
+  "route": {
+    "available": false,
+    "length_m": 0.0,
+    "supported_fraction": 0.0,
+    "supported_above_reference_fraction": null,
+    "max_supported_estimate_dbm": null,
+    "points": []
+  },
+  "directional_sensing": {
+    "available": true,
+    "observation_kind": "360_degree_receive_beam_power_at_vehicle",
+    "model_scope": "direct_path_dominated_surrogate; reflections_and_array_IQ_not_simulated",
+    "calibration_correlation_seconds": 5.0,
+    "bearing_error_std_deg": 3.0,
+    "minimum_peak_separation_deg": 45.0,
+    "azimuth_convention": "east=0_deg; counterclockwise; world_frame",
+    "recent_scans": [
+      {
+        "time_seconds": 0.0,
+        "position_m": [
+          40.0,
+          300.0
+        ],
+        "peaks_deg_dbm": [],
+        "beamwidth_deg": 45.0,
+        "bearing_error_std_deg": 3.0,
+        "calibration_correlation_seconds": 5.0,
+        "minimum_peak_separation_deg": 45.0,
+        "detection_threshold_dbm": -94.0
+      }
+    ],
+    "measured_range_available": false,
+    "remote_field_cells_measured": false,
+    "meaning": "angular peaks are not source count or coordinates; no detection is not proof of safety; triangulation requires multiple informative positions; powers are received at the vehicle; nearby scans have correlated bearing errors; beamwidth is not a confidence interval"
+  },
+  "available_planners": {
+    "astar": {
+      "representation": "2d_grid",
+      "incremental": false,
+      "sampling_regions": false
+    },
+    "rrt_star": {
+      "representation": "continuous_2d",
+      "incremental": false,
+      "sampling_regions": true
+    }
+  },
+  "profiles": {
+    "balanced": "length and estimated interference/uncertainty",
+    "avoid_interference": "stronger penalty for estimated interference above reference",
+    "explore": "lower uncertainty penalty, not an information-gain guarantee"
+  },
+  "probe_candidates": [
+    {
+      "id": "probe_4_19",
+      "position_m": [
+        80.0,
+        380.0
+      ],
+      "direct_flight_seconds": 5.96,
+      "estimate_dbm": null,
+      "uncertainty_db": 15.0,
+      "supported": false,
+      "corridor_id": "middle",
+      "goal_distance_reduction_m": 35.31,
+      "approach_route": {
+        "available": true,
+        "length_m": 89.44,
+        "supported_fraction": 0.333,
+        "supported_above_reference_fraction": 0.0,
+        "max_supported_estimate_dbm": -98.77,
+        "model_predicted_max_dbm": null,
+        "model_prediction_is_not_observation": true
+      },
+      "ranking_is_heuristic": true
+    },
+    {
+      "id": "probe_4_11",
+      "position_m": [
+        80.0,
+        220.0
+      ],
+      "direct_flight_seconds": 5.96,
+      "estimate_dbm": null,
+      "uncertainty_db": 15.0,
+      "supported": false,
+      "corridor_id": "middle",
+      "goal_distance_reduction_m": 35.31,
+      "approach_route": {
+        "available": true,
+        "length_m": 89.44,
+        "supported_fraction": 0.333,
+        "supported_above_reference_fraction": 0.0,
+        "max_supported_estimate_dbm": -98.77,
+        "model_predicted_max_dbm": null,
+        "model_prediction_is_not_observation": true
+      },
+      "ranking_is_heuristic": true
+    },
+    {
+      "id": "probe_7_15",
+      "position_m": [
+        140.0,
+        300.0
+      ],
+      "direct_flight_seconds": 6.67,
+      "estimate_dbm": null,
+      "uncertainty_db": 15.0,
+      "supported": false,
+      "corridor_id": "middle",
+      "goal_distance_reduction_m": 100.0,
+      "approach_route": {
+        "available": true,
+        "length_m": 100.0,
+        "supported_fraction": 0.5,
+        "supported_above_reference_fraction": 0.0,
+        "max_supported_estimate_dbm": -98.77,
+        "model_predicted_max_dbm": null,
+        "model_prediction_is_not_observation": true
+      },
+      "ranking_is_heuristic": true
+    }
+  ],
+  "active_probe": null,
+  "recent_feedback": [],
+  "constraints": {
+    "geometry_and_energy_are_hard": true,
+    "interference_is_soft_cost": true,
+    "platform_failure_model": "not_implemented",
+    "no_online_code_execution": true
+  },
+  "preferred_planner": "rrt_star",
+  "decision_trigger": "initial",
+  "latest_observation": {
+    "position_m": [
+      40.0,
+      300.0
+    ],
+    "time_seconds": 0.0,
+    "interference_dbm": -98.77048340208765,
+    "directional_scan": {
+      "azimuth_deg": [
+        0.0,
+        15.0,
+        30.0,
+        45.0,
+        60.0,
+        75.0,
+        90.0,
+        105.0,
+        120.0,
+        135.0,
+        150.0,
+        165.0,
+        180.0,
+        195.0,
+        210.0,
+        225.0,
+        240.0,
+        255.0,
+        270.0,
+        285.0,
+        300.0,
+        315.0,
+        330.0,
+        345.0
+      ],
+      "power_dbm": [
+        -98.03114836349849,
+        -97.10300884621022,
+        -98.51671441701257,
+        -100.37664291300213,
+        -99.28478459607027,
+        -102.01877751557863,
+        -99.95371376174666,
+        -100.89493471153409,
+        -99.79460661499522,
+        -99.55021396708634,
+        -100.0168907098342,
+        -101.05898792005416,
+        -103.64279290444031,
+        -98.67306506458192,
+        -100.40706214241706,
+        -99.1201573772675,
+        -99.56235700778653,
+        -99.87923665627349,
+        -98.48001218099648,
+        -99.38357673095979,
+        -99.93461832951881,
+        -99.36049724292945,
+        -98.93896651670721,
+        -100.54159661671152
+      ],
+      "peak_indices": [],
+      "detection_threshold_dbm": -94.0,
+      "beamwidth_deg": 45.0,
+      "bearing_error_deg": 3.0,
+      "calibration_correlation_seconds": 5.0
+    },
+    "innovation_db": 1.229516597912351,
+    "supported_before": false,
+    "source_prediction_dbm": null,
+    "source_residual_db": null,
+    "source_revision": 0
+  },
+  "sensing_warning": {
+    "reasons": [],
+    "window_seconds": 5.0,
+    "power_rise_db": 0.0,
+    "detected_peak_dbm": null,
+    "review_power_dbm": null,
+    "meaning": "observations only; warning requests review, not a safety verdict"
+  },
+  "source_inference": {
+    "status": "unavailable",
+    "revision": 0,
+    "background_prior_dbm": -100.0,
+    "hypothesis": null,
+    "current_fit": {
+      "count": 1,
+      "rmse_db": 1.229516597912351,
+      "objective_db2": 0.7558555322709809,
+      "power_loss_db2": 0.7558555322709809,
+      "bearing_loss_db2": 0.0,
+      "bearing_fit": {
+        "scan_count": 0,
+        "block_count": 0,
+        "rmse_deg": null,
+        "loss": 0.0,
+        "worst_residuals": []
+      },
+      "worst_residuals": [
+        {
+          "position_m": [
+            40.0,
+            300.0
+          ],
+          "time_seconds": 0.0,
+          "measured_dbm": -98.77048340208765,
+          "predicted_dbm": -100.0,
+          "residual_db": 1.229516597912351
+        }
+      ]
+    },
+    "measurement_columns": [
+      "x_m",
+      "y_m",
+      "time_seconds",
+      "interference_dbm"
+    ],
+    "measurements": [
+      [
+        40.0,
+        300.0,
+        0.0,
+        -98.77048340208765
+      ]
+    ],
+    "measurement_count": 1,
+    "window_seconds": 35.0,
+    "recommended_source_model": "log_distance",
+    "public_propagation_model": {
+      "altitude_m": 30.0,
+      "carrier_frequency_hz": 2400000000.0,
+      "reference_distance_m": 1.0,
+      "path_loss_exponent": 2.2,
+      "obstacle_height_m": 20.0,
+      "obstacle_loss_db": 6.0,
+      "obstacles_m": [
+        [
+          280.0,
+          240.0,
+          360.0,
+          360.0
+        ],
+        [
+          520.0,
+          100.0,
+          580.0,
+          260.0
+        ]
+      ]
+    },
+    "source_fields": [
+      "center_m",
+      "eirp_dbm",
+      "height_m",
+      "velocity_mps"
+    ],
+    "new_point_checks": [],
+    "limits": {
+      "max_sources": 3,
+      "sigma_range_m": [
+        5.0,
+        1000.0
+      ],
+      "peak_range_dbm": [
+        -150.0,
+        0.0
+      ],
+      "max_speed_mps": 20.0,
+      "eirp_range_dbm": [
+        -150.0,
+        80.0
+      ],
+      "height_range_m": [
+        0,
+        100.0
+      ],
+      "max_bearing_rmse_deg": 45.0,
+      "bearing_weight_db2": 9.0,
+      "max_fit_rmse_db": 8.0,
+      "count_penalty_db2": 1.0
+    },
+    "bearing_validation": "observed peaks to nearest predicted blended peak; no source IDs; many-to-one matches allowed; absence of peaks is not negative evidence; correlated scans averaged in time blocks, not a calibrated likelihood",
+    "meaning": "source hypotheses only; fit is nonunique, model predictions are not observations; timestamps must be used; no inferred source birth/death or physical safety guarantee"
+  },
+  "source_refinement": {
+    "round": 1,
+    "max_rounds": 3,
+    "previous_evaluation": null
+  },
+  "stage_plan": null,
+  "execution_feedback": {
+    "previous_execution": null,
+    "interval": null,
+    "point_measurements": {
+      "count": 1,
+      "minimum_dbm": -98.77048340208765,
+      "maximum_dbm": -98.77048340208765,
+      "latest_dbm": -98.77048340208765,
+      "above_reference_count": 0,
+      "maximum_innovation_db": 1.229516597912351
+    },
+    "probe_event": null,
+    "meaning": "point observations and accepted execution only; no truth exposure or future field"
+  },
+  "remaining_budgets": {
+    "advisor_calls": 4,
+    "probes": 2,
+    "probe_flight_seconds": 12.0
+  },
+  "available_actions": [
+    "replan",
+    "probe"
+  ]
+}
