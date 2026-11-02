@@ -1,0 +1,9 @@
+name: uav
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - numpy>=1.26
+  - matplotlib>=3.7
+  - pillow>=9
+  - pytest>=8

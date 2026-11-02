@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+/temp/*
+!/temp/README.md
+!/temp/debug_full_pipeline.py
+!/temp/debug_full_pipeline.md
+/outputs/*
+!/outputs/README.md
+models/
+.idea/

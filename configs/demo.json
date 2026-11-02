@@ -1,0 +1,74 @@
+{
+  "seed": 7,
+  "map": {
+    "columns": 41,
+    "rows": 31,
+    "resolution_m": 20.0,
+    "start_m": [40.0, 300.0],
+    "goal_m": [760.0, 300.0],
+    "obstacles_m": [[280.0, 240.0, 360.0, 360.0], [520.0, 100.0, 580.0, 260.0]]
+  },
+  "aircraft": {
+    "speed_mps": 15.0,
+    "altitude_m": 30.0,
+    "flight_power_w": 350.0,
+    "hover_power_w": 300.0,
+    "initial_energy_wh": 100.0,
+    "reserve_energy_wh": 15.0,
+    "clearance_m": 5.0
+  },
+  "simulation": {
+    "step_seconds": 1.0,
+    "review_seconds": 10.0,
+    "minimum_review_seconds": 3.0,
+    "innovation_trigger_db": 7.0,
+    "warning_window_seconds": 5.0,
+    "warning_rise_db": 6.0,
+    "max_seconds": 180.0,
+    "decision_delay_seconds": 0.5,
+    "max_advisor_calls": 24,
+    "source_refinement_rounds": 3,
+    "astar_expansion_budget": 5000,
+    "rrt_attempt_budget": 700,
+    "max_probes": 2,
+    "probe_budget_seconds": 12.0
+  },
+  "electromagnetic": {
+    "carrier_frequency_hz": 2400000000.0,
+    "reference_distance_m": 1.0,
+    "path_loss_exponent": 2.2,
+    "obstacle_height_m": 20.0,
+    "obstacle_loss_db": 6.0,
+    "background_dbm": -100.0,
+    "measurement_noise_db": 0.5,
+    "interference_reference_dbm": -80.0,
+    "fields": [
+      {"center_m": [410.0, 390.0], "eirp_dbm": -2.0, "height_m": 1.5, "start_seconds": 0.0, "end_seconds": 200.0, "velocity_mps": [0.0, 0.0]},
+      {"center_m": [620.0, 350.0], "eirp_dbm": -5.0, "height_m": 1.5, "start_seconds": 24.0, "end_seconds": 200.0, "velocity_mps": [0.0, -0.4]}
+    ]
+  },
+  "belief": {
+    "support_radius_m": 40.0,
+    "max_age_seconds": 35.0,
+    "measured_error_db": 1.0,
+    "unknown_error_db": 15.0,
+    "error_per_meter_db": 0.08,
+    "error_per_second_db": 0.12,
+    "source_max_fit_rmse_db": 8.0,
+    "source_count_penalty_db2": 1.0,
+    "source_bearing_weight_db2": 9.0,
+    "source_max_bearing_rmse_deg": 45.0
+  },
+  "sensor": {
+    "mode": "power_bearing",
+    "azimuth_bins": 24,
+    "beamwidth_deg": 45.0,
+    "front_back_db": 25.0,
+    "detection_threshold_dbm": -94.0,
+    "minimum_excess_db": 3.0,
+    "minimum_contrast_db": 3.0,
+    "noise_db": 1.0,
+    "bearing_error_deg": 3.0,
+    "calibration_correlation_seconds": 5.0
+  }
+}
