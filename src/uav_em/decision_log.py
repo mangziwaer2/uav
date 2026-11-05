@@ -28,6 +28,12 @@ def render_decision_log(episode: dict) -> str:
             f"模型调用编号：{entry.get('advisor_call')} | 咨询实际耗时：{entry.get('advisor_seconds', 0):.3f} s",
         ])
         sensing_settings = context.get("directional_sensing", {})
+        propagation = context.get("source_inference", {}).get("public_propagation_model")
+        if propagation:
+            mode = propagation.get("propagation_mode", "log_distance")
+            lines.append("【电磁传播：" + ("自由空间距离衰减＋等效穿楼损耗＋单次墙／地面Fresnel反射；路径功率非相干叠加"
+                         if mode == "single_reflection" else "对数距离＋等效穿楼损耗") + "】")
+            lines.append("【测向提供来波角峰，不是源位置；反射来波可能不指向源，未知区域不因测向变成已测】")
         sensing = sensing_settings.get("recent_scans", [])
         if sensing_settings.get("available") is False:
             lines.append("【感知能力：仅当前位置功率测量，未配备测向阵列】")

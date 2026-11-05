@@ -1,14 +1,16 @@
 # 传播、范围感知与信息边界
 
-更新：2026-10-31。本文件说明阶段①的仿真基础，不增加新研究方向；后续优先级只在`current_roadmap.md`维护。
+更新：2026-11-03。本文件说明阶段①的仿真基础，不增加新研究方向；后续优先级只在`current_roadmap.md`维护。
+
+定高2.5D与外部数据新增协议见`environment_25d.md`：逐栋多边形棱柱和楼高可影响定高通行与传播；碰撞使用净空、传播使用原始楼体。以下默认源公式／360°测向描述适用于合成源后端；外部静态总功率图只支持点功率，不继承动态源脚本或伪造测向。实验定位为仿真数据方法验证，不要求实测设备，但不能写成已验证的实机能力。
 
 ## 1. 本轮修正什么
 
 旧环境只有局部高斯场和单点总功率。无人机可以收到逐渐增强的信号，但没有方向观测；单次innovation小于阈值时，持续上升还可能错过提前复核。因此不能只调整提示词，或要求LLM从没有收到的证据中判断前方源位置。
 
-当前默认环境改为：
+当前主入口`configs/demo.json`和`demo_25d.json`均使用本地合成时变源，不依赖外部功率图或Sionna。2026-11-03按用户最新要求收敛到普通建筑中的电磁干扰传播；Sionna仅保留为可选核查，不是LLM研究前提。当前主环境为：
 
-- 固定载频下的大尺度传播衰减，考虑源高、机高和简化建筑穿透。
+- 固定载频下的三维自由空间距离衰减，考虑源高、机高、等效穿楼损耗和一次墙／地面Fresnel反射。
 - 无人机同时接收本位置的总功率和360°波束功率快照，能在强干扰参考等值线外发现远源方向。
 - 多源先合成接收功率再检测，不把真实源个数、距离或位置作为传感器输出。
 - 新发现可检测方向、接收功率持续增强及首次越过软参考，可以提前请求决策；仍遵守最小复核间隔。
@@ -22,24 +24,47 @@
 
 “活动源”指真值脚本中当前正在辐射的隐藏源，不是被无人机发现、定位或激活的源。仿真器必须知道这些参数才能生成传感器读数；无人机／LLM／规划器只接收有噪观测，不能枚举真实源。左图源S是研究者评价信息，不是在线源列表。
 
-对每个活动源，中心随时间平移；三维传播距离由水平距离及机高与源高差计算：
+### 主模式：有限路径接收功率
+
+`electromagnetic.propagation_mode=single_reflection`。每个活动源的中心随时间平移，路径只包含直达／等效穿楼项，以及几何有效的一次外墙、庭院墙和地面反射。路径功率与多源贡献均在毫瓦域非相干叠加，背景只加一次：
 
 ```text
-d = max(sqrt(horizontal_distance² + (uav_altitude - source_height)²), d0)
-PL0 = 20 log10(4π d0 f / c)
-Pr_dBm = EIRP_dBm - PL0 - 10 n log10(d/d0) - blocked_prisms × obstacle_loss_dB
-I_dBm = 10 log10(10^(background_dBm/10) + Σ 10^(Pr_dBm/10))
+lambda = c/f
+direct_length = sqrt(horizontal_distance² + (uav_altitude - source_height)²)
+P_direct_mW = 10^(EIRP_dBm/10) × (lambda/(4π max(direct_length,d0)))² × 10^(-L_buildings_dB/10)
+P_reflected_mW = 10^(EIRP_dBm/10) × (lambda/(4π max(path_total_length,d0)))² × R_power
+I_dBm = 10 log10(10^(background_dBm/10) + Σ_sources(P_direct_mW + Σ_valid_reflections P_reflected_mW))
 ```
 
-`c=299792458m/s`。`PL0`使用自由空间参考损耗；`n`是经验距离损耗指数，不宣称ITU给出了本场景的2.2标定值。参考距离夹紧避免近场数值奇点，不是近场电磁求解。源贡献与背景在毫瓦域相加，绝不直接相加dBm；假设非相干或经过时间平均，不模拟相位干涉。
+`c=299792458m/s`。功率是同一窄观测频带内的平均总干扰，不是通信质量、信干噪比或精确瞬时场。参考距离夹紧避免数值奇点，不是近场求解。反射模式强制`path_loss_exponent=2`，不再叠加原经验指数2.2代表的额外距离损耗，避免未经解释的重复衰减。
 
-默认机高30m、源高1.5m、载频2.4GHz、参考距离1m、损耗指数2.2。两个源的EIRP分别为−2／−5dBm，保留原来的活动与运动脚本。它们是研究场景参数，不代表实际干扰器、接收机或无人机平台标定值。
+主配置机高30m、源高1.5m、载频2.4GHz、参考距离1m。两个源的EIRP仍为−2／−5dBm，第二源在24s出现并以`[0,-0.4]m/s`运动。保留原任务尺度与脚本，不通过改成已知固定源替代时变任务。参数是研究场景假设，不是设备标定。
 
-### 遮挡近似
+### 镜像法、材料与来波方向
+
+对每面有限竖直墙以及`z=0`平地，镜像源点，再与接收点连线求反射点。源和接收机须在反射平面同侧；墙反射点须落在实际墙段及楼高内，不取无限平面的虚假路径。反射前后两段均用原始三维楼体检查可见性，不能穿过反射楼自身、其他建筑或用飞行净空膨胀体代替墙。边角／墙顶退化反射不计入。
+
+材料采用空气入射、非磁性介质的Fresnel系数：
+
+```text
+epsilon_complex = epsilon_relative - i sigma/(2π f epsilon_0)
+q = sqrt(epsilon_complex - sin(theta)²)
+r_TE = (cos(theta)-q)/(cos(theta)+q)
+r_TM = (epsilon_complex cos(theta)-q)/(epsilon_complex cos(theta)+q)
+R_power = (|r_TE|² + |r_TM|²)/2
+```
+
+`theta`为相对表面法线的入射角；`epsilon_0=8.8541878128e-12F/m`。默认统一相对介电常数4、电导率0.005S/m，墙与地面暂用同一种材料；未标定，不冒充某类建筑材料的实测参数。TE／TM等权是无极化功率近似，不是完整极化跟踪。当前不含屋顶反射、多次反射、绕射、粗糙面散射或相干相位干涉；反射两段被楼体挡住就舍弃，不额外追踪穿透后再反射。
+
+**点测和测向使用同一组路径功率。** 直达来波方位指向源，反射来波指向最后的反射点；一个源可以产生多个角峰，多个源也可能混成一个峰。只有这些路径在接收机上的含误差合成波束进入观测，不返回源id、路径id、反射点、距离或坐标。不是简单给真源坐标加噪后交给LLM。
+
+### 穿楼与旧经验模式
 
 已知矩形按统一`obstacle_height_m`外推成竖直棱柱。接收点到源的三维线段穿过某棱柱时扣除一次`obstacle_loss_db`；多个棱柱累计。使用原始矩形，不把飞行净空膨胀当作建筑厚度。默认统一高度20m、每个棱柱损耗6dB，不是每米损耗，也不区分墙体材料。
 
-飞行规划仍保守禁止进入二维障碍投影，即使机高高于部分棱柱；传播几何和飞行净空约束是不同用途，不因此开放越障飞行。遮挡只衰减，不把障碍背后设成绝对不可检测。
+逐栋多边形楼体按自己的基底、高度和`loss_db`计算穿透项；这是整栋一次的等效衰减，不是由介电常数反推的逐层墙体透射。飞行使用独立的净空规则：`demo.json`仍为平面禁入；`demo_25d.json`按逐栋高度判断能否定高飞越。遮挡只衰减，不把楼后设成绝对无信号。
+
+`propagation_mode=log_distance`保留旧经验基线：`Pr=EIRP-20log10(4πd0f/c)-10nlog10(d/d0)-L_buildings`，不计算反射。为避免旧日志被重新解释，省略新增字段的配置和`ProjectConfig()`仍采用该模式及`n=2.2`；两个主JSON入口显式选择新模式和`n=2`。对照实验必须显式记录模式，不能直接把两版结果相减当LLM收益。
 
 ### 高斯合成基线
 
@@ -61,9 +86,9 @@ I_dBm = 10 log10(10^(background_dBm/10) + Σ 10^(Pr_dBm/10))
 采用归一化主瓣功率响应：
 
 ```text
-angular_error = wrap_to_[-180,180)(beam_azimuth + calibration_error - source_bearing)
+angular_error = wrap_to_[-180,180)(beam_azimuth + calibration_error - arrival_bearing)
 attenuation_dB = min(front_back_dB, 12 × (angular_error / full_half_power_beamwidth)²)
-beam_power_mW = background_mW + Σ source_received_mW × 10^(-attenuation_dB/10)
+beam_power_mW = background_mW + Σ_arrivals path_received_mW × 10^(-attenuation_dB/10)
 beam_measurement_dBm = 10 log10(beam_power_mW) + beam_noise_dB
 threshold = max(receiver_sensitivity, background_dBm + minimum_excess_dB,
                 median_scan_power_dBm + minimum_contrast_dB)
@@ -87,7 +112,7 @@ bias(initial) ~ Normal(0,sigma²)
 
 采用相关误差是为避免把相邻重复扫描误当独立证据，并非新增高精度测向算法。Smith等研究在功率增益变化中使用同类过程，不为此处的方位误差参数提供标定；3°与5s均是工程假设，不因采用随机过程就成为真实设备规格。
 
-**当前仍是直达路径主导的理想化测向。** 真源方位仅在传感器内部生成方向响应；建筑只减功率，不生成反射路径或改变来向。故只要检出，扇区仍常覆盖真源。这不能证明真实城市遮挡、多径下也如此准确，45°扇区也不是概率置信区间。本轮没有人为增加噪声来制造LLM优势，也没有实现多径或阵元IQ仿真。
+**当前主配置是有限路径的理想化测向。** 直达与有效一次墙／地面反射共同形成方向响应，强反射角峰可能不指向真源，不能根据扇区直接宣布源位置。旧`log_distance`模式仍为直达方位主导。二者均不能证明真实城市多径下的设备精度，45°扇区不是概率置信区间；本轮没有人为增大噪声制造LLM优势，也未实现阵元IQ、多次反射或绕射。
 
 波束中心不能当作精确AoA，15°离散、宽主瓣、标定噪声和多源混叠都造成方向不确定性。源正好位于机下时没有可定义的水平方位，采用无方向的平坦功率响应，不返回任意真实方位。
 
@@ -125,7 +150,7 @@ bias(initial) ~ Normal(0,sigma²)
 
 ## 5. 日志、回放与验收
 
-日志版本仍为干扰语义2，新增字段是可选扩展。每次观测保存完整扫描和预警依据；上下文提供`directional_sensing`和`sensing_warning`，明确测向硬件是否可用、相关时间及未模拟反射／阵元IQ。扫描摘要记录相关时间和最小峰间隔，可读日志提醒重复方向不是独立证据。新增`directional_scans`、`directional_detected_scans`、`sensing_warning_reviews`计数，均不是正确定位次数或LLM收益。旧日志只回放原记录，不补造新的传感器读数。
+日志版本仍为干扰语义2，新增字段是可选扩展。每次观测保存完整扫描和预警依据；上下文提供`directional_sensing`和`sensing_warning`，明确测向硬件是否可用、相关时间、是否包含一次反射及未模拟阵元IQ。扫描摘要记录相关时间和最小峰间隔，可读日志提醒重复方向不是独立证据。新增`directional_scans`、`directional_detected_scans`、`sensing_warning_reviews`计数，均不是正确定位次数或LLM收益。旧日志只回放原记录，不补造新的传感器读数。
 
 可读日志用中文列出接收到的方向、功率、预警原因，明确没有测距。左右回放叠加同一份橙色测向扇区和虚线：扇区来自当帧最新有效观测，左图便于与真源对照，不重新使用真源方位绘制；长度只为显示，**不是探测半径或已测区域**。左侧真源S仍只供研究者观察，未知灰色遮罩不因测向消失。
 
@@ -135,11 +160,13 @@ bias(initial) ~ Normal(0,sigma²)
 
 ## 6. 未实现与适用边界
 
-当前是可解释的大尺度传播＋理想化阵列功率观测近似，不是完整电磁仿真平台。尚无建筑材质与高度逐项标定、地形、天线极化／俯仰响应、相关阴影、多径／反射／绕射、相干叠加、真实阵列模糊、饱和与动态范围、脉冲／扫频干扰、传感器带宽及接收机热噪声分解、导航定位退化、转弯动力学或真实平台故障模型。噪声标准差、阈值与损耗未由实测数据校准，误差不是概率保证。
+当前是可解释的有限路径传播＋理想化阵列功率观测近似，不是完整电磁仿真平台。已有一次墙／地面反射，但尚无建筑材质与高度逐项标定、地形、天线极化／俯仰响应、相关阴影、多次反射、绕射、屋顶反射、相干叠加、真实阵列模糊、饱和与动态范围、脉冲／扫频干扰、传感器带宽及接收机热噪声分解、导航定位退化、转弯动力学或真实平台故障模型。噪声标准差、阈值与损耗未由实测数据校准，误差不是概率保证。
 
 实际模型墙钟耗时仍单独记账，仿真仅计固定决策悬停，不随本地模型运行几分钟而让场移动几分钟。规划仍采用当前地图快照，不是到达时刻的时空安全优化。不得把“发现提前了”写成“肯定能绕开”或“安全最优”。
 
 ## 7. 方法依据
+
+- Sionna RT Technical Report，Electromagnetic modeling与Radio maps：`https://nvlabs.github.io/sionna/rt/tech-report/S2.html`、`https://nvlabs.github.io/sionna/rt/tech-report/S4.html`。本项目参考自由空间路径系数、Fresnel反射和非相干功率叠加结构，独立实现有限路径标量近似；不声称移植完整Sionna求解器或通过与其数值一致性验证。
 
 - ITU-R P.525-5，*Calculation of free-space attenuation*，2024-11：自由空间参考损耗依据，不提供本项目的经验指数或建筑损耗标定。
 - Casey Smith、Haoming Yan、Osama Abdul Hafez、Jeremy Hopwood、Mathieu Joerger，*UAS-Based Radio Frequency Interference Localization Using Power Measurements*，ION ITM 2024，pp.1169–1183，DOI: `10.33012/2024.19570`：飞行接收功率与位置联合定位的实地研究，不是空间圆盘扫描。

@@ -1,20 +1,52 @@
 # 文档索引
 
-当前主线：无人机飞行中测量局部电磁干扰，更新地图与不确定性，由大语言模型（Large Language Model，LLM）辅助继续、重规划或主动补测。环境可随时间变化，但不以服务站或通信质量为核心。
+更新：2026-11-05。主线是普通建筑、未知时变电磁干扰中的非代码LLM辅助动态重规划。主环境不依赖真实设备、外部数据或Sionna；不要把可选工具、未来方向或历史试跑描述当当前能力。
+
+## 接手必读
+
+| 顺序 | 文档 | 负责内容 |
+|---|---|---|
+| 1 | `AGENT_HANDOFF.md` | 当前目录、能力、现存证据、测试缺口和下一步入口；不保留长历史时间线 |
+| 2 | `current_roadmap.md` | 唯一研究阶段与待办入口；后续代码生成、可选分支和模型评价的前提 |
+| 3 | `first_version.md` | 实际simulate流程、模型协议、源检验、预算和结果字段 |
+| 云端 | `CLOUD_HANDOFF.md` | 文件迁移、独立环境、GPU／权重检查、新实验和可复制命令 |
+| 当前训练 | `CLOUD_ALIGNMENT_HANDOFF.md` | 本地6GB真实OOM、step=0恢复点、地图＋测向数据迁移及云端续训命令 |
+
+根`../README.md`负责快速运行、目录与入口；`../AGENTS.md`负责维护约定。
+
+## 当前实现依据
 
 | 文档 | 用途 |
 |---|---|
-| `AGENT_HANDOFF.md` | 新agent接手：研究边界、代码、运行和版本区别 |
-| `CLOUD_HANDOFF.md` | 本次云端迁移：Linux复现、权重转移、真实失败证据及可复制的新agent任务 |
-| `first_version.md` | 实际流程、信息隔离、指标、协议与回放 |
-| `../temp/debug_full_pipeline.md` | 用户指定的完整流程调试入口：IDE／pdb断点、12阶段变量与真实模型环境说明 |
-| `simulation_foundation.md` | 当前传播／360°范围感知的公式、硬件假设、信息边界、预警与未实现项 |
-| `uav_sensing_reading.md` | 机载功率、阵列测向、区外干扰定位和无线电地图的实测论文、阅读入口及与代码的对应边界 |
-| `current_roadmap.md` | 非代码决策→局部代码生成的四阶段路线、收敛条件与开发验收清单 |
-| `electromagnetic_research_plan.md` | 干扰功率场、动态性与局部信息假设 |
-| `实践项目申请书.md` | 正式长期方案，不是已实现功能清单 |
-| `submissions/实践计划.docx` | 用户原始提交文件，未自动改写 |
+| `simulation_foundation.md` | 传播公式、一次Fresnel反射、波束、误差、信息边界与未实现物理机制 |
+| `environment_25d.md` | 楼高／庭院／净空、GeoJSON导入和静态功率图协议；历史夹具缺失已注明 |
+| `map_encoding.md` | 随机场景、多行为时序数据、任务B标签、小编解码器、云端命令与未实现的LLM／RL接口 |
+| `map_dataset_run_20261104.md` | 正式首版数据的实际路径、分组／覆盖、审核修正及真实训练记录 |
+| `map_codec_v2.md` | 数据集正式命名／迁移、v1分通道诊断、v2局部解码与边界目标、真实对照结果 |
+| `map_temporal_codec.md` | 固定v2的同区域时序保真、支持增失／功率变化误报、历史窗口导出与实际核查结果 |
+| `map_temporal_training.md` | 在v2上保留空间重建并增加差值／年龄／支持增失监督，validation选模与基线保留 |
+| `map_embedding_bridge.md` | 128个连续地图嵌入、实际时间投影、文字嵌入后拼接与尚未训练的LLM接口边界 |
+| `map_alignment_data.md` | 冻结原v2的两类区域问答、完整逐题审核、本地Qwen3-1.7B无梯度前向及未训练边界 |
+| `map_sensor_alignment.md` | 独立因果点测／测向证据、冻结LLM的投影训练、完整答案预算、OOM及云端恢复协议 |
+| `../configs/README.md` | 主配置与所有字段单位／限制；可选配置位于configs/optional |
+| `../temp/debug_full_pipeline.md` | 12阶段逐步调试、IDE／pdb断点和调用记录 |
+| `../outputs/README.md` | 当前现存数值验收、Git候选文件和已缺失历史证据 |
+| `../datasets/README.md` | 用户RadioMapSeer、缺失夹具、原始数据与默认主流程的关系 |
 
-参数见`../configs/README.md`，命令见根目录`README.md`，保留结果的场景版本见`../outputs/README.md`。原`llm_hierarchical_replanning_plan.md`内容已合并到`first_version.md`和`current_roadmap.md`，删除重复计划，不再维护另一份策略说明。
+## 可选工具与背景资料
 
-维护分工：入口与命令只在根目录；阶段与待办在路线文档；协议与代码流程在实现说明；环境假设及后期编码／代码方向在环境研究文档；接手文档仅汇总状态与入口。当前日志版本2；旧通信质量与历史天气结果不能当作本版实验，不恢复历史接口。用户原始提交文件保留不动。
+| 文档 | 状态 |
+|---|---|
+| `../tools/README.md` | 可选离线脚本新路径、用途和约束；不参与在线决策 |
+| `../configs/optional/README.md` | 4份外部／离线配置；不是主实验前提 |
+| `sionna_rt_environment.md` | 可选离线独立引擎；保留历史实算说明，但旧输出当前缺失 |
+| `uav_sensing_reading.md` | 感知论文及其与理想化传感器的适用边界，不是本项目参数标定 |
+| `electromagnetic_research_plan.md` | 环境量、信息边界和后续研究背景；不维护另一套执行路线 |
+| `实践项目申请书.md` | 长期正式申请书，不是已实现清单，不因本轮目录整理改写研究承诺 |
+| `submissions/README.md` | 用户原始提交文件保管规则；不自动改写或上传原件 |
+
+## 维护规则
+
+状态在交接、阶段在路线、协议在实现、公式在仿真基础、命令在根README／云端说明、证据在outputs索引。不要重复复制simulate、保存另一份待办或把测试全绿／模型成功写在未核查的历史数字上。
+
+当前只声称仿真。none、mock、local和回退分开记账；当前数值回放未调用LLM。原始输出和运行时哈希不因整理而改写，旧通信质量日志不作语义兼容。

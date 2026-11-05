@@ -1,120 +1,106 @@
-# 电磁干扰环境中的模型辅助无人机动态重规划
+# 未知电磁干扰环境中的LLM辅助无人机决策
 
-当前主线：无人机在部分可观测、可随时间变化的电磁干扰环境中飞行，局部测量并更新地图，由大语言模型（Large Language Model，LLM）辅助决定继续、重新规划或主动补测。项目不以通信服务站、信号覆盖或持续连接为核心。
+更新：2026-11-05。研究核心是**地图不确定性下的非代码LLM辅助动态重规划**。新增离线地图编码基础，不将编解码本身当作研究终点，也不扩展完整电磁求解器或无模型路径算法竞赛。
 
-## 接手入口与研究顺序
+## 当前状态
 
-新agent从`docs/AGENT_HANDOFF.md`开始，再读`docs/current_roadmap.md`与`docs/first_version.md`。当前顺序为：①完成非代码LLM的阶段计划—传统求解—执行反馈闭环；②在此基础上实现受限局部代码生成，验证有效后再考虑收敛为项目核心；③中断穿越、增量规划和门控为独立可选分支；④模型评价及可选调优不依赖代码生成成功。详细前提与验收只在路线文档维护。
+- 普通建筑、30m定高、未知多干扰源；支持源出现、消失、平移和功率叠加。
+- 主配置采用三维自由空间衰减、等效穿楼损耗、一次墙／地面Fresnel反射；不依赖Sionna、外部数据或GPU。
+- 无人机在当前位置接收总干扰功率和含误差360°波束；反射来波不一定指向源，没有测距或空间圆盘扫描。
+- 每次有效观测更新belief，LLM可建议继续、重规划、补测及源假设；传统RRT*求解并复核，A*仅作对照。
+- 环境量为总接收干扰功率dBm，越大越强。−80dBm只是软参考，不是禁飞、失联或损伤阈值。
+- 当前新传播环境只验收了无模型闭环；没有完成新环境下真实LLM效果实验，不将到达或回退成功当作模型收益。
 
-2026-10-30按用户要求优先回到仿真基础：默认启用三维距离损耗、简化建筑遮挡和机载360°含噪测向；先验证信息边界与提前复核，再继续LLM策略研究。模型和代码生成方向不取消，但不在本轮扩展。建模依据、参数假设及未实现项见`docs/simulation_foundation.md`。
-
-感知现支持`power_only`与`power_bearing`载荷开关、时间相关方位误差和主瓣内角峰去重；仍是未经设备标定的直达路径主导近似，不宣称已复现城市多径。建议先读`docs/uav_sensing_reading.md`中的机载实测论文及适用边界。2026-10-31源假设已适配公开传播模型，加入功率／方向联合检验与新观测方向失配复核；观测不直接给源坐标，仍由LLM提出待检验假设。
-
-已有本地Qwen3-1.7B接口及小规模真实试跑，不是尚无模型接口，也不是已证明模型收益。云端更强模型属于后续部署，当前没有远程推理客户端。局部观测造成错误航路是研究动机，不足以证明换模型就能解决。
-
-## 云端接手与目录
-
-云端新agent先读`AGENTS.md`、`docs/AGENT_HANDOFF.md`、`docs/current_roadmap.md`、`docs/first_version.md`，再按`docs/CLOUD_HANDOFF.md`建立Linux环境并接续工作。云端先保持Qwen3-1.7B与默认仿真配置；更多显存不等于输入上限自动放开，也不等于源推断已验证。
-
-本次执行环境`.git`只读且无法连接GitHub，整理好的文件尚未提交／推送；用户需按`docs/CLOUD_HANDOFF.md`第0节在本机终端发布，并把最终提交号交给云端agent。
+## 目录
 
 ```text
-src/uav_em/              正式闭环、观测、地图、源检验、LLM接口与规划
-src/run_experiment.py    正式实验入口
-src/replay_experiment.py 离线回放入口
-configs/                场景配置与中文参数说明
-tests/                  完整回归测试，不需要模型权重
-docs/                   研究路线、实际实现、云端交接与论文阅读
-temp/                   仅指定调试脚本、说明与README入库
-outputs/                三份精选复现证据入库，新实验默认忽略
-models/                 权重另行传输，不入库
+AGENTS.md                    agent维护约定
+requirements.txt             基础仿真、绘图和测试依赖
+requirements-llm.txt         可选真实本地LLM依赖，不是锁文件
+requirements-rt.txt          可选离线Sionna依赖，须用独立环境
+requirements-map.txt         可选小地图编解码器训练依赖
+pytest.ini                   只收集tests，避免扫描temp中的环境和缓存
+configs/
+  demo.json                  平面矩形建筑主配置，显式single_reflection
+  demo_25d.json              按逐栋楼高判断通行的定高主配置
+  map_encoding.json          随机场景、三类行为采集及地图训练配置
+  optional/                  外部功率图、地图导入与Sionna离线配置
+src/
+  run_experiment.py          正式实验入口
+  replay_experiment.py       从episode离线绘图／回放
+  uav_em/                    唯一正式仿真、感知、belief、模型和规划实现
+tools/                       离线建筑／RT工具及地图数据、训练、编码检查入口
+tests/                       基础及接口测试，不加载真实LLM或射线引擎
+docs/                        当前交接、路线、协议、公式和论文资料
+temp/debug_full_pipeline.py  保留给逐步调试的入口，直接调用正式simulate
+outputs/                     实验记录；只显式选定的小部分证据列入Git候选
+datasets/                    正式机载地图数据interference_onboard_maps_v1，以及用户RadioMapSeer
+models/                      用户本地权重，不上传、不移动、不删除
 ```
 
-基础依赖可用`python -m pip install -r requirements.txt`安装；可选推理依赖仍在`requirements-llm.txt`，先确认云端CUDA环境再安装，不盲目替换服务商的PyTorch。模型、其他历史结果、GIF、第三方缓存、原始docx及根目录`uav.zip`本地保留但不上传。旧压缩包不是本次迁移版本；Git仓库与单独转移的权重才是接手来源。下方历史输出不一定包含在克隆中，优先使用云端交接列出的三份证据。
+不要扫描、清空或迁移整个`temp/`：其中包含用户／第三方缓存及独立Python环境。旧项目不恢复、不新建归档。
 
-## 当前实现与研究边界
+## 快速开始
 
-- 定高二维几何地图，已知起终点和矩形障碍；隐藏干扰场支持固定、移动、出现和消失。
-- 环境量为同一抽象观测频带的总干扰功率，单位dBm，数值越大干扰越强；背景和各源在线性功率域叠加。不是信噪比、故障概率或平台损伤模型。
-- 每轮接收当前位置总功率和远源360°波束功率，具备有灵敏度、角分辨率和噪声的范围感知；没有直接测距或周围网格真值扫描。测向不把远处格子标成已测，附近彩色区域仍是局部外推。
-- 主规划器为渐近最优快速探索随机树（Rapidly-exploring Random Tree Star，RRT*）；A星搜索（A* Search）仅为可选网格对照。二者目前都重新搜索，未实现增量修复。
-- 周期复核、测量偏差、首次测向发现、持续增强、越过软参考及补测完成／到期可触发决策；没有观测到的变化不会被隐藏真值提前告知模型。
-- 模型可建议行动、代价偏好、规划器和随机树候选采样盒；严格解析、几何及能量复核、失败回退。模拟响应不等于真实模型。
-- 模型可附阶段目标、关注分区、待验证假设和修订条件；下一轮接收实际执行、区间点测、补测与求解反馈。计划仅记忆与单步执行，不自动运行长计划；回退或覆盖不会记成模型计划成功。
-- 模型可提出0至3个干扰源的位置、EIRP、源高和恒速运动假设；数值层用时间戳功率／测向观测联合检验，反馈修订并更新预测地图，保留显式高斯合成基线。不是读取隐藏源、自动定位或代码生成；拟合好不证明定位真实。
-- 干扰暴露为软目标；无频谱传播标定、导航失效、通信中断时长、转弯动力学或真实飞行安全保证。评测、调优、门控训练和代码生成后置。
+从项目根目录使用Python 3.10以上的独立环境：
 
-## 运行
-
-```powershell
-# 无模型数值基线：默认RRT*
-& 'E:\Miniforge\envs\uav\python.exe' src\run_experiment.py --advisor none --gif
-# 固定模拟响应，仅检查工程闭环，不是模型能力展示
-& 'E:\Miniforge\envs\uav\python.exe' src\run_experiment.py --advisor mock --gif
-# 真实本地模型，默认生成不限时，使用配置中的调用预算；输出错误会被记录，不悄悄修复
-& 'E:\Miniforge\envs\toolkit\python.exe' src\run_experiment.py --advisor local --output-dir outputs\interference_local_trial --gif
-# A星搜索仅作为可选对照
-& 'E:\Miniforge\envs\uav\python.exe' src\run_experiment.py --advisor none --planner astar
-# 离线回放已有结果，不重新运行模型
-& 'E:\Miniforge\envs\uav\python.exe' src\replay_experiment.py outputs\localized_local_seed7\episode.json --output outputs\localized_local_seed7\replay.gif
-
-# 对已有真实模型日志生成易读版，不重新推理或规划；1倍仿真时间，每次决策额外停顿3秒
-& 'E:\Miniforge\envs\uav\python.exe' src\replay_experiment.py outputs\interference_stage_plan_local_actions_seed7_20261027\episode.json --output outputs\interference_stage_plan_local_actions_seed7_20261027\replay_slow.gif --speed 1 --decision-pause 3
-# 测试
-& 'E:\Miniforge\envs\uav\python.exe' -m pytest -q -p no:cacheprovider
+```bash
+python -m pip install -r requirements.txt
+python temp/debug_full_pipeline.py --config configs/demo_25d.json --advisor none --plot --gif
+python -m pytest -q -p no:cacheprovider
 ```
 
-用户指定的逐步调试入口为`temp/debug_full_pipeline.py`，默认不加载模型，直接复用正式闭环。先运行`E:\Miniforge\envs\uav\python.exe temp/debug_full_pipeline.py --advisor none --plot`；在`PipelineDebugger.__call__`查看阶段数据，或从`main`步入`simulate`。IDE、命令行断点、12阶段和真实模型环境说明见`temp/debug_full_pipeline.md`。2026-11-02本机`toolkit/python.exe`启动失败，临时使用现有推理包的显式进程内方案也在该说明中，未修复或修改环境。
+Windows本机已有基础解释器：`E:\Miniforge\envs\uav\python.exe`。云端创建自己的环境，不复制该路径、Windows虚拟环境或toolkit混用设置。
 
-配置为`configs/demo.json`。结果含`episode.json`、`metrics.json`、`decision_log.txt`、`summary.png`，`--gif`生成回放；不同实验请指定不同输出目录。`decision_log.txt`为运行结束后生成的中文可读日志，展示每次决策的可见上下文、原始输出、实际接受行动、传统求解摘要及失败／回退；新本地模型调用另记录含聊天模板的分词前实际输入文本，不伪造旧日志缺失的提示词。该日志不是实时输出。
+调试入口每次自动创建新的`outputs/interference_debug_后端_时间戳/`，不会覆盖旧结果。正式实验入口的默认输出目录会复用；使用它时必须显式指定未使用过的`--output-dir`，不要覆盖证据。具体参数可用`--help`查看。
 
-本地模型默认取消生成墙钟时限，优先检查完整输出和闭环行为；保留最大输入8000词元、最大输出1024词元及配置中的调用上限。默认每决策点最多3轮源假设咨询、任务最多24次调用，每轮都计入预算；源字段省略则单轮结束。此前实验的8次／512词元预算仍按原记录解释。只有显式传入`--model-timeout 120`才启用120s生成软时限，该值必须有限且大于0，不是硬超时。不限时也不保证JSON完整。模型耗时仍如实记录，本地慢速运行不直接作为模型决策能力结论，后续云端4090上在统一模型、精度和输入条件下再测运行时间。
+逐步调试：
 
-源假设闭环为“点测→旧预测残差→LLM提议→数值拟合反馈→有限轮修订→当前预测图→传统规划→新点检验”。补测只增加实际飞到位置的点测量；未测区域即使有预测仍保留未知标记和误差。默认RRT*仍按当前快照搜索，不按未来到达时刻预测整条航路，更不保证强干扰禁入。源协议、各轮日志和局限见`docs/first_version.md`第2节，配置含义见`configs/README.md`。当前传播／测向协议与旧高斯接口均已有真实诊断，但尚无真实源提议或推断收益；失败原因与场景版本须分别解释。
+```bash
+python temp/debug_full_pipeline.py --config configs/demo_25d.json --advisor none --pause-at observation_received --pause-at source_evaluated
+```
 
-## 初期场景与最近运行
+IDE断点、12个阶段和字段说明见`temp/debug_full_pipeline.md`。`--advisor mock`只是固定响应夹具，`--advisor local`才加载真实模型；本地默认不限制生成墙钟时间，调用、输入和输出词元预算仍有限。
 
-2026-11-02完成当前传播／含误差测向协议的真实Qwen3-1.7B短诊断，见`outputs/interference_source_local_debug_20261102/review.md`：4次调用中2次完整响应，首次方向发现时显存不足，下一轮8736词元超8000输入上限；源提议／数值评价均0。9次决策含7次失败／预算回退，虽最终到达，也不能称为全程模型优化成功。前2次没有可检测角峰，不能据此判断模型拒绝利用方向证据。逐调用原文、审计和85.52s慢速GIF已保存；下一步先受控验证输入精度压缩及资源条件，不增加训练或代码执行。
+## 运行闭环与信息边界
 
-同日无模型完整调试结果为`outputs/interference_debug_numeric_20261102/`：53次观测、8次决策、755.073m到达、超参考飞行暴露3.746s。仅作流程基线，不与不同传感器／传播版本比较证明收益。当前全量测试251项通过。
+```text
+隐藏时变源＋建筑 → 传播路径 → 当前点功率／含误差波束
+ → 更新前innovation与旧源预测检查 → belief更新
+ → 周期／观测事件复核 → 可见上下文 → 数值策略或LLM提议
+ → 源假设检验／可选反馈修订 → RRT*／可选A*＋几何能量复核
+ → 执行短航段 → 再测量
+```
 
-2026-10-29完成新源接口真实检查：`outputs/interference_source_local_seed7_20261029/`。默认24次／1024输出词元／生成不限时，实际6次完整响应，0失败／回退；但全部省略源字段，源提议／接受均0。27.167s已收到−65.85dBm，仍给泛化计划，因此源拟合反馈和多轮细化未被真实触发。航程761.939m、超参考飞行暴露18.382s，与前次轨迹完全相同，不是源推断成功。逐轮证据、可读日志和慢速GIF已保存，详见该目录`review.md`。另有离线词元计数：保留3位小数可将强干扰轮6245降至4731词元，但未改实际输入或验证决策效果，不是已训练地图编码器。
+仿真器知道真值以生成测量；模型和规划器不能读取隐藏源、未来脚本或未观测全图。左图是研究者真值，右图是机载估计；40m是局部估计支持半径，不是传感器扫描半径。每次有效测量都更新地图，innovation用于复核而不是地图更新开关。
 
-2026-10-29完成扩展源接口之前的不限时真实闭环检查：`outputs/interference_local_unlimited_seed7_20261029/`。当时默认8次调用预算实际使用6次，均完整输出并实际执行，0失败／覆盖／回退。27.167s模型已收到强干扰点测和区间反馈，但补测后的5次原始响应完全相同，未展示针对性策略修订；不能称为模型优化有效。本次航程761.94m、超参考飞行暴露18.38s，非同预算收益对照。完整逐轮分析见该目录`review.md`，可读输入输出见`decision_log.txt`，慢速动画见`replay.gif`；此前失败记录保留不覆盖。
+## 当前可用记录与已知缺口
 
-以下2026-10-29及更早结果使用高斯合成场，曾将尺度85／65m缩小为35／30m。2026-10-30默认场已改为有源高、EIRP、三维距离衰减与棱柱损耗的传播场，不能拿两种环境的航程或暴露直接比较证明收益；新场仍离线检查起终点和可绕通道，不向模型泄漏真值。
+当前实际存在的数据、审核和训练结果见`outputs/README.md`。2026-11-04复查时此前none导航记录及上午地图冒烟输出已缺失，不继续把历史路径列为现存证据，也不从Git恢复。
 
-2026-10-22，同一新版场景、种子7、默认随机树预算的实际运行：
+当前测试结果及地图管线冒烟限制见`docs/AGENT_HANDOFF.md`。仍有两个既有可选夹具缺失：`datasets/example_power_grid.json`和`datasets/example_buildings_local.geojson`；主配置不依赖它们，没有跳过失败或补造数据。
 
-| 后端 | 航程 | 超参考值飞行暴露 | 模型调用／失败／回退 | 输出目录 |
-|---|---:|---:|---|---|
-| 无模型数值基线 | 756.38m | 16.70s | 0／0／0 | `outputs/localized_numeric_seed7/` |
-| 真实本地模型 | 799.59m | 23.73s | 7／1／1 | `outputs/localized_local_seed7/` |
+旧三份精选诊断和此前RT输出已不在当前工作区，不当作现存证据，也未从Git历史恢复。Git当前存在未提交改动与删除；本轮目录整理不等于已经提交／上传。
 
-两组均到达，均未使用A星搜索；本地模型调用上限8次，包含2次补测，1次无效补测目标导致回退。本案例**没有证明模型优化收益，也没有实现强干扰禁入**。有可绕路径不等于部分观测下当前策略能找到它；干扰仍为软代价，单点测量也不能预知远处场边界。下一步应研究已观测强干扰避让与未知区域补测，而不是以到达说明安全。暴露不含悬停，参考值不代表真实中断或平台损伤阈值。目录中的旧大尺度场结果不能与新场直接比较来证明模型提升。
+## 阅读顺序
 
-2026-10-27新增非代码阶段计划真实接口试跑：`outputs/interference_stage_plan_local_actions_seed7_20261027/`。Qwen3-1.7B实际调用3次，前两次完成补测和反馈后重规划、计划创建与修订，第三次输出不完整JSON触发回退；包含完整输入输出、`decision_log.txt`、`summary.png`和`replay.gif`。该次航程762.37m、超参考飞行暴露19.03s，属于接口验证而非同预算收益证明；具体预算与失败见`outputs/README.md`。不以试跑到达宣称安全或模型有效。
+1. 新agent先读`docs/AGENT_HANDOFF.md`、`docs/current_roadmap.md`、`docs/first_version.md`。
+2. 云端接手读`docs/CLOUD_HANDOFF.md`；只按当前路线继续非代码LLM源反馈检查。
+3. 公式与近似读`docs/simulation_foundation.md`，参数读`configs/README.md`。
+4. 可选工具读`tools/README.md`，其他资料读`docs/README.md`。
 
-## 回放判读
+## 地图编码基础
 
-左图为同一时刻完整干扰真值，仅研究者可见，黑色叉号S1、S2表示活动源位置；黑色虚线为总干扰功率达到配置参考值的等值边界，不是禁飞轮廓。右图不展示隐藏源；两图叠加同一份日志中的橙色接收波束扇区／虚线，便于对照实测方向与真实源。扇区长度仅为显示，不是探测半径或已测区域，左图也不改用真实源方位绘制扇区。
+随机2.5D场景＋goal／coverage／revisit三类独立采集，保存当时可见地图并按场景分组；小Transformer编解码器训练与时序token检查入口见`docs/map_encoding.md`。正式首版配方`configs/map_encoding_full.json`为120场景／720轨迹，先使用`tools/audit_map_dataset.py --require-coverage`逐帧审核，再用`tools/train_map_autoencoder.py --require-quality`训练。生成支持`--workers`，所有工具提供`--help`。
 
-浅黄到红表示强度，灰色表示未知／过期。右图青色斜线表示有测量支持的强干扰估计区域，左图青色斜线表示该估计区域与真实干扰区域的重合，仅用于事后对比。青色圆点才是有效年龄内实际测得强干扰的位置，不能把整片斜线视为直接扫描。深色矩形为几何障碍，蓝实线为执行轨迹，青虚线为剩余计划，洋红框为候选采样区域。
+当前实现独立地图／时序约束训练、任务B、区域问答、独立测向证据及冻结LLM主体的地图投影／时间层训练。此前Qwen3-1.7B短forward接线通过；本轮完整输入／答案训练在6GB设备上遇真实CUDA OOM，完成优化器步数0，尚无完整地图回答或RL，不改变正式在线闭环。云端继续见`docs/CLOUD_ALIGNMENT_HANDOFF.md`；不启用代码生成、门控、中断穿越或三维航路优化。
 
-有有效源假设的新日志，右图增加紫色H三角和紫色预测参考等值线，绝不是左图的真实S源。未测预测区使用半透明灰色遮罩，仍不是观测支持区。源拟合失效或过期时撤去预测展示；旧版本2日志没有这些字段时保持原回放，不伪造模型推测。
+正式数据统一命名为`datasets/interference_onboard_maps_v1/`，先读其中DATASET_CARD.md；`previews/goal/`与`previews/revisit/`有6通道／4帧历史／任务B图片、1倍速GIF及Excel可读CSV。预览不需要模型，其他轨迹用`tools/preview_map_dataset.py`。原始数据及v1训练记录见`docs/map_dataset_run_20261104.md`；当前编解码改进配置为`configs/map_encoding_v2.json`，方法与实际结果见`docs/map_codec_v2.md`，不变更原始数据版本或划分。
 
-已移除底部技术状态文字，顶部两行说明最近触发、实际行动、最近点测与阶段目标／暂停状态；金色菱形标记当前补测目标。模型响应失败或预算耗尽会明确显示数值回退，不把回退误记为模型计划成功。完整算法、原因和原始输入输出仍见`decision_log.txt`。
+同一区域时序保真工具为`tools/audit_map_temporal_codec.py`，默认固定权重检查validation，输出支持增失／功率变化、功率差／年龄差及原图／重建对照。实际1,731道任务核查与剩余功率变化误报见`docs/map_temporal_codec.md`。历史窗口导出新格式包含全部有效位重建，仍是逐帧空间编码，不代表已训练时序模块或LLM。
 
-GIF默认按仿真时间1倍播放，每个决策帧额外停顿2秒；`--speed 0.5`更慢，`--decision-pause 3`增加阅读停顿。`--stride`只减少绘制帧数，仍保留决策帧并按时间戳分配时长，不再用抽帧实现加速。实验入口`--gif`对应参数为`--gif-speed`、`--gif-decision-pause`。左图只因环境脚本而变化，不因探测而变化；右图因测量和数据老化而更新。回放时间及阅读停顿均不代表真实模型推理耗时。
+时序约束微调入口`tools/train_map_temporal_autoencoder.py`，配方`configs/map_encoding_temporal.json`，已完成12轮、选第8轮；变化格差值与召回改善，但误报增加，候选不自动取代v2，结果见`docs/map_temporal_training.md`。连续嵌入接口见`docs/map_embedding_bridge.md`：4帧映射至128个地图向量位置，实际时间单独编码；短前向已接通，完整对齐尚未完成。
 
-`profile`是传统路径代价的预设权重，不是模型配置；当前输入是最多35个粗采样点、走廊与航路等结构化摘要，加上有上限的时间戳测量／源假设反馈，不是完整栅格。历史阶段计划试跑的词元分布见`docs/first_version.md`第3节；本轮扩展了可选源协议，未训练地图编码器，也未证明词元减少。
+独立点测／测向位于`datasets/interference_sensor_evidence_v1/`，612条轨迹、30,843次扫描，所有19,606个问答窗口的因果检查通过，不重训六通道编码器。先看其中`samples/validation.json`。训练入口`tools/train_map_alignment.py`、配方`configs/map_alignment.json`及协议`docs/map_sensor_alignment.md`包含完整答案预算、提示／地图标签屏蔽、冻结检查与恢复；真实本地OOM现场和step=0恢复点已单独保留。
 
-当前默认输出前缀为`interference_`（干扰）。此前的`em`是Electromagnetic（电磁）的缩写，指当前方向，不是旧项目；为减少歧义已改名。代码包`uav_em`仍属于当前实现。
-
-## 目录与版本
-
-`src/uav_em/`为当前实现，两个入口位于`src/`；`configs/`为配置，`tests/`为测试，`docs/`为研究说明及申请书，`models/`保留用户权重。`docs/submissions/`原始提交材料未自动改写。用户要求直接删除旧项目，不再保留归档；2026-10-22复查时`archive/`及`outputs/local_qwen_schema_smoke/`已不在工作区，不再列为待删。此前自动删除被策略拒绝，不声称由本次操作删除。模型、用户提交材料和外部缓存不在删除范围。
-
-当前日志为`schema_version=2`。已有通信质量实验属于旧版，不能与本版干扰暴露指标直接比较，也不能换标签当作本版回放。旧通信质量日志不能当作当前结果，回放入口明确拒绝。新agent先读`docs/AGENT_HANDOFF.md`，数据流程见`docs/first_version.md`，字段见`configs/README.md`。
-
-文档索引见`docs/README.md`，结果版本见`outputs/README.md`。重复策略计划已并入实现说明和研究路线，不保留第二套待办。`temp/`为可再生缓存，已有第三方占用／权限未知的目录不强删；`models/`与用户提交材料保留。忽略规则不再排除整个`docs/`目录，后续若初始化版本管理，研究说明应随代码维护。
+本轮固定原v2作为接口基线，已生成并逐题审核`datasets/interference_map_alignment_v1/`：训练16,144题／验证3,462题，六通道区域还原与时序比较两类。先看其中DATASET_CARD及samples；输入和答案分离。真实模型接线结果与复现命令见`docs/map_alignment_data.md`，只证明一次forward可运行，不证明随机投影器已经理解地图。

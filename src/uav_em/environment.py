@@ -8,8 +8,10 @@ import math
 import numpy as np
 
 from .config import MapConfig, ProjectConfig
-from .propagation import source_received_dbm
+from .propagation import PropagationModel, source_received_dbm, source_arrivals
 from .sensing import DirectionalReceiver, DirectionalScan
+from .buildings import Building
+from .power_grid import PowerGrid
 
 
 @dataclass(frozen=True)
@@ -23,20 +25,33 @@ class Measurement:
 
 
 class Geometry:
-    """已知平面障碍；线段与膨胀矩形作精确几何相交检查。"""
+    """矩形平面禁入区与已知多边形楼体；定高切片含水平／竖直净空，不优化高度。"""
 
-    def __init__(self, config: MapConfig, clearance_m: float = 0.0):
+    def __init__(self, config: MapConfig, clearance_m: float = 0.0,
+                 altitude_m: float | None = None, vertical_clearance_m: float = 0.0):
         self.config = config
         self.high = np.array([(config.columns - 1) * config.resolution_m,
                               (config.rows - 1) * config.resolution_m])
         self.boxes = [(np.array(box[:2]) - clearance_m, np.array(box[2:]) + clearance_m)
                       for box in config.obstacles_m]
+        if config.geometry_mode == "fixed_altitude" and altitude_m is None:
+            raise ValueError("fixed_altitude geometry requires aircraft altitude")
+        self.clearance_m = clearance_m
+        self.buildings = tuple(Building.from_dict(item) for item in config.buildings)
+        self.blocking_buildings = tuple(item for item in self.buildings if config.geometry_mode == "planar"
+                                       or item.blocks_altitude(altitude_m, vertical_clearance_m))
+        self.building_bounds = tuple((np.min(item.footprint_m, axis=0) - clearance_m,
+                                      np.max(item.footprint_m, axis=0) + clearance_m)
+                                     for item in self.blocking_buildings)
 
     def free(self, point) -> bool:
         point = np.asarray(point, dtype=float)
         return bool(point.shape == (2,) and np.all(np.isfinite(point))
                     and np.all(point >= 0) and np.all(point <= self.high)
-                    and not any(np.all(point >= low) and np.all(point <= high) for low, high in self.boxes))
+                    and not any(np.all(point >= low) and np.all(point <= high) for low, high in self.boxes)
+                    and not any(np.all(point >= low) and np.all(point <= high)
+                                and item.segment_blocked(point, point, self.clearance_m)
+                                for item, (low, high) in zip(self.blocking_buildings, self.building_bounds)))
 
     def edge_free(self, start, end) -> bool:
         if not self.free(start) or not self.free(end):
@@ -56,6 +71,11 @@ class Geometry:
                     enter = max(enter, min(first, second))
                     leave = min(leave, max(first, second))
             if enter <= leave:
+                return False
+        for item, (low, high) in zip(self.blocking_buildings, self.building_bounds):
+            if np.any(np.maximum(start, end) < low) or np.any(np.minimum(start, end) > high):
+                continue
+            if item.segment_blocked(start, end, self.clearance_m):
                 return False
         return True
 
@@ -77,7 +97,10 @@ class ElectromagneticWorld:
     def __init__(self, config: ProjectConfig):
         config.validate()
         self.config = config
-        self.geometry = Geometry(config.map, config.aircraft.clearance_m)
+        self.geometry = Geometry(config.map, config.aircraft.clearance_m, config.aircraft.altitude_m,
+                                 config.aircraft.vertical_clearance_m)
+        self.power_grid = PowerGrid(config.electromagnetic.power_grid) if config.electromagnetic.power_grid is not None else None
+        self.propagation = PropagationModel.from_config(config)
         if not self.geometry.free(config.map.start_m) or not self.geometry.free(config.map.goal_m):
             raise ValueError("start or goal intersects geometry or is outside map")
         self.random = np.random.default_rng(config.seed)
@@ -98,10 +121,12 @@ class ElectromagneticWorld:
     def truth(self, points, time_seconds: float):
         """合成总干扰功率，dBm；背景和各源在线性毫瓦域叠加，无服务站。"""
         points = np.asarray(points, dtype=float)
+        if self.power_grid is not None:
+            return self.power_grid.sample(points)
         electromagnetic = self.config.electromagnetic
         interference = np.full(points.shape[:-1], 10 ** (electromagnetic.background_dbm / 10))
         for _, center, item in self._active_fields(time_seconds):
-            interference += 10 ** (source_received_dbm(points, center, item, self.config) / 10)
+            interference += 10 ** (source_received_dbm(points, center, item, self.config, self.propagation) / 10)
         result = 10 * np.log10(interference)
         return float(result) if result.ndim == 0 else result
 
@@ -117,9 +142,8 @@ class ElectromagneticWorld:
             return Measurement(tuple(float(value) for value in position), float(time_seconds), float(measured))
         contributions, bearings = [], []
         for _, center, source in self._active_fields(time_seconds):
-            contributions.append(float(source_received_dbm(position, center, source, self.config)))
-            delta = center - position
-            bearings.append(float(np.degrees(np.arctan2(delta[1], delta[0])) % 360)
-                            if np.linalg.norm(delta) > 1e-6 else None)
+            for arrival in source_arrivals(position, center, source, self.config, self.propagation):
+                contributions.append(float(arrival.power_dbm))
+                bearings.append(float(arrival.bearing_deg) if np.isfinite(arrival.bearing_deg) else None)
         scan = self.receiver.scan(contributions, bearings, time_seconds)
         return Measurement(tuple(float(value) for value in position), float(time_seconds), float(measured), scan)

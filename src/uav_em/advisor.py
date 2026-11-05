@@ -160,7 +160,9 @@ def build_prompt(context: dict) -> str:
         "reference_seconds必须等于本轮time_seconds。sources可为空，至多3项，每项只有"
         "center_m、eirp_dbm、height_m、velocity_mps，分别为推测位置m、频带内辐射功率dBm、源高m、速度m/s，"
         "具体限制见source_inference.limits。背景已由先验固定，不输出背景或源出现消失脚本。"
-        "数值层用public_propagation_model中的公开距离损耗和遮挡近似计算候选源的接收功率，毫瓦叠加；"
+        "数值层用public_propagation_model中的公开传播模式计算候选源接收功率，毫瓦叠加；"
+        "single_reflection模式包含有限墙面和地面的一次反射，反射角峰不一定指向源，"
+        "不能将每个角峰都当作独立源，也不能仅凭角峰直接确定源坐标；"
         "这些是建模假设，不是任何真实源参数。eirp_dbm不是当前位置接收功率。"
         "单源格式示意（不是位置建议，不可照抄数值）："
         '{"center_m":[200,200],"eirp_dbm":0,"height_m":1.5,"velocity_mps":[0,0]}。'

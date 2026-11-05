@@ -1,0 +1,12 @@
+{
+  "epochs": 12,
+  "batch_size": 16,
+  "learning_rate": 0.0001,
+  "seed": 7,
+  "patience": 4,
+  "change_db": 3.0,
+  "power_weight": 0.5,
+  "age_weight": 0.1,
+  "transition_weight": 0.1,
+  "augment": true
+}

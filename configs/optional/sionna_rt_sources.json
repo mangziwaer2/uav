@@ -1,0 +1,12 @@
+{
+  "scene_name": "simple_street_canyon",
+  "origin_xy_m": [-90, -60],
+  "bandwidth_hz": 1000000,
+  "samples_per_tx": 1000000,
+  "max_depth": 3,
+  "seed": 7,
+  "transmitters": [
+    {"name": "jammer_1", "position_m": [90, 60, 5], "power_dbm": -8},
+    {"name": "jammer_2", "position_m": [170, 60, 5], "power_dbm": -11}
+  ]
+}

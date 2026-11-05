@@ -150,7 +150,8 @@ def render(result: dict, output: str | Path, animate: bool = False, frame_stride
     import matplotlib.pyplot as plt
     from matplotlib import font_manager
     from matplotlib.lines import Line2D
-    from matplotlib.patches import Patch, Rectangle, Wedge
+    from matplotlib.patches import Patch, PathPatch, Rectangle, Wedge
+    from matplotlib.path import Path as DrawingPath
 
     config = config_from_result(result)
     world = ElectromagneticWorld(config)
@@ -179,6 +180,18 @@ def render(result: dict, output: str | Path, animate: bool = False, frame_stride
         axis.set_ylim(-10, geometry.high[1] + 10)
         for box in config.map.obstacles_m:
             axis.add_patch(Rectangle(box[:2], box[2] - box[0], box[3] - box[1], color="#303030", zorder=4))
+        blocking_ids = {item.id for item in geometry.blocking_buildings}
+        for building in geometry.buildings:
+            vertices, codes = [], []
+            for ring_index, ring in enumerate((building.footprint_m, *building.holes_m)):
+                signed_area = sum(first[0] * second[1] - second[0] * first[1]
+                                  for first, second in zip(ring, (*ring[1:], ring[0])))
+                oriented = ring if (signed_area > 0) == (ring_index == 0) else tuple(reversed(ring))
+                vertices.extend((*oriented, oriented[0]))
+                codes.extend([DrawingPath.MOVETO, *([DrawingPath.LINETO] * (len(oriented) - 1)), DrawingPath.CLOSEPOLY])
+            blocked = building.id in blocking_ids
+            axis.add_patch(PathPatch(DrawingPath(vertices, codes), facecolor="#303030" if blocked else "#b9cddd",
+                                     edgecolor="#303030" if blocked else "#5b7892", alpha=1 if blocked else 0.65, zorder=4))
         axis.plot(*config.map.start_m, "o", color="navy", markersize=5)
         axis.plot(*config.map.goal_m, "*", color="blue", markersize=12)
         trace_lines.append(axis.plot([], [], "-", color="royalblue", linewidth=2, label="executed")[0])
@@ -191,6 +204,10 @@ def render(result: dict, output: str | Path, animate: bool = False, frame_stride
         Line2D([], [], color="black", linestyle="--", label="reference boundary (not no-fly)"),
         Line2D([], [], marker="x", color="black", linestyle="none", label="actual source S1, S2..."),
         Patch(facecolor="none", edgecolor=teal, hatch="////", label="truth / inferred-region overlap")])
+    building_handles = ([Patch(facecolor="#303030", label="building blocks fixed flight altitude"),
+                         Patch(facecolor="#b9cddd", label="rooftop below flight clearance (fly-over allowed)")]
+                        if geometry.buildings else [])
+    truth_handles.extend(building_handles)
     measurement_markers = axes[1].plot([], [], ".", color="black", markersize=3,
                                       label="point measurements (valid age)", zorder=5)[0]
     strong_markers = [axis.plot([], [], "o", color="#00e5df", markeredgecolor="black",
@@ -202,6 +219,7 @@ def render(result: dict, output: str | Path, animate: bool = False, frame_stride
                                    label="same received bearing as right (not range)"))
     axes[0].legend(handles=truth_handles, loc="lower left", fontsize=7)
     estimate_handles, _ = axes[1].get_legend_handles_labels()
+    estimate_handles.extend(building_handles)
     estimate_handles.append(Patch(facecolor="none", edgecolor=teal, hatch="////",
                                   label="inferred interference region (not scanned)"))
     estimate_handles.append(Line2D([], [], marker="D", color="gold", markeredgecolor="black",
@@ -318,7 +336,8 @@ def render(result: dict, output: str | Path, animate: bool = False, frame_stride
                 patch = Rectangle(low, *(high - low), fill=False, edgecolor="magenta", linewidth=2)
                 axes[1].add_patch(patch)
                 region_patches.append(patch)
-        heading.set_text(f"UAV electromagnetic exploration | t={now:.1f}s | advisor={result['advisor']}")
+        altitude_note = f" | fixed z={config.aircraft.altitude_m:g}m" if config.map.geometry_mode == "fixed_altitude" else ""
+        heading.set_text(f"UAV electromagnetic exploration | t={now:.1f}s | advisor={result['advisor']}" + altitude_note)
         for marker in probe_markers:
             target = frame.get("active_probe")
             marker.set_data([target["position_m"][0]] if target else [], [target["position_m"][1]] if target else [])

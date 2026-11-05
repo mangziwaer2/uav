@@ -1,0 +1,21 @@
+{
+  "seed": 100,
+  "scene_count": 24,
+  "scenario": {
+    "columns": 33, "rows": 25, "resolution_m": 20.0,
+    "building_count": 8, "max_sources": 3, "horizon_seconds": 100.0,
+    "max_attempts": 40, "min_free_fraction": 0.55, "min_connected_fraction": 0.9,
+    "require_goal_reachable_in_time": true
+  },
+  "collection": {
+    "step_seconds": 2.0, "dwell_seconds": 6.0, "flights_per_policy": 1,
+    "budget": 250, "task_stride": 5,
+    "window_frames": 4, "window_spacing_seconds": 5.0, "roi_size": 8
+  },
+  "encoder": {
+    "patch_size": 4, "hidden_dim": 96, "latent_tokens": 32, "heads": 4, "layers": 2
+  },
+  "training": {
+    "epochs": 20, "batch_size": 16, "learning_rate": 0.0003, "frame_stride": 2, "seed": 7
+  }
+}

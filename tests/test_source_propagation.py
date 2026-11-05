@@ -297,8 +297,11 @@ def test_direction_validation_configuration_is_checked(config, field, value):
 
 
 def test_default_config_and_prompt_explain_physical_hypothesis_and_evidence(config):
+    base = ProjectConfig()
+    primary = replace(base, electromagnetic=replace(base.electromagnetic,
+                      propagation_mode="single_reflection", path_loss_exponent=2))
     assert json.loads(json.dumps(load_config("configs/demo.json").to_dict())) == json.loads(
-        json.dumps(ProjectConfig().to_dict()))
+        json.dumps(primary.to_dict()))
     public = belief_for(config).source_tracker.summary(0)
     assert public["recommended_source_model"] == "log_distance"
     assert public["source_fields"] == ["center_m", "eirp_dbm", "height_m", "velocity_mps"]

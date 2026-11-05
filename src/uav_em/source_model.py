@@ -9,7 +9,7 @@ import math
 import numpy as np
 
 from .environment import Measurement
-from .propagation import PropagationModel, propagation_received_dbm
+from .propagation import PropagationModel, propagation_received_dbm, propagation_arrivals
 from .sensing import angular_peak_indices, beam_power_dbm
 
 
@@ -157,12 +157,20 @@ class SourceTracker:
             return None
         contributions, bearings = [], []
         if hypothesis is not None:
-            for contribution, center in source_contributions(hypothesis, measurement.position_m,
-                                                            measurement.time_seconds, self.propagation):
-                delta = center - measurement.position_m
-                contributions.append(float(contribution))
-                bearings.append(float(np.degrees(np.arctan2(delta[1], delta[0])) % 360)
-                                if np.linalg.norm(delta) > 1e-6 else None)
+            for source in hypothesis.sources:
+                center = (np.asarray(source.center_m) + (measurement.time_seconds - hypothesis.reference_seconds)
+                          * np.asarray(source.velocity_mps))
+                if isinstance(source, PropagationSource):
+                    for arrival in propagation_arrivals(measurement.position_m, center, asdict(source), self.propagation):
+                        contributions.append(float(arrival.power_dbm))
+                        bearings.append(float(arrival.bearing_deg) if np.isfinite(arrival.bearing_deg) else None)
+                else:
+                    delta = center - measurement.position_m
+                    distance_squared = np.sum(delta ** 2)
+                    contributions.append(float(source.peak_dbm - 10 / np.log(10)
+                                               * distance_squared / (2 * source.sigma_m ** 2)))
+                    bearings.append(float(np.degrees(np.arctan2(delta[1], delta[0])) % 360)
+                                    if np.linalg.norm(delta) > 1e-6 else None)
         predicted = beam_power_dbm(contributions, bearings, scan.azimuth_deg, self.background_dbm,
                                    scan.beamwidth_deg, self.sensor.front_back_db)
         threshold = max(self.sensor.detection_threshold_dbm, self.background_dbm + self.sensor.minimum_excess_db,
@@ -317,7 +325,7 @@ class SourceTracker:
                 "measurements": [[*recent[index].position_m, recent[index].time_seconds,
                                    recent[index].interference_dbm] for index in indexes],
                 "measurement_count": len(recent), "window_seconds": self.window_seconds,
-                "recommended_source_model": "log_distance" if self.propagation is not None else "gaussian",
+                "recommended_source_model": self.propagation.propagation_mode if self.propagation is not None else "gaussian",
                 "public_propagation_model": asdict(self.propagation) if self.propagation is not None else None,
                 "source_fields": ["center_m", "eirp_dbm", "height_m", "velocity_mps"]
                                  if self.propagation is not None else ["center_m", "sigma_m", "peak_dbm", "velocity_mps"],

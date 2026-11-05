@@ -4,6 +4,8 @@
 
 ## 1. 先运行不加载模型的版本
 
+2026-11-03主配置已回到本地时变电磁干扰，普通建筑＋自由空间／一次Fresnel反射，不需要Sionna、外部功率图或GPU。默认`demo.json`仍用平面障碍；逐栋楼高版本运行`--config configs/demo_25d.json`，两者均有含误差测向。角峰是来波方向，不是源坐标，反射可能指向墙。完整公式见`../docs/simulation_foundation.md`。
+
 在项目根目录运行：
 
 ```powershell

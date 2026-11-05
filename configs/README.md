@@ -2,7 +2,13 @@
 
 默认`demo.json`，当前为干扰功率语义，不兼容旧`radio`通信质量配置。省略分组使用默认值；未知字段、重复键及非法值拒绝。字段在`src/uav_em/config.py`含中文注释。
 
+2026-11-03主流程回到本地普通建筑＋时变干扰源。`demo.json`与`demo_25d.json`显式采用`single_reflection`，无需Sionna、外部数据或GPU；`sionna_rt_*.json`只是可选离线核查。省略传播模式仍用旧`log_distance`，防止旧配置／日志被悄悄重新解释。
+
 ## 地图与飞行器
+
+可选配置统一放在`optional/`：Sionna RT使用`optional/sionna_rt_demo.json`模板与`optional/sionna_rt_sources.json`隐藏源设置，入口为`../tools/generate_interference_rt.py`，字段和完整命令见`../docs/sionna_rt_environment.md`。不要把模板直接当成已生成干扰场的任务；飞行入口读取导出目录的`simulation.json`，不读取源清单。
+
+定高2.5D入口`demo_25d.json`，`demo.json`为平面矩形主配置，两者均使用新反射公式。外部静态图示例为`optional/demo_power_grid.json`，其数据夹具当前缺失，不能直接运行；导入模板为`optional/import_25d_template.json`。完整格式见`../docs/environment_25d.md`，不把示例称为真实设备／城市数据。
 
 | 字段 | 含义／单位 |
 |---|---|
@@ -11,13 +17,19 @@
 | `map.resolution_m` | 间距m；边界为`(数量−1)×间距` |
 | `map.start_m`、`goal_m` | 二维起终点，m |
 | `map.obstacles_m` | 已知矩形`[xmin,ymin,xmax,ymax]`，m |
+| `map.geometry_mode` | `planar`默认：所有建筑轮廓禁入；`fixed_altitude`：按楼高筛选障碍，矩形仍为显式平面禁入区 |
+| `map.buildings` | 多边形楼体，含唯一id、米制footprint_m、正height_m；可选holes_m、非负base_m／loss_db及height_source |
+| `map.provenance` | 地图来源、许可、坐标和高度假设等记录；非电磁观测 |
 | `aircraft.speed_mps` | 恒定沿航路速度，m/s；不模拟转弯加速度 |
 | `aircraft.altitude_m` | 定高m，有限正数，默认30；用于传播距离，不开放高度优化 |
+| `aircraft.vertical_clearance_m` | 上下净空m，非负、默认5；楼体竖直区间扩净空后与机高相交就禁入，边界相等也禁止 |
 | `flight_power_w`、`hover_power_w` | 飞行／决策悬停功率，W |
 | `initial_energy_wh`、`reserve_energy_wh` | 初始／预留能量，Wh；普通任务不消耗预留 |
 | `clearance_m` | 几何障碍膨胀裕量，m；不是干扰安全距离 |
 
 ## 仿真与预算
+
+`electromagnetic.power_grid`默认null；设为静态总干扰dBm栅格字典或`{"path":"相对配置路径"}`时，必须`fields=[]`与`sensor.mode=power_only`。接受JSON／无pickle的NPZ，x_m/y_m严格递增且覆盖全图、power_dbm按[y,x]排列，机高与载频匹配；禁止nodata、外推或把路径损耗直接当总干扰。载入后嵌入评价配置，完整栅格不进入模型；详细协议见环境说明。
 
 | `simulation`字段 | 含义 |
 |---|---|
@@ -47,7 +59,10 @@
 | `fields[].center_m` | 源在活动开始时的位置，m |
 | `carrier_frequency_hz` | 载频Hz，有限正数，默认2.4GHz；所有源在同一观测频带 |
 | `reference_distance_m` | 参考距离m，正数且至少一个波长，默认1；夹紧不是近场求解 |
-| `path_loss_exponent` | 经验距离损耗指数[2,6]，默认2.2，未由实测标定 |
+| `propagation_mode` | `single_reflection`：自由空间＋等效穿楼＋有效一次墙／地面反射；`log_distance`：旧经验模式；省略时为后者 |
+| `path_loss_exponent` | 经验指数[2,6]，省略为2.2；反射模式必须显式为2，避免重复距离衰减 |
+| `relative_permittivity` | 墙／地面统一相对介电常数，无量纲、有限且>=1，默认4；未标定 |
+| `conductivity_s_per_m` | 墙／地面统一电导率S/m，有限非负、默认0.005；与介电常数共同计算Fresnel功率系数 |
 | `obstacle_height_m` | 所有矩形统一棱柱高度m，非负，默认20 |
 | `obstacle_loss_db` | 每穿过一个棱柱扣除的功率dB，非负，默认6，不是每米损耗 |
 | `fields[].eirp_dbm` | 默认传播源的频带内EIRP，dBm，有限且在[−150,80]；不是中心接收功率 |
@@ -103,3 +118,12 @@
 默认源假设使用中心、EIRP、源高和速度，不再要求用高斯尺度解释传播场。数值层仅前向检验功率和合成角峰，方向相关观测按时间块平均；不自动求源坐标。传播参数作为公开研究假设提供给模型，源高度和EIRP真值仍隐藏。方向容限、权重和时间块均未由实测校准，`power_only`模式不使用方向项。
 
 默认规划为RRT*，用命令行`--planner astar`选择网格对照；`balanced`、`avoid_interference`、`explore`是预设软代价，不允许模型放宽几何和能量。当前地图是定高二维，含简化棱柱损耗，未模拟实际频率响应、多径／绕射和平台易损性。不同实验使用独立输出目录。
+# 独立地图学习配置
+
+`map_encoding.json`为小规模起步配置；`map_encoding_full.json`为正式首版120场景／720轨迹、30轮空间编解码训练配方。两者供tools下的generate_map_dataset／train_map_autoencoder读取，不是ProjectConfig，不传给run_experiment。正式数据先使用audit_map_dataset的`--require-coverage`审核，训练加`--require-quality`。字段中文含义、单位、限制、默认范围和独立云端命令见`../docs/map_encoding.md`；不含LLM微调或RL配置。
+
+当前改进配置为`map_encoding_v2.json`，复用`datasets/interference_onboard_maps_v1/`，不重新生成数据。architecture显式为spatial_patch_decode_v2，仍为32×96瓶颈；boundary_v2为边界BCE＋Dice目标，augment=true仅对train同步翻转，epochs=40为轮数上限，patience=8为验证早停等待轮数。含义、兼容与结果见`../docs/map_codec_v2.md`；v1字段省略的历史配置语义不变。
+
+`map_encoding_temporal.json`仅供train_map_temporal_autoencoder，不是生成数据的完整配置。它从已有boundary_v2权重微调：epochs=12、batch_size=16、learning_rate=0.0001、seed=7、patience=4；change_db=3为训练变化分层及功率差分组阈值dB，不是安全阈值。power_weight=0.5、age_weight=0.1、transition_weight=0.1为辅助损失权重，有限正数；augment只在train同步翻转两帧及ROI。字段限制、固定空间退化容限与validation选模见`../docs/map_temporal_training.md`。不改变单帧瓶颈，不运行test或LLM训练。
+
+`map_alignment.json`仅供tools/train_map_alignment.py：冻结LLM和地图编码器，只训练空间投影／时间MLP，独立加入已有点测／测向。epochs=1；microbatch固定1、gradient_accumulation=8；learning_rate=0.0002；max_positions=8192包含完整问题、128地图位置、完整JSON答案和EOS，不截断；history_seconds=60为因果传感器历史窗s，不是探测范围；checkpoint_every=25按已完成优化器步保存；validation_examples=16只检查teacher-forced loss；max_steps=null按完整epoch，正整数仅作短训练；seed=7为非负随机种子。所有计数字段须为正整数，学习率及时间窗须有限正数。完整含义、显存策略与恢复限制见`../docs/map_sensor_alignment.md`，不用于ProjectConfig、地图编码器重训或RL。

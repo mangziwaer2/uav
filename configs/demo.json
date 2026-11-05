@@ -36,7 +36,10 @@
   "electromagnetic": {
     "carrier_frequency_hz": 2400000000.0,
     "reference_distance_m": 1.0,
-    "path_loss_exponent": 2.2,
+    "propagation_mode": "single_reflection",
+    "path_loss_exponent": 2.0,
+    "relative_permittivity": 4.0,
+    "conductivity_s_per_m": 0.005,
     "obstacle_height_m": 20.0,
     "obstacle_loss_db": 6.0,
     "background_dbm": -100.0,

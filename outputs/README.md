@@ -1,65 +1,41 @@
-# 当前输出说明
+# 当前输出与复现入口
 
-## GitHub迁移范围
+更新：2026-11-05。这里只列核查时实际存在的记录，不从Git恢复缺失的历史实验，也不把地图采集当LLM导航实验。
 
-本次仅精选`interference_source_local_debug_20261102/`、`interference_debug_numeric_20261102/`、`interference_source_direction_mock_20261031_193820/`的JSON／JSONL／文本／PNG入库，供云端复核当前传播协议、调试流程及源拒绝／修订夹具。它们不是在线输入数据库；`evaluation_only_config.json`和episode内评价配置含真值，只用于仿真／回放，绝不能直接送给LLM。
+## 本轮地图数据
 
-GIF及下方其余历史目录仅本地保留，不随克隆传输；可从已入库episode离线重建当前回放。新的`outputs/interference_.../`仍默认忽略，提交前需人工选择证据，不上传模型、缓存或全部新日志。迁移不移动、删除或覆盖已有结果。
+- `interference_map_data_20261104_155420_499056/`：正式配方的6场景试生成，36条轨迹，完整性审核通过；因每个留出组只有1场景，未作完整覆盖验收，不用于正式训练。
+- `interference_map_data_20261104_155905_340342/`：120场景／720轨迹的原始完整采集；严格审核发现原随机test组无单源案例，报告保留为失败，不用于正式训练。
+- 原`interference_map_data_stratified_20261104_163312_927539/`已按用户要求整体迁入`../datasets/interference_onboard_maps_v1/`，这是唯一正式训练入口。720轨迹、36,321帧、11,549道时序题，迁入后严格审核再次通过；旧目录不另留重复副本，旧实验元数据不事后改写。
+- `interference_map_encoder_20261104_163654_653599/`：用户要求停止的早先尝试。第1轮未完成，只有训练配置及空history，没有checkpoint或最终指标；保留该暂停记录，已在下列新目录重训。
+- `interference_map_encoder_20261104_170403_750336/`：v1基线实际完成30轮CUDA训练；按验证loss选第2轮，test支持功率MAE约2.477dB，支持mask IoU约0.536。边界偏宽，旧权重保留，不以训练完成宣称适配达标。
+- `interference_map_codec_diagnostic_20261104_172932_498897/`：v1的validation分通道诊断；用于确定支持边界与局部结构改进，不使用test选修改方案。
+- `interference_map_encoder_20261104_174105_494050/`：v2完成40轮CUDA训练，按validation选择第39轮。test支持IoU约0.976、强干扰功率MAE约2.370dB；整体支持功率MAE约2.480dB，未改善。best.pt及完整metrics.json在此；方法、参数增加和非盲测限制见`../docs/map_codec_v2.md`。
+- `interference_map_codec_comparison_20261104_175339_533173/`：两条validation样本的原图／v1／v2对照，先看README.md及goal／revisit下comparison.png；输入信息边界与瓶颈维度相同，不代表等算力消融或导航收益。
+- `interference_map_samples_20261104_171354_475695/`：早先原始数据预览保留。当前推荐打开正式数据`../datasets/interference_onboard_maps_v1/previews/`，有两条样本README、6通道／4帧窗口／时序题PNG、1倍速GIF、JSON和CSV，不读取隐藏源。
+- `interference_map_inspect_20261104_171433_536036/`：已训练checkpoint的验证样本重建图与4帧tokens，可与原始数据预览区分。
+- `interference_map_temporal_codec_20261104_181909_806135/`：固定v2第39轮对108条validation轨迹、1,731道原始任务B的同区域时序核查。新增／失效支持召回约0.985／0.961；3dB功率变化精度仅0.357，变化格功率差MAE 4.513dB，未达到可以忽略动态误差的程度。README、整体／分行为JSON、逐题CSV及四类对照PNG均保留；不是LLM或源运动实验。较早181530版本保留，当前版本增加平稳区域示例，整体指标一致。
+- `interference_map_inspect_20261104_181924_344676/`：v2新格式4帧窗口，window_schema_version=2，含每个有效历史位的reconstructed_window；无效位须结合valid处理，旧anchor字段继续保留；不是时序模型训练结果。
+- `interference_map_encoder_temporal_20261105_114745_542222/`：保留v2单帧目标并增加时序辅助约束；12轮CUDA微调选第8轮，包含基线、逐轮记录、配置／源码／父权重哈希、best.pt及metrics。只用train／validation，不运行test；epoch是本次微调轮数。候选不自动替换v2，混合结果见review.md及`../docs/map_temporal_training.md`。
+- `interference_map_temporal_codec_20261105_115226_042619/`：上列候选的同一1,731道validation题复查，变化格差值MAE从4.513降至3.922dB、变化召回0.638至0.704，但假变化1,345至1,571，精度下降。不隐藏退步项，不作盲测、源定位或LLM收益结论；图例及四类对照见目录README。
 
-## interference_source_local_debug_20261102
+详细分布、审核中发现的问题与复现入口见`../docs/map_dataset_run_20261104.md`。没有启动LLM微调或RL。
 
-- 当前传播／含误差测向协议的真实Qwen3-1.7B短诊断，RRT*、4次调用上限、生成不限时。前2次完整输出，分别补测和重规划；第3次7532输入词元时CUDA显存不足，第4次8736词元超8000上限、生成前拒绝。
-- 前2次尚无检测角峰，有方向证据的两轮未取得响应；源提议／数值评价／接受均0，不能将其直接解读为模型源推断能力不足或故意忽略方向。0次真实源细化验证。
-- 9次决策、2次后端失败、7次回退（含5次预算耗尽）、1次补测、10次求解；780.319m到达、超参考飞行暴露7.737s。是混合回退轨迹，不是全程LLM成功或同预算收益实验。
-- `toolkit/python.exe`启动异常，诊断显式用uav Python加载现有toolkit推理包，RTX 3060 Laptop 6GB／float16；没有修复或安装环境。真实命令、版本、包路径和哈希在`run_metadata.json`。
-- `calls.jsonl`、逐调用文件、正式日志、`audit.json`及`review.md`保留全过程。离线数字精度压缩仅计词元，未修改真实输入，也未验证显存或决策收益。
-- PNG和首次方向失败检查帧已目视检查；离线派生`replay.gif`63帧85.52s、1倍仿真时间＋每次决策3s停顿，未重新推理／规划。图中没有模型源H，因为真实模型没有提源。
+## 对齐数据与真实模型接线
 
-## interference_debug_numeric_20261102
+- `../datasets/interference_map_alignment_v1/`：本轮完整导出的区域问答，train 16,144题、validation 3,462题，共612条轨迹、30,843帧缓存；不导出test。已用原始机载帧逐题重算答案，quality_report.json通过；原数据未改，编码器固定原v2哈希，仅作接口基线，不宣称解决时序误报。先看samples下两条问答及`../docs/map_alignment_data.md`。
+- `interference_map_llm_bridge_20261105_122625_826523/`：本地Qwen3-1.7B一次真实无梯度forward，316文字位置＋128地图位置＝444，输入[1,444,2048]、末位置logits有限。含run_config、prompt、report和README；随机投影／时间层、0优化器步，没有完整答案生成，不是语义对齐或导航效果验收。记录模型／编码器哈希及实际库版本，数据和模型权重需单独迁移。
 
-- 当前传播／含误差测向配置的无模型完整调试流程，默认RRT*、种子7；54.338s到达，航程755.073m、能耗5.227Wh。
-- 53次观测／扫描、47次检测到角峰；8次决策／求解，4次感知预警复核，0模型调用／回退／补测／源提议。
-- 超参考飞行暴露3.746s、超参考积分3.210dB·s；到达不等于安全避让，不与旧感知或旧高斯场结果作收益对比。
-- 保存逐阶段`debug_stages.jsonl`、正式episode／metrics／中文日志、运行元数据和已目视检查的`summary.png`；调试入口见`../temp/debug_full_pipeline.md`。
+配方`../configs/map_encoding_full.json`，生成、审核和训练命令见`../docs/map_encoding.md`。数据、隐藏复现配置及权重被Git忽略，云端使用须单独复制完整目录；不得只复制npz而丢失manifest和公开元数据。
 
-## interference_source_direction_mock_20261031_193820
+## 独立测向与投影训练
 
-- 2秒确定性模拟响应接口检查，不是LLM或通用定位算法；A*仅为短测试对照。
-- 同点3轮：功率一致但方向错90°被拒绝，修订后接受，最后省略源字段；3次观测、2个源提议、1次接受、0解析失败。未到达，以时间上限结束，不证明收益。
-- 夹具使用恰好匹配该合成场景的距离／功率假设，并关闭噪声以隔离接口；默认场景噪声未调整。完整限制见该目录`review.md`。
-- 保存`episode.json`、`metrics.json`、`decision_log.txt`和已目视检查的`summary.png`；旧实验未覆盖。
+- `../datasets/interference_sensor_evidence_v1/`：612条train／validation轨迹的独立点测／测向，30,843次扫描、16,878次有角峰；全部19,606题因果窗口审核通过。地图编码和缓存不改，不给源坐标、test或未来观测。方法见`../docs/map_sensor_alignment.md`。
+- `interference_map_alignment_training_20261105_134844_225657/`：真实Qwen3-1.7B tokenizer的全量位置预算，train最长7,885、validation最长7,808，均低于8,192；含完整测向问题、地图、完整答案及EOS，不截断、不加载模型训练。
+- `interference_map_alignment_training_20261105_135229_972149/`：真实6GB设备的冻结主体投影训练尝试，CUDA OOM结束、0优化器步；last.pt实查为初始化恢复点，不是训练成果。原AcceleratorError未被旧捕获器覆盖，该目录没有自动report／oom；POSTMORTEM.md和terminal_failure.txt为明确标记的事后说明，原配置／权重不重写。最新代码已修正分类并测试，不重复本机GPU尝试；云端见`../docs/CLOUD_ALIGNMENT_HANDOFF.md`。此目录与数据被Git忽略，需单独传输。
 
-## interference_sensing_numeric_seed7_20261030
+## 历史记录边界
 
-- 新传播／360°测向基础的无模型RRT*接口检查，不是真实LLM实验，也不是收益对照。
-- 53次观测／扫描，44次存在可检测角峰；9.5s在−93.94dBm时提前复核，仍低于−80dBm软参考。
-- 全程7次决策、4次感知预警复核；航程751.424m，超参考飞行暴露5.05s，仍不能宣称安全绕行。
-- `first_detection.png`展示首次方向发现，`summary.png`为末帧；`replay.gif`53帧69.59s，橙色扇区只是接收方向，不是已测圆盘或探测距离。
-- 完整`episode.json`、`metrics.json`与`decision_log.txt`均保存，旧输出未覆盖。传播模型与旧高斯场不同，不以数值差异证明算法改进。
+本次核查时，旧三份精选记录、`interference_debug_none_20261103_144015_801006/`及此前上午的地图冒烟目录均已不在outputs下；不推断删除原因，不恢复或冒充现存证据。交接文档中的历史数值不是本轮可复现结果。
 
-## interference_source_local_seed7_20261029
-
-- 新源接口真实Qwen3-1.7B完整试跑；默认24次调用／1024输出词元／生成不限时，实际6次，0失败／覆盖／规划失败／回退。
-- 原始JSON全部省略`source_hypothesis`，源提议／接受均0；不是数值拒绝或预测源数为零。27.167s已接收−65.85dBm及强干扰历史，仍没有源假设；真实多轮细化和新点预测检验均未触发。
-- 输入3376—6621词元，输出97—108，未触及预算；航程761.939m、超参考飞行暴露18.382s，与前一无源接口试跑的轨迹完全相同，不证明源推断或路径收益。
-- `review.md`、`run_metadata.json`、`audit.json`记录逐轮证据和审计；`calls.jsonl`及`decision_log.txt`保留实际输入输出。`prompt_audit.json`仅离线量化3位小数压缩潜力，未改变真实输入或验证压缩后的决策。
-- `summary.png`、60帧73.80s的`replay.gif`和`strong_interference_decision.png`为本次新结果；右侧没有H，因为模型没有提出源，不伪造推断展示。旧输出未覆盖。
-
-## interference_local_unlimited_seed7_20261029
-
-- 2026-10-29真实Qwen3-1.7B闭环：不设生成墙钟时限，默认8次调用预算，实际6次；输入2602—3461词元，每次完整输出112或102词元，0失败／覆盖／回退。
-- 首次补测后5次均为相同的`replan + avoid_interference`响应；27.167s模型已收到−65.85dBm点测及7次超参考的区间反馈，仍未体现针对性计划修订。参与执行不等于策略有效。
-- 航程761.94m，超参考飞行暴露18.38s；不是单因素或同预算收益对照，不与旧试跑差异直接比较来证明提升。
-- `review.md`记录逐轮证据和局限，`run_metadata.json`记录命令／模型／环境／预算；原始输入输出见`decision_log.txt`和`episode.json`。
-- `summary.png`及`replay.gif`为本次新结果，GIF共73.80s，1倍仿真时间加决策阅读停顿；`strong_interference_decision.png`为观测强干扰后的决策帧。
-
-## interference_stage_plan_local_actions_seed7_20261027
-
-- `episode.json`、`metrics.json`及`decision_log.txt`：已有Qwen3-1.7B非代码阶段计划试跑记录，未因本轮回放修改重新推理或规划。
-- 3次真实模型调用的输入分别2602／3065／3316词元；前两次完成补测和反馈后重规划，第三次不完整JSON导致解析失败。总计4次回退（1次解析失败、3次调用预算耗尽），到达不等于模型优化有效。
-- 仿真53.824s，航程762.37m，超参考飞行暴露19.03s；总干扰参考值不是平台失效阈值。
-- `summary.png`、`replay.gif`：原有图像，保留不覆盖。
-- `replay_slow.gif`：2026-10-27从同一episode离线派生，1倍仿真时间，每次决策额外停顿3s，60帧共73.83s；去掉底部技术文字，顶部解释实际行动和回退，金色菱形标记补测目标。阅读停顿不是推理耗时。
-- `replay_first_frame.png`和`replay_fallback_frame.png`：易读版首帧和模型解析失败时的检查帧。
-
-完整配置、实际输入输出和执行层覆盖以原始日志为准；压缩建议不是已实现的新实验。
+新实验必须使用新的`interference_`目录，不覆盖记录。源码与本索引可入Git，数据、checkpoint、缓存及普通输出不默认上传；当前没有选择新的导航实验记录入库。

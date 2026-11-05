@@ -13,11 +13,13 @@ class AircraftConfig:
     """定高平面运动的研究假设，不对应经过标定的实际机型。
 
     altitude_m为相对统一地面高度m，正数，用于传播距离；不开放高度优化。
+    vertical_clearance_m为上下净空m，非负；仅逐栋建筑高度碰撞使用，等于净空边界也视为不可通行。
     """
 
     # 沿折线航路的恒定速度，m/s；暂不模拟转弯加速度和风。
     speed_mps: float = 15.0
     altitude_m: float = 30.0
+    vertical_clearance_m: float = 5.0
     # 飞行和咨询时悬停的功率，W。
     flight_power_w: float = 350.0
     hover_power_w: float = 300.0
@@ -63,7 +65,13 @@ class SimulationConfig:
 
 @dataclass(frozen=True)
 class MapConfig:
-    """二维定高地图；网格节点坐标为列／行号乘分辨率。"""
+    """二维定高航路，节点坐标为列／行号乘resolution_m（米）。
+
+    geometry_mode为planar或fixed_altitude；前者禁止所有楼体轮廓，后者按逐栋高度和上下净空筛选。
+    buildings为局部米制简单多边形棱柱，含id/footprint_m/height_m，可选庭院holes_m、基底base_m、损耗loss_db。
+    obstacles_m始终为额外的平面矩形禁入区，不用其统一传播高度推断可否飞越。
+    provenance记录来源、许可、坐标基准和缺失高度处理，不是电磁观测或在线真值信息。
+    """
 
     # 已知几何地图的列数、行数，以及节点间距m。
     columns: int = 41
@@ -77,6 +85,9 @@ class MapConfig:
         (280.0, 240.0, 360.0, 360.0),
         (520.0, 100.0, 580.0, 260.0),
     )
+    geometry_mode: str = "planar"
+    buildings: tuple[dict, ...] = ()
+    provenance: dict = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -84,8 +95,12 @@ class ElectromagneticConfig:
     """同一窄观测频带的非相干接收功率；不建模服务站或通信链路。
 
     carrier_frequency_hz为载频Hz，reference_distance_m为远场参考距离m，均须为有限正数。
-    path_loss_exponent为对数距离损耗指数，须在[2,6]；不是全波求解。
+    propagation_mode为log_distance或single_reflection；前者保留经验基线，后者为主配置的有限路径近似。
+    path_loss_exponent为对数距离损耗指数，[2,6]；single_reflection必须为2，避免重复经验衰减。
+    relative_permittivity为墙／地面统一相对介电常数，有限且>=1；conductivity_s_per_m为电导率S/m，非负。
+    反射采用非极化平均Fresnel功率系数；只含单次墙／地面反射，不计算相干相位或绕射。
     obstacle_height_m和obstacle_loss_db为所有矩形的统一高度m和每次穿透损耗dB，非负。
+    power_grid可为总接收干扰dBm静态栅格；路径在load_config时解析，必须power_only、空fields且频率／机高一致。
     fields可为传播源（eirp_dbm、height_m）或显式高斯基线（sigma_m、peak_dbm），不混用参数。
     EIRP是观测频带内等效全向辐射功率dBm；源高m非负，其活动时间和速度仅供真值生成。
     """
@@ -95,6 +110,10 @@ class ElectromagneticConfig:
     path_loss_exponent: float = 2.2
     obstacle_height_m: float = 20.0
     obstacle_loss_db: float = 6.0
+    propagation_mode: str = "log_distance"
+    relative_permittivity: float = 4.0
+    conductivity_s_per_m: float = 0.005
+    power_grid: dict | None = None
 
     # 均匀背景功率，dBm；用于无局部观测时的先验，不代表已测安全。
     background_dbm: float = -100.0
@@ -183,6 +202,16 @@ class ProjectConfig:
     def validate(self) -> None:
         for section in (self.aircraft, self.simulation, self.map, self.electromagnetic, self.belief, self.sensor):
             for name, value in asdict(section).items():
+                if name in ("buildings", "provenance", "power_grid"):
+                    continue
+                if section is self.electromagnetic and name == "propagation_mode":
+                    if value not in ("log_distance", "single_reflection"):
+                        raise ValueError("propagation_mode must be log_distance or single_reflection")
+                    continue
+                if section is self.map and name == "geometry_mode":
+                    if value not in ("planar", "fixed_altitude"):
+                        raise ValueError("geometry_mode must be planar or fixed_altitude")
+                    continue
                 if section is self.sensor and name == "mode":
                     if value not in ("power_only", "power_bearing"):
                         raise ValueError("sensor mode must be power_only or power_bearing")
@@ -207,7 +236,7 @@ class ProjectConfig:
                      self.simulation.warning_rise_db, self.sensor.minimum_contrast_db)
         if any(value <= 0 for value in positive):
             raise ValueError("durations, resolutions and positive physical parameters must be positive")
-        nonnegative = (self.aircraft.clearance_m, self.simulation.decision_delay_seconds,
+        nonnegative = (self.aircraft.clearance_m, self.aircraft.vertical_clearance_m, self.simulation.decision_delay_seconds,
                        self.electromagnetic.measurement_noise_db, self.belief.error_per_meter_db,
                        self.belief.error_per_second_db, self.belief.source_count_penalty_db2)
         nonnegative += (self.electromagnetic.obstacle_height_m, self.electromagnetic.obstacle_loss_db,
@@ -219,6 +248,11 @@ class ProjectConfig:
             raise ValueError("interference reference must exceed background power")
         if not 2 <= self.electromagnetic.path_loss_exponent <= 6:
             raise ValueError("path loss exponent must be in [2, 6]")
+        if self.electromagnetic.relative_permittivity < 1 or self.electromagnetic.conductivity_s_per_m < 0:
+            raise ValueError("relative permittivity must be >= 1 and conductivity must be nonnegative")
+        if (self.electromagnetic.propagation_mode == "single_reflection"
+                and self.electromagnetic.path_loss_exponent != 2):
+            raise ValueError("single_reflection requires path_loss_exponent=2")
         if self.electromagnetic.reference_distance_m < 299792458 / self.electromagnetic.carrier_frequency_hz:
             raise ValueError("reference distance must be at least one wavelength")
         if self.sensor.beamwidth_deg > 180 or self.sensor.bearing_error_deg > 45:
@@ -248,6 +282,15 @@ class ProjectConfig:
         for box in self.map.obstacles_m:
             if len(box) != 4 or not all(math.isfinite(value) for value in box) or box[0] >= box[2] or box[1] >= box[3]:
                 raise ValueError("invalid obstacle rectangle")
+        from .buildings import Building
+        if not isinstance(self.map.buildings, (list, tuple)) or not isinstance(self.map.provenance, dict):
+            raise ValueError("buildings must be a sequence and provenance must be an object")
+        buildings = [Building.from_dict(item) for item in self.map.buildings]
+        if len({item.id for item in buildings}) != len(buildings):
+            raise ValueError("building ids must be unique")
+        if self.electromagnetic.power_grid is not None:
+            from .power_grid import validate_power_grid
+            validate_power_grid(self.electromagnetic.power_grid, self)
         common = {"center_m", "start_seconds", "end_seconds", "velocity_mps"}
         for item in self.electromagnetic.fields:
             if not isinstance(item, dict) or set(item) not in (
@@ -283,6 +326,20 @@ def load_config(path: str | Path) -> ProjectConfig:
                "sensor": SensorConfig}
     if not isinstance(value, dict) or set(value) - {"seed", *classes}:
         raise ValueError("unknown project configuration field")
+    if isinstance(value.get("electromagnetic"), dict):
+        grid = value["electromagnetic"].get("power_grid")
+        if isinstance(grid, dict) and "path" in grid:
+            if set(grid) - {"path", "provenance"} or not isinstance(grid["path"], str):
+                raise ValueError("external power grid requires path and optional provenance only")
+            from .power_grid import load_power_grid
+            import hashlib
+            grid_path = Path(path).resolve().parent / grid["path"]
+            resolved = load_power_grid(grid_path)
+            provenance = {**resolved.get("provenance", {}), **grid.get("provenance", {}),
+                          "input_file": grid_path.name, "input_sha256": hashlib.sha256(grid_path.read_bytes()).hexdigest(),
+                          "quantity": "total_received_interference_power_dbm", "time_model": "static"}
+            resolved["provenance"] = provenance
+            value["electromagnetic"]["power_grid"] = resolved
     sections = {name: cls(**value.get(name, {})) for name, cls in classes.items()}
     config = ProjectConfig(seed=value.get("seed", 7), **sections)
     config.validate()

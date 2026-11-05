@@ -1,138 +1,126 @@
-# 云端迁移与新agent接手
+# 云端迁移与接手
 
-日期：2026-11-02。用户因本地显存不足转到云端，并将在云端开启新的agent。本次只整理迁移、文档和Git入库范围，没有改传感器、仿真、模型提示词或规划算法。研究顺序仍唯一维护在`current_roadmap.md`，这里不另立研究路线。
+更新：2026-11-05。本文件按当前目录重写，不沿用已经缺失的旧日志／目录清单。研究路线只在`current_roadmap.md`维护，先读`AGENT_HANDOFF.md`和`first_version.md`。
 
-## 0. 发布状态与本机最后一步
+**当前优先：** 本地已接入独立测向并实际尝试冻结LLM的投影训练，6GB显存不足、完成优化器步数0，已停止本机真实重试。专门交接见`CLOUD_ALIGNMENT_HANDOFF.md`，训练／证据协议见`map_sensor_alignment.md`；按该文迁移两个派生数据目录、相同LLM及step=0初始化恢复点。不要把下方较早444位置无梯度接线当长答案训练显存验收。最新全量测试448通过、2个既有缺失夹具失败（122.11s）。
 
-迁移文件和忽略规则已在工作区准备好，**当前执行环境未能提交或上传**：`.git`为只读，`git add`创建`index.lock`时被拒绝；查询既有GitHub远程也因无法连接443端口失败。这不是已经推送成功，也没有改写Git历史、凭据或远程地址。当前分支为main，已有origin，无需重新初始化仓库。
+## 1. 当前交付边界
 
-请用户在可写且能联网的本机终端进入项目根目录，复核清单后执行：
+- 主环境是普通建筑＋本地时变干扰源＋有限一次反射；主配置为`configs/demo.json`与`demo_25d.json`，不需要真实地图、外部电磁图、Sionna或GPU生成环境。
+- GPU用于真实LLM运行及可选小地图编解码器训练。当前模型接口只加载本地目录，不是远程API客户端；云端直接运行仓库，不等于本机已能调用云端推理服务。
+- 当前含工作区整理与独立地图学习新增代码，未提交或推送Git。用户需要先核对未提交更改、文件删除及忽略规则，再提交／上传；不能假定云端已收到本轮代码或忽略的本地冒烟数据。
+- 旧三份精选日志和此前RT输出当前缺失；不要依赖旧文档路径、恢复成“现存证据”或将其作为新环境结果。
 
-```powershell
-git status --short
-git add .
-git diff --cached --stat
-git diff --cached --check
-git commit -m "Prepare cloud handoff and reproducible project layout"
-git push origin main
-git rev-parse HEAD
-```
+## 2. 迁移内容
 
-本次规则已排除权重、ZIP、凭据文件、缓存、原始docx及非精选输出。推送失败时保留错误并处理连接／权限或远程分支分歧，不使用force覆盖远程。上传后把最终提交号交给云端agent，并确认克隆中存在本文件、完整tests及调试入口；下文“Git包含／入库”描述的是准备好的发布范围，需以上步骤成功后才出现在远端。
+**带走：** 根README／AGENTS、requirements文件、pytest.ini、src、tools、configs、tests、docs、temp中指定调试入口及md，以及明确选定的当前数值验收记录。以Git实际候选清单为准，不复制整个工作区。
 
-## 1. 接手先读什么
+**单独传输（需要时）：** 完整模型权重目录。模型需有config、tokenizer及权重／分片索引，不是只传一个文件；放置位置由云端使用者决定，启动时指定--model-path。
 
-发布状态记录的是本次整理时的限制；用户手动发布后以实际提交号为准。云端若已经克隆到本文件且文件清单完整，不要因为第0节的历史状态再次阻塞接手或重复要求提交。
+**不需要／不默认上传：** RadioMapSeer及ZIP、其他原始数据、temp中的缓存和Windows虚拟环境、.idea、原始提交文件、可重建GIF及其他输出。主配置不依赖这些内容。不要为了瘦身删除本地原件。
 
-1. 根目录`AGENTS.md`：维护约定和禁止越界事项。
-2. `AGENT_HANDOFF.md`：已实现能力、最近实际运行、已知问题。
-3. `current_roadmap.md`第6节：下一步与阶段验收，不能跳到训练或代码生成。
-4. `first_version.md`：真实流程、信息隔离、源协议、日志和指标。
-5. `../temp/debug_full_pipeline.md`：直接进入正式闭环的IDE／pdb操作。
+当前实际输出以`../outputs/README.md`为准；2026-11-04复查时旧none记录及上午地图冒烟输出已缺失，不依赖这些历史路径。正式首版地图数据／编码器也被Git忽略，需要单独传输，不是拉取源码后自动存在。
 
-当前是部分可观测时变电磁干扰下的非代码LLM辅助决策。观测为机载总功率与可选含误差测向，不是全域空间扫描，也不直接给源位置。模型提出行动和可选传播源假设，数值层检验后用于预测地图和传统路径规划。默认RRT*；A*仅对照。强干扰是软代价，没有硬禁入或真实飞行安全保证。
+正式地图数据统一在`datasets/interference_onboard_maps_v1/`，单独传输整个目录（含DATASET_CARD、manifest、episodes、temporal_tasks、quality_report及仅供离线复现的evaluation_only），核对报告的manifest哈希；训练和LLM适配不得读evaluation_only。目录搬迁不改数据版本和划分，旧运行元数据中的原路径不重写。当前推荐`configs/map_encoding_v2.json`，方法／结果见map_codec_v2；先`--require-coverage`审核，再`--require-quality`训练。v1配置仍保留供基线复现，不能把其旧权重按v2解释。checkpoint只保存模型，不支持恢复优化器；云端重训另开输出目录。当前仍未授权执行LLM微调或RL。
 
-## 2. 迁移带走哪些文件
+时序核查已完成，见map_temporal_codec：固定v2对1,731道validation题检查，支持增失较好，但功率变化存在较多误报；随后已完成下述时序候选微调，不直接以单帧IoU作为LLM适配达标。新工具audit_map_temporal_codec默认不检查test。新历史窗口导出window_schema_version=2增加每个有效位的重建；valid、实际时间偏移及权重哈希不可丢失，也不能将诊断原图作为LLM压缩旁路。
 
-Git包含正式源码、配置、所有测试、维护／研究文档、基础依赖文件，以及`temp/debug_full_pipeline.py`和同名说明。保留原目录与接口，不建立第二套仿真循环。
+2026-11-05已完成一版时序约束微调，配方map_encoding_temporal.json、入口train_map_temporal_autoencoder；12轮选第8轮，权重在outputs/interference_map_encoder_temporal_20261105_114745_542222/best.pt，需单独传输。变化格差值及召回改善，但假变化增加，详见map_temporal_training；候选不自动替代v2，未检查test。连续嵌入接口见map_embedding_bridge：4帧128位置＋实际时间，插入文字词嵌入之后。本轮已完成本地Qwen3-1.7B一次冻结无梯度前向，尚无投影器对齐、LLM训练或完整生成验收。
 
-精选三份复现记录已经配置为入库：
+### 地图对齐数据与接线
 
-| 目录，均位于`outputs/` | 云端用途 |
-|---|---|
-| `interference_source_local_debug_20261102/` | 当前传播协议真实模型失败诊断；含逐调用上下文、原文、实际模板输入、episode、指标、审计与PNG |
-| `interference_debug_numeric_20261102/` | 无模型完整闭环；含逐阶段日志、episode、指标和PNG |
-| `interference_source_direction_mock_20261031_193820/` | 确定性夹具展示功率拟合但方向错误被拒绝、修订后接受；不是LLM能力证明 |
+派生数据`datasets/interference_map_alignment_v1/`已完整生成并逐题审核：train 16,144题、validation 3,462题；原场景划分不变，不导出test。两类题是当前指定ROI六通道还原和同ROI时序比较，答案来自当时原始机载图而不是解码重建。详见`map_alignment_data.md`。原始与派生数据均被Git忽略，云端需单独传输两个完整目录，并携带原v2权重`outputs/interference_map_encoder_20261104_174105_494050/best.pt`；该权重仅固定为本轮接口基线，不声称时序误报已解决。派生manifest记录权重／源数据／问答／缓存哈希，不能混用时序候选tokens。
 
-不入库且本地原样保留：`models/`权重、其他历史输出、GIF、IDE文件、第三方／推理缓存、`docs/submissions/`原始docx、根目录`uav.zip`。旧压缩包可能缺少最后的诊断记录，不作为迁移入口。云端无需这些缓存或旧调试脚本；完整代码不依赖旧项目。
-
-新实验输出仍默认被Git忽略，使用新的`outputs/interference_...`目录，不覆盖三份入库证据。正式入口重复指定旧目录会覆盖结果，优先使用调试入口的自动时间戳新目录。
-
-## 3. Linux环境与权重
-
-从GitHub克隆本项目，进入仓库根目录并确认实际版本：
+云端安装地图和LLM可选依赖后，先复核数据；若选择重新导出，必须指定不存在的新目录，不能覆盖现存数据：
 
 ```bash
-git clone https://github.com/mangziwaer2/uav.git
-cd uav
-git rev-parse HEAD
+python -m pip install -r requirements-map.txt -r requirements-llm.txt
+mkdir outputs/interference_alignment_cloud_audit
+python tools/audit_map_alignment_dataset.py --dataset datasets/interference_map_alignment_v1 --source datasets/interference_onboard_maps_v1 --output outputs/interference_alignment_cloud_audit/quality_report.json
+python tools/check_map_llm_bridge.py --dataset datasets/interference_map_alignment_v1 --model-path /path/to/Qwen3-1.7B --sample-index 6 --device cuda
+```
+
+审核报告目标也须不存在。重建命令见`map_alignment_data.md`，需要源数据和相同哈希的v2权重；只迁移派生数据时可检查前向，但无法重算原图监督审核。读取器严格按frame_indices和valid抽取因果窗口，绝不能把episode缓存的后续帧或answer拼入模型输入。
+
+较早接线记录`outputs/interference_map_llm_bridge_20261105_122625_826523/`：316文字＋128地图＝444位置，inputs_embeds为[1,444,2048]，末位置logits有限；随机投影／时间层，0优化器步，不代表LLM理解地图。torch2.14.1+cu126、transformers5.20.0，该次只核查forward。随后已完成独立测向、完整监督／预算和冻结训练入口，实际长输入训练遇本地OOM、未更新参数；云端以本文件开头专门交接为准，不自动启动LLM主体微调或RL。
+
+## 3. 创建云端环境
+
+在克隆／解包后的项目根目录，使用独立Python>=3.10环境。服务商已有合适环境时可直接使用，但所有命令必须来自同一解释器。
+
+```bash
 python --version
-nvidia-smi
-```
-
-先确认用户已经推送本次迁移提交，克隆中应存在本文件、`tests/`和指定调试入口。若仓库只有最初源码，请先同步迁移提交，不用重新实现缺失文件。
-
-建议用云端已配置CUDA的Python 3.10环境；激活正确环境后安装基础依赖：
-
-```bash
+python -m pip --version
 python -m pip install -r requirements.txt
-```
-
-基础测试与无模型仿真不需要torch、transformers或模型权重。需要真实LLM时，先检查云端的PyTorch及GPU是否可用，再处理`requirements-llm.txt`，不要直接覆盖服务商预装的CUDA/PyTorch。该文件是版本范围约束，不是严格锁文件；实际版本必须另行记录。若CUDA不可用或依赖不满足，先解决环境，不把CPU回退当成GPU测速。
-
-```bash
-python -c "import sys,torch; print(sys.executable); print(torch.__version__,torch.version.cuda); print('cuda_available=',torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA')"
-# 确认环境满足条件后，才按需安装可选推理依赖
-python -m pip install -r requirements-llm.txt
-python -c "import torch,transformers; print(torch.__version__,transformers.__version__); print(torch.__file__); print(transformers.__file__)"
-```
-
-本地历史运行使用uav Python 3.10.22加载toolkit的torch 2.11.0+cu126／transformers 4.54.1，RTX 3060 Laptop 6GB、float16。原因是本地toolkit解释器本身启动异常。这只是历史事实，**云端不要复制Windows绝对路径或混合site-packages的临时方案**；本次没有在Linux/GPU云主机实际验证安装。
-
-模型权重由用户另行传输，先保持现有`Qwen3-1.7B`以区分资源问题与模型变更。默认位置为`models/Qwen3-1.7B/`；也可以使用`--model-path /实际模型路径`，这个参数是本地权重目录，不是HTTP接口。
-
-原目录包含`config.json`、`generation_config.json`、tokenizer相关文件、`model.safetensors.index.json`及两个safetensors分片；不能只复制一个分片或配置文件。传输后校验文件完整性，条件允许时比较源端／目标端SHA256。当前程序不自动下载、不自动换模型，也没有远程推理客户端。服务商与模型下载凭据放环境或外部安全存储，不写入仓库。
-
-## 4. 先复现，再改动
-
-在仓库根目录运行：
-
-```bash
+python -m pip check
 python -m pytest -q -p no:cacheprovider
-python temp/debug_full_pipeline.py --advisor none --quiet --plot
-python temp/debug_full_pipeline.py --advisor mock --max-seconds 2 --max-calls 1 --quiet
+python temp/debug_full_pipeline.py --config configs/demo_25d.json --advisor none --plot --gif
 ```
 
-最近本地全量回归为251项通过，92.23s；这是迁移前Windows记录，不是云端已经通过。测试由`tests/conftest.py`加入src路径，不需要安装本项目为Python包。`test_debug_pipeline.py`会使用项目`temp/`下自清理临时目录，仓库根目录应可写。2秒mock运行通常以time_limit结束，只检验接线，不是完整成功任务，更不是模型收益。
+requirements是范围约束，不是锁文件；先记录实际安装版本。可用`python -m pip freeze`另存于新的实验目录。不要照抄本机E盘路径、从其他环境挂接site-packages或复制Windows环境；根environment.yml不再维护。
 
-调试时在`PipelineDebugger.__call__`看`stage/data`，或从`main`步入`simulate`。`source_evaluated`只有模型真正提交源假设才出现，默认none/mock不会触发。断点不推进仿真时间，但会影响外层墙钟耗时，不用于GPU测速。
+已知测试缺口是两个缺失外部夹具：`datasets/example_power_grid.json`和`datasets/example_buildings_local.geojson`。如果迁移副本同样缺失，应如实保留对应失败，不当作主仿真失效，也不自动下载不明替代或跳过测试。新的其他失败应单独调查。
 
-权重和CUDA就绪后，真实接口可用下列命令短诊断；输出自动写入新目录，生成不限时：
+## 4. 启用真实模型前
+
+先按云端驱动／CUDA条件安装或核查PyTorch，不盲目替换服务商可用的GPU环境。再处理可选requirements-llm约束，满足已有版本时无需重装：
 
 ```bash
-export HF_HUB_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
-python temp/debug_full_pipeline.py --advisor local --model-device cuda --max-calls 4
+python -c "import torch; print(torch.__version__, torch.cuda.is_available()); print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'NO CUDA')"
+python -m pip install -r requirements-llm.txt
+python -m pip check
 ```
 
-4次预算只作接口诊断，不是默认24次的全任务评价；不必反复重跑低信息前缀。可先受控复用已保存的第3轮可见上下文检查云端生成，但必须标为离线上下文诊断，不伪装成新飞行或新观测。输出解析、源一致性与闭环效果是不同验收环节，不能仅看JSON合法。
+基础仿真不需要torch。可选依赖范围包含当前查询到的transformers5.x，但这不是新环境真实LLM运行成功保证；先做短接口检查，并把实际torch／transformers／CUDA／精度记录在实验元数据中。不要把auto选择CPU当作GPU测速，正式核查使用--model-device cuda。
 
-**更多显存不会解除8000输入词元上限。** `LocalModelConfig.max_input_tokens`当前默认8000；上述两个CLI均未提供修改它的参数，不要使用不存在的`--model-max-input-tokens`。第4轮8736词元在GPU生成之前就会被拒绝，换4090仍会如此。既有路线要求受控验证数值精度压缩、保留证据语义；若需要显式可配置输入上限，也必须记录改动与实际设置，不能偷偷截断或假定问题自动消失。
-
-确认输入策略及资源后，再按路线第6节覆盖足够调用预算的完整飞行阶段；默认任务预算24、每点最多3轮，每轮均计入预算。扩大调用数只增加可咨询次数，不提高单轮输入上限，也不保证有效源推断。
-
-## 5. 必须带着走的失败结论
-
-迁移补充验证：按Git实际候选清单建立不含`.git`、权重和其他忽略文件的临时副本，251项测试通过（82.69s），副本已清理。候选共91个文件、约10.65MiB，检查了必要文件、大文件及常见凭据模式。这证明待上传文件在本地自足，不等于云端CUDA已验证或GitHub已上传。
-
-最新真实诊断详见`../outputs/interference_source_local_debug_20261102/review.md`：
-
-- 第1／2轮输入4895／7107词元，完整输出109／97词元，分别补测和重规划。当时尚无可检测角峰；两次均省略源字段，不是显式零源。
-- 第3轮首次检测方向时输入7532词元，CUDA OOM，无回答；第4轮8736词元，超8000上限、生成前拒绝。不能把这两轮解释为LLM忽略方向证据或定位能力不足。
-- 9次决策、4次后端调用、2次后端失败、7次回退（2次失败＋5次预算耗尽）；源提议／源评价／接受均0。到达不是全程LLM成功，真实拒绝反馈后的源修订仍未验证。
-- 离线将浮点保留3位小数，同tokenizer下4轮输入变为4479／5918／6056／6703。只做了计数，没有改变真实输入，也没有证明压缩后决策质量或GPU内存收益。
-- 旧metadata和audit中的Windows源码路径／哈希描述当时环境，不应用于定位云端文件；云端使用当前相对路径，重新记录实际命令、提交、包版本、GPU、dtype及输入输出。
-
-`call_0003_context.json`和`call_0004_context.json`才是需要受控检查的有方向证据输入。`evaluation_only_config.json`及episode顶层的评价配置含隐藏真值，只可由仿真器／回放读取，不能整体送给LLM。数值前向检验只用公开传播参数，不替LLM自动反演源位置；不把真源坐标加噪声当成传感器输出。
-
-GIF没有入库，可离线重建，不重新推理或规划：
+实际权重路径示例（替换成云端位置）：
 
 ```bash
-python src/replay_experiment.py outputs/interference_source_local_debug_20261102/episode.json --output outputs/interference_source_cloud_replay/replay.gif --speed 1 --decision-pause 3
+python temp/debug_full_pipeline.py --config configs/demo_25d.json --advisor local --model-path /data/models/Qwen3-1.7B --model-device cuda --max-calls 3 --plot
 ```
 
-## 6. 给云端新agent的起始消息
+3次调用只用于加载、格式与日志诊断，同一决策点源细化就可能耗尽预算；之后数值回退到达不是模型成功。全程行为观察应使用足够预算并新建实验目录，不能把短诊断当同预算效果评价。
 
-可直接复制以下内容，不要让新agent从历史对话猜状态：
+默认生成不限墙钟时间；输入／输出词元和咨询预算仍有限。不要为解决显存不足简单提高输入上限，不截掉未知、时序或关键观测后声称语义未变。需要调整上下文或精度时独立记录和验证，不悄悄修改模型原始响应。
 
-> 请先读根目录AGENTS.md，以及docs/AGENT_HANDOFF.md、docs/current_roadmap.md、docs/first_version.md、docs/CLOUD_HANDOFF.md。继续当前非代码LLM研究主线，不复制仿真、不扩大传感器噪声、不引入训练／门控／在线代码执行。先检查云端CUDA环境和权重，运行251项基线测试与无模型完整调试流程。再根据已入库的当前传播协议第3／4轮上下文，受控验证数值精度压缩与真实模型生成，保留原始观测、未知／时效和测向语义；8000输入上限不会因迁移GPU自动解除。随后按路线第6节检查真实源提议、数值拒绝反馈修订和补测规划。每次输出写新目录，完整保存输入、原文、实际模板、词元数、GPU／版本、失败及回退。源推断尚未真实验证，不以夹具成功或回退到达宣称LLM收益；局部代码生成仍在后续计划，不在这一轮开启。
+## 5. 必须保存的日志
+
+调试入口每次创建新的outputs/interference_debug_后端_时间戳目录：
+
+- episode、metrics、evaluation_only_config、run_metadata：配置、计数、版本、源码哈希和终止状态。
+- decision_log.txt、debug_stages.jsonl：中文输入／输出／执行记录及12阶段流程。
+- 真实调用额外保存call编号的context、prompt、原始response、含聊天模板的model_input，以及calls.jsonl；错误原样保留。
+- PNG／GIF为离线显示；阅读停顿不是生成时间，左真值不得回灌模型。
+
+主实验入口run_experiment会复用默认输出目录，若使用它必须显式指定新--output-dir。不要覆盖入库证据，不因源拟合通过就宣称真实定位或飞行安全。
+
+## 6. 接手后的研究任务
+
+最新授权继续冻结主体的地图投影／时间层训练，独立输入已有点测／测向；当前训练入口及保存恢复已实现，但本地实际尝试显存不足、尚无参数更新，云端按CLOUD_ALIGNMENT_HANDOFF继续。原数据覆盖及空间／时序核查已做，时序候选仍有误报权衡；不重训地图编码器，不把重建、任务B标签或通道接入当源定位／策略成功。未启动LLM主体微调或RL。
+
+原有真实模型诊断仍保留：先复现新的无模型环境，再产生新的真实模型上下文，检查：
+
+1. 是否根据功率／方向／时序提出可检验源假设，或明确说明歧义并选择补测。
+2. 是否理解反射来波不一定指向源，以及未知不等于低干扰。
+3. 数值拒绝反馈后能否作有依据的修订；后续新点是否检验了旧预测。
+4. 阶段计划、实际执行、解析失败、覆盖和回退是否分别可追溯。
+
+本轮授权独立地图数据与编解码器，不擅自启动LLM微调／RL、门控、在线代码生成或完整电磁平台开发。后续局部代码生成和独立模型评价按current_roadmap规定前提开展，不以一次到达或一条短航路证明收益。
+
+## 7. 可选离线工具
+
+建筑导入：`tools/import_buildings.py`＋`configs/optional/import_25d_template.json`。静态功率图示例也在configs/optional，只支持power_only，当前示例数据缺失。
+
+Sionna：`tools/generate_interference_rt.py`＋`configs/optional/sionna_rt_*.json`；仅在明确需要独立引擎核查时另建Python>=3.11（推荐3.12）环境并安装requirements-rt。它不提供在线测向，不是默认环境或LLM实验前提，不复制本机temp里的试装环境。详见`sionna_rt_environment.md`。
+
+## 8. 给新agent的接手提示词
+
+```text
+先读AGENTS.md、docs/AGENT_HANDOFF.md、docs/current_roadmap.md、docs/first_version.md及docs/CLOUD_HANDOFF.md。
+主环境是普通建筑＋本地时变干扰源＋有限一次反射，configs/demo_25d.json，不以Sionna或真实数据为前提。
+核心src/uav_em和temp/debug_full_pipeline.py未迁移；离线工具在tools，可选配置在configs/optional。
+先核对当前工作区／提交、独立Python环境、GPU和本地权重，再跑基础测试与无模型闭环；已知两项外部夹具缺失失败如实报告。
+按current_roadmap第6节先检查随机多场景时序地图与小编解码器；命令见docs/map_encoding.md，再准备LLM适配与动态重规划RL，不误称已实现。
+旧真实诊断目录当前缺失，不恢复或当作现存证据；none/mock/真实模型/回退分别记账，到达不等于模型有效。
+当前仅离线地图训练授权，不擅自启动LLM微调／RL，不扩展传播平台、门控、在线代码执行、中断穿越或高度优化。新实验只写新的outputs/interference_目录，不动权重、原始数据或缓存。
+```

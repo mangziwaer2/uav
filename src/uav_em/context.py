@@ -125,7 +125,11 @@ def build_context(position, goal, route, snapshot: MapSnapshot, config: ProjectC
                     "speed_mps": config.aircraft.speed_mps, "remaining_energy_wh": round(remaining_energy_wh, 3),
                     "reserve_energy_wh": config.aircraft.reserve_energy_wh},
         "map": {"bounds_m": [[0.0, 0.0], geometry.high.tolist()],
-                "obstacles_m": config.map.obstacles_m, "clearance_m": config.aircraft.clearance_m},
+                "obstacles_m": config.map.obstacles_m, "clearance_m": config.aircraft.clearance_m,
+                "geometry_mode": config.map.geometry_mode, "altitude_m": config.aircraft.altitude_m,
+                "vertical_clearance_m": config.aircraft.vertical_clearance_m,
+                "building_count": len(geometry.buildings), "blocking_building_count": len(geometry.blocking_buildings),
+                "geometry_meaning": "known buildings; fixed altitude, no climb action; legacy rectangles remain planar exclusions"},
         "electromagnetic_estimate": {"observation_count": snapshot.observation_count,
                            "current_grid_estimate_dbm": round(current_interference, 2) if current_support else None,
                            "current_grid_error_scale_db": round(current_error, 2),
@@ -144,7 +148,10 @@ def build_context(position, goal, route, snapshot: MapSnapshot, config: ProjectC
             "available": config.sensor.mode == "power_bearing",
             "observation_kind": ("360_degree_receive_beam_power_at_vehicle"
                                  if config.sensor.mode == "power_bearing" else "not_equipped"),
-            "model_scope": "direct_path_dominated_surrogate; reflections_and_array_IQ_not_simulated",
+            "model_scope": ("direct_and_first_order_wall_ground_reflections; incoherent_power; array_IQ_not_simulated"
+                            if config.electromagnetic.propagation_mode == "single_reflection"
+                            and config.electromagnetic.power_grid is None else
+                            "direct_path_dominated_surrogate; reflections_and_array_IQ_not_simulated"),
             "calibration_correlation_seconds": config.sensor.calibration_correlation_seconds,
             "bearing_error_std_deg": config.sensor.bearing_error_deg,
             "minimum_peak_separation_deg": config.sensor.beamwidth_deg,
@@ -153,7 +160,8 @@ def build_context(position, goal, route, snapshot: MapSnapshot, config: ProjectC
             "measured_range_available": False, "remote_field_cells_measured": False,
             "meaning": "angular peaks are not source count or coordinates; no detection is not proof of safety; "
                        "triangulation requires multiple informative positions; powers are received at the vehicle; "
-                       "nearby scans have correlated bearing errors; beamwidth is not a confidence interval"},
+                       "nearby scans have correlated bearing errors; beamwidth is not a confidence interval; "
+                       "a reflected arrival may point toward a wall rather than the transmitter"},
         "available_planners": {
             "astar": {"representation": "2d_grid", "incremental": False, "sampling_regions": False},
             "rrt_star": {"representation": "continuous_2d", "incremental": False, "sampling_regions": True}},
