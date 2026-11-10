@@ -17,9 +17,15 @@ def config_from_result(result: dict) -> ProjectConfig:
     if result.get("schema_version") != 2:
         raise ValueError("expected interference schema v2; old communication-quality logs must be rerun")
     value = result["evaluation_only_config"]
+    electromagnetic = dict(value["electromagnetic"])
+    if "power_grid" in electromagnetic:
+        # Accept the unused field in frozen local-source episodes, never old grid data.
+        if electromagnetic["power_grid"] is not None:
+            raise ValueError("external power_grid support was removed; only a legacy null field is accepted")
+        del electromagnetic["power_grid"]
     return ProjectConfig(value["seed"], AircraftConfig(**value["aircraft"]),
                          SimulationConfig(**value["simulation"]), MapConfig(**value["map"]),
-                         ElectromagneticConfig(**value["electromagnetic"]), BeliefConfig(**value["belief"]),
+                         ElectromagneticConfig(**electromagnetic), BeliefConfig(**value["belief"]),
                          SensorConfig(**value.get("sensor", {})))
 
 
@@ -94,7 +100,9 @@ def decision_caption(result: dict, now: float) -> tuple[str, str]:
               "fallback_replan": "数值回退重规划", "retained_previous_route": "保留原航路"}.get(
                   entry["accepted_action"], "未接受可执行航路")
     backend = entry["backend"]
-    source = "LLM" if backend == "local" else "模拟响应（非LLM）" if backend == "mock" else "数值规划"
+    source = ("LLM子agent" if backend == "codex_subagent" else "LLM" if backend == "local"
+              else "模拟响应（非LLM）" if backend == "mock" else "离线算法" if backend == "offline_algorithm"
+              else "数值规划")
     if backend == "budget_fallback":
         source = "模型调用预算耗尽，转数值规划"
     elif entry.get("error"):

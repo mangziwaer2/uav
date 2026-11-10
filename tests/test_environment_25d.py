@@ -6,14 +6,9 @@ import tempfile
 import numpy as np
 import pytest
 
-from uav_em.advisor import MockAdvisor
-from uav_em.belief import ElectromagneticBelief
 from uav_em.buildings import Building
 from uav_em.config import ProjectConfig, load_config
-from uav_em.context import build_context
-from uav_em.environment import ElectromagneticWorld, Geometry, Measurement
-from uav_em.map_import import import_buildings
-from uav_em.power_grid import PowerGrid, load_power_grid
+from uav_em.environment import ElectromagneticWorld, Geometry
 from uav_em.propagation import PropagationModel, propagation_received_dbm
 from uav_em.simulation import simulate
 from uav_em.source_model import parse_source_hypothesis, predict_power
@@ -136,7 +131,7 @@ def test_lower_building_can_attenuate_source_without_blocking_flight():
     clear = propagation_received_dbm([20, 60], [100, 60], source, replace(model, buildings=()))
     assert clear - blocked == pytest.approx(11)
     encoded = json.dumps(asdict(model))
-    assert '"fields"' not in encoded and '"power_grid"' not in encoded
+    assert '"fields"' not in encoded
 
 
 def test_simulator_and_candidate_source_share_public_building_geometry():
@@ -151,75 +146,8 @@ def test_simulator_and_candidate_source_share_public_building_geometry():
     assert world.truth([20, 60], 0) == pytest.approx(predicted)
 
 
-def grid_config():
-    config = fixed_config()
-    grid = {"x_m": [0, 120], "y_m": [0, 120], "power_dbm": [[-100, -80], [-100, -80]],
-            "altitude_m": 30, "carrier_frequency_hz": 2.4e9}
-    return replace(config, sensor=replace(config.sensor, mode="power_only"),
-                   electromagnetic=replace(config.electromagnetic, power_grid=grid))
-
-
-def test_external_grid_interpolates_milliwatts_instead_of_dbm_and_never_extrapolates():
-    config = grid_config()
-    grid = PowerGrid(config.electromagnetic.power_grid)
-    assert grid.sample([60, 60]) == pytest.approx(10 * np.log10((1e-10 + 1e-8) / 2))
-    np.testing.assert_allclose(grid.sample([[0, 0], [120, 120]]), [-100, -80])
-    with pytest.raises(ValueError, match="outside"):
-        grid.sample([-1, 0])
-
-
-def test_external_grid_has_no_source_positions_or_bearings_and_is_static():
-    world = ElectromagneticWorld(grid_config())
-    measurement = world.observe([10, 10], 0)
-    assert measurement.directional_scan is None
-    assert world.source_positions_for_evaluation(0) == []
-    assert measurement.interference_dbm == world.truth([10, 10], 1000)
-
-
-@pytest.mark.parametrize("changes", [
-    {"altitude_m": 1}, {"carrier_frequency_hz": 900e6}, {"x_m": [0, 100]},
-    {"x_m": [120, 0]}, {"power_dbm": [[float("nan"), -80], [-100, -80]]},
-    {"power_dbm": [[True, False], [True, False]]}, {"power_dbm": [[-90, -80]]},
-])
-def test_external_grid_rejects_incompatible_or_missing_data(changes):
-    config = grid_config()
-    value = {**config.electromagnetic.power_grid, **changes}
-    with pytest.raises(ValueError):
-        replace(config, electromagnetic=replace(config.electromagnetic, power_grid=value)).validate()
-
-
-def test_external_grid_rejects_bearing_fabrication_and_synthetic_source_mixing():
-    config = grid_config()
-    with pytest.raises(ValueError, match="power_only"):
-        replace(config, sensor=replace(config.sensor, mode="power_bearing")).validate()
-    with pytest.raises(ValueError, match="empty synthetic fields"):
-        replace(config, electromagnetic=replace(config.electromagnetic, fields=ProjectConfig().electromagnetic.fields)).validate()
-
-
-def test_grid_loading_embeds_data_for_replay_and_keeps_truth_out_of_context(tmp_path):
-    config = load_config(ROOT / "configs/optional/demo_power_grid.json")
-    assert "path" not in config.electromagnetic.power_grid
-    short = replace(config, simulation=replace(config.simulation, max_seconds=2, rrt_attempt_budget=100))
-    episode = simulate(short, MockAdvisor(), advisor_name="mock")
-    replay = config_from_result(episode)
-    assert replay.electromagnetic.power_grid == config.electromagnetic.power_grid
-    contexts = json.dumps([item["context"] for item in episode["decisions"]])
-    assert '"power_grid"' not in contexts and '"power_dbm"' not in contexts
-    render(episode, tmp_path / "grid.png")
-    assert (tmp_path / "grid.png").stat().st_size > 1000
-
-
-def test_npz_grid_loading_does_not_enable_pickle(tmp_path):
-    value = grid_config().electromagnetic.power_grid
-    np.savez(tmp_path / "grid.npz", **value)
-    assert load_power_grid(tmp_path / "grid.npz") == value
-    np.savez(tmp_path / "wrong.npz", x_m=np.array([{}], dtype=object))
-    with pytest.raises(ValueError):
-        load_power_grid(tmp_path / "wrong.npz")
-
-
 def test_fixed_altitude_episode_context_replay_and_plot_are_consistent(tmp_path):
-    config = load_config(ROOT / "configs/demo_25d.json")
+    config = load_config(ROOT / "configs/local_power.json")
     config = replace(config, simulation=replace(config.simulation, max_seconds=2, rrt_attempt_budget=100))
     episode = simulate(config)
     context = episode["decisions"][0]["context"]
@@ -230,64 +158,25 @@ def test_fixed_altitude_episode_context_replay_and_plot_are_consistent(tmp_path)
     assert (tmp_path / "buildings.png").stat().st_size > 1000
 
 
-def test_geojson_import_preserves_polygon_height_and_explicit_source():
-    template = load_config(ROOT / "configs/optional/import_25d_template.json")
-    result = import_buildings(ROOT / "datasets/example_buildings_local.geojson", template, "local_m", "fixture", "fixture")
-    assert result.map.geometry_mode == "fixed_altitude"
-    assert len(result.map.buildings) == 2
-    assert len(result.map.buildings[1]["footprint_m"]) == 6
-    assert result.map.provenance["assumed_height_count"] == 0
-    assert ElectromagneticWorld(result).geometry.free([200, 300])
-    assert result.map.provenance["input_sha256"]
-
-
-def feature_collection(coordinates, properties=None, kind="Polygon"):
-    return {"type": "FeatureCollection", "features": [{"type": "Feature", "id": "one",
-            "properties": properties or {}, "geometry": {"type": kind, "coordinates": coordinates}}]}
-
-
-def test_geojson_missing_height_needs_explicit_default_and_footprint_is_not_rectangularized(tmp_path):
-    path = tmp_path / "buildings.geojson"
-    path.write_text(json.dumps(feature_collection([[[40,40],[80,40],[80,80],[40,80],[40,40]]])), encoding="utf-8")
+def test_frozen_local_source_null_grid_metadata_is_accepted_without_mutating_episode(tmp_path):
     config = fixed_config()
-    with pytest.raises(ValueError, match="missing building height"):
-        import_buildings(path, config, "local_m", "fixture", "fixture")
-    imported = import_buildings(path, config, "local_m", "fixture", "fixture", default_height_m=12)
-    assert imported.map.buildings[0]["height_source"] == "assumed_default"
-    assert imported.map.provenance["assumed_height_count"] == 1
+    value = config.to_dict()
+    value["electromagnetic"]["power_grid"] = None
+    path = tmp_path / "frozen_local_source.json"
+    path.write_text(json.dumps(value), encoding="utf-8")
+    assert load_config(path).to_dict() == json.loads(json.dumps(config.to_dict()))
+    episode = {"schema_version": 2, "evaluation_only_config": value}
+    assert config_from_result(episode).to_dict() == config.to_dict()
+    assert "power_grid" in episode["evaluation_only_config"]["electromagnetic"]
 
 
-def test_geojson_lonlat_projection_is_explicit_and_local(tmp_path):
-    origin = [114.0, 22.0]
-    ring = [[114.0004,22.0004],[114.0007,22.0004],[114.0007,22.0007],[114.0004,22.0007],[114.0004,22.0004]]
-    path = tmp_path / "geo.geojson"
-    path.write_text(json.dumps(feature_collection([ring], {"height": "12 m"})), encoding="utf-8")
-    with pytest.raises(ValueError, match="southwest origin"):
-        import_buildings(path, fixed_config(), "lonlat", "fixture", "fixture")
-    result = import_buildings(path, fixed_config(), "lonlat", "fixture", "fixture", origin)
-    assert 40 < result.map.buildings[0]["footprint_m"][0][0] < 42
-    assert result.map.provenance["projection"] == "local_equirectangular_sphere_5km_limit"
-
-
-def test_geojson_multipolygon_holes_and_roof_vs_base_are_retained(tmp_path):
-    outer = [[40,40],[80,40],[80,80],[40,80],[40,40]]
-    hole = [[50,50],[70,50],[70,70],[50,70],[50,50]]
-    other = [[85,40],[100,40],[100,80],[85,80],[85,40]]
-    path = tmp_path / "multi.geojson"
-    path.write_text(json.dumps(feature_collection([[outer,hole],[other]], {"height": 40, "min_height": 10}, "MultiPolygon")), encoding="utf-8")
-    result = import_buildings(path, fixed_config(), "local_m", "fixture", "fixture")
-    assert len(result.map.buildings) == 2 and result.map.buildings[0]["height_m"] == 30
-    assert result.map.buildings[0]["base_m"] == 10 and len(result.map.buildings[0]["holes_m"]) == 1
-
-
-def test_unobserved_grid_changes_do_not_change_belief_or_model_context():
-    config = grid_config()
-    changed = {**config.electromagnetic.power_grid, "power_dbm": [[-60, -60], [-60, -60]]}
-    other = replace(config, electromagnetic=replace(config.electromagnetic, power_grid=changed))
-    contexts = []
-    for current in (config, other):
-        world = ElectromagneticWorld(current)
-        belief = ElectromagneticBelief(current, world.geometry)
-        belief.update(Measurement((10, 10), 0, -95))
-        contexts.append(build_context([10, 10], [110, 110], [], belief.snapshot(0), current, 100, [], [], None))
-    assert contexts[0] == contexts[1]
+@pytest.mark.parametrize("removed_grid", [{}, {"path": "old_grid.npz"}, [], False, 0])
+def test_removed_nonnull_grid_is_explicitly_rejected_in_config_and_replay(tmp_path, removed_grid):
+    value = fixed_config().to_dict()
+    value["electromagnetic"]["power_grid"] = removed_grid
+    path = tmp_path / "removed_grid.json"
+    path.write_text(json.dumps(value), encoding="utf-8")
+    with pytest.raises(ValueError, match="external power_grid support was removed"):
+        load_config(path)
+    with pytest.raises(ValueError, match="external power_grid support was removed"):
+        config_from_result({"schema_version": 2, "evaluation_only_config": value})

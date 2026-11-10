@@ -125,7 +125,7 @@ class RecordedAdvisor:
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", type=Path, default=ROOT / "configs/demo.json")
+    parser.add_argument("--config", type=Path, default=ROOT / "configs/local_power.json")
     parser.add_argument("--advisor", choices=("none", "mock", "local"), default="none")
     parser.add_argument("--planner", choices=("rrt_star", "astar"), default="rrt_star")
     parser.add_argument("--model-path", type=Path, default=ROOT / "models/Qwen3-1.7B")

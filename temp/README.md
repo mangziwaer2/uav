@@ -1,5 +1,5 @@
 # 临时目录
 
-通常仅存放可再生的绘图缓存、推理缓存和第三方调试产物。实验记录放在`outputs/`，配置放在`configs/`，正式源码放在`src/`。已有第三方缓存可能被其他进程占用或无访问权限，不强制删除。
+仅保留必要调试入口`debug_full_pipeline.py`、说明，以及现有`uav_cloud_env/`环境。环境带绝对路径，不移动、不当作源码入库。
 
-2026-11-02按用户明确要求，例外保留`debug_full_pipeline.py`与`debug_full_pipeline.md`，并在`.gitignore`中取消对这两个文件的忽略。它们是完整流程调试入口和操作说明，直接调用正式`simulate`，不维护第二份仿真算法。其他临时产物不转成依赖。
+当前调试默认`configs/local_power.json`。新研究结果必须写入新的`outputs/interference_...`，不在temp堆叠结果或创建current/resume快捷目录。

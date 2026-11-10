@@ -18,7 +18,7 @@ from .context import build_context, probe_candidates
 from .decision_state import execution_feedback, update_stage_plan
 from .environment import ElectromagneticWorld
 from .observation_monitor import ObservationMonitor
-from .planning import PlanningProblem, path_length, plan
+from .planning import PlanResult, PlanningProblem, path_length, plan
 
 
 def advance_route(route: list, distance_m: float) -> tuple[list, list]:
@@ -44,7 +44,9 @@ def advance_route(route: list, distance_m: float) -> tuple[list, list]:
 
 def simulate(config: ProjectConfig, advisor: Advisor | None = None,
              initial_planner: str = "rrt_star", advisor_name: str = "none",
-             debug_hook: Callable[[str, dict], None] | None = None) -> dict:
+             debug_hook: Callable[[str, dict], None] | None = None,
+             allow_waypoints: bool = False,
+             planning_backend: Callable[..., PlanResult] | None = None) -> dict:
     """模型不可改硬约束；可选调试钩子仅收到可见状态的深拷贝，返回值不参与决策。"""
     world = ElectromagneticWorld(config)
     geometry = world.geometry
@@ -66,9 +68,36 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
     total_advisor_seconds = 0.0
     termination = "time_limit"
 
+    def search(snapshot, start, target, *args):
+        # Optional experiments receive only the causal map snapshot and public endpoints,
+        # never the world, ProjectConfig, hidden emitters or future scripts.
+        result = (planning_backend or plan)(snapshot, start, target, *args)
+        if planning_backend is not None and result.path:
+            points = np.asarray(result.path, dtype=float)
+            if (points.ndim != 2 or points.shape[1] != 2 or not np.all(np.isfinite(points))
+                    or not np.allclose(points[0], start, atol=1e-7, rtol=0)
+                    or not np.allclose(points[-1], target, atol=1e-7, rtol=0)
+                    or not all(geometry.edge_free(a, b) for a, b in zip(points, points[1:]))
+                    or not all(geometry.free(p) for p in points)):
+                raise ValueError("experimental planning backend returned an invalid route")
+            # The execution layer independently computes the actual flight/energy length.
+            result.length_m = path_length(result.path)
+        return result
+
     def emit(stage, **data):
         if debug_hook is not None:
             debug_hook(stage, deepcopy({"time_seconds": clock, **data}))
+
+    def notify_fallback(reason, detail=None):
+        """An optional strategy backend must not carry a rejected proposal into recovery."""
+        record = {"reason": reason}
+        if detail is not None:
+            record["detail"] = detail
+        callback = getattr(planning_backend, "on_fallback", None)
+        if callback is not None:
+            record["strategy_reset"] = deepcopy(callback(reason))
+        events.append({"time_seconds": clock, "event": "fallback", **deepcopy(record)})
+        return record
 
     emit("initialized", position_m=position.tolist(), goal_m=goal.tolist(),
          energy_wh=remaining_energy, initial_planner=initial_planner, advisor_name=advisor_name)
@@ -86,6 +115,12 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
         frame["source_hypothesis"] = snapshot.source_hypothesis
         frame["source_status"] = belief.source_tracker.status(clock)
         frame["directional_observations"] = list(snapshot.directional_observations)
+        if snapshot.estimation_details is not None:
+            frame["estimation_details"] = snapshot.estimation_details
+            frame["uncertainty_db"] = np.round(snapshot.uncertainty_db, 2).tolist()
+            frame["age_seconds"] = np.round(snapshot.age_seconds, 2).tolist()
+            frame["nearest_support_distance_m"] = np.round(snapshot.nearest_support_distance_m, 2).tolist()
+            frame["local_support_count"] = snapshot.local_support_count.tolist()
         frame["observed_positions_m"] = [list(item.position_m) for item in belief.measurements.values()
                                          if 0 <= clock - item.time_seconds <= config.belief.max_age_seconds]
         if frames and abs(frames[-1]["time_seconds"] - clock) < 1e-8:
@@ -96,7 +131,26 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
     def solve(snapshot, target, decision, purpose):
         """对当前估计重新搜索并记账；没有持久树修复，也不读取隐藏干扰源。"""
         budget = settings.astar_expansion_budget if decision.planner == "astar" else settings.rrt_attempt_budget
-        result = plan(snapshot, position, target, decision.planner, decision.profile,
+        if decision.waypoint_m is not None:
+            # 两段独立搜索，各自预算和耗时分别记账；全路线仍须通过能量复核。
+            # 不把中间点视为已测位置，也不在到达前添加任何测量。
+            legs = []
+            for leg_index, (start, end) in enumerate(((position, decision.waypoint_m),
+                                                    (decision.waypoint_m, target))):
+                leg = search(snapshot, start, end, decision.planner, decision.profile,
+                           config.electromagnetic.interference_reference_dbm, budget,
+                           config.seed + len(plans), decision.regions)
+                plans.append({"time_seconds": clock, "purpose": purpose + f"_via_leg{leg_index + 1}",
+                              "profile": decision.profile, "waypoint_m": list(decision.waypoint_m),
+                              "regions": [asdict(region) for region in decision.regions], **asdict(leg)})
+                emit("plan_solved", plan=plans[-1])
+                legs.append(leg)
+                if not leg.path:
+                    return PlanResult(decision.planner, reason="waypoint_" + leg.reason)
+            path = legs[0].path + legs[1].path[1:]
+            return PlanResult(decision.planner, path=path, cost=sum(leg.cost for leg in legs),
+                              length_m=path_length(path), reason="solved_via_waypoint")
+        result = search(snapshot, position, target, decision.planner, decision.profile,
                       config.electromagnetic.interference_reference_dbm, budget, config.seed + len(plans), decision.regions)
         plans.append({"time_seconds": clock, "purpose": purpose, "profile": decision.profile,
                       "regions": [asdict(region) for region in decision.regions], **asdict(result)})
@@ -161,6 +215,9 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
             context = build_context(position, goal, route, snapshot, config, remaining_energy,
                                     candidates, history, active_probe)
             context["preferred_planner"] = initial_planner
+            if allow_waypoints:
+                context["waypoint_replanning"] = {"available": True, "maximum_intermediate_points": 1,
+                    "meaning": "optional replan waypoint; two independent numerical searches, not a measured or safe region"}
             context["decision_trigger"] = trigger
             context["latest_observation"] = {**asdict(measurement), "innovation_db": innovation,
                                              "supported_before": supported_before, **source_check}
@@ -185,6 +242,7 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
             decision = Decision("replan", initial_planner, "balanced", "本地数值基线或预算回退")
             raw, error, backend, elapsed = None, None, "numeric", 0.0
             refinement_trace = []
+            fallback_events = []
             if advisor is not None and advisor_calls < settings.max_advisor_calls:
                 backend = advisor_name
                 previous_source = None
@@ -199,13 +257,15 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                     emit("advisor_started", advisor_call=advisor_calls, context=round_context)
                     try:
                         raw = advisor.decide(json.loads(json.dumps(round_context, allow_nan=False)))
-                        decision = parse_decision(raw, geometry.high, {item["id"] for item in candidates})
+                        decision = parse_decision(raw, geometry.high, {item["id"] for item in candidates},
+                                                  allow_waypoint=allow_waypoints)
                         if decision.source_hypothesis is not None:
                             source_evaluation = belief.source_tracker.consider(decision.source_hypothesis, clock)
                     except Exception as exception:
                         error = f"{type(exception).__name__}: {exception}"
                         advisor_failures += 1
                         fallbacks += 1
+                        fallback_events.append(notify_fallback("advisor_error", error))
                     emit("advisor_returned", advisor_call=advisor_calls, raw_response=raw,
                          parsed_decision=asdict(decision) if error is None else None, error=error)
                     if source_evaluation is not None:
@@ -237,11 +297,13 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
             elif advisor is not None:
                 backend = "budget_fallback"
                 fallbacks += 1
+                fallback_events.append(notify_fallback("advisor_budget_exhausted"))
             proposed_decision = asdict(decision)
             override = None
             if decision.action == "continue" and (not route or force_reason is not None):
                 decision = Decision("replan", initial_planner, "balanced", "缺少有效航路或探测结束，覆盖continue")
                 override = "route_required"
+                fallback_events.append(notify_fallback("route_required"))
             accepted, failure = None, None
             if decision.action != "continue":
                 target = goal
@@ -255,7 +317,7 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                     # 补测后还需有到目标的数值航路和能量余量，不能只检查去探测点的一段。
                     tail_budget = (settings.astar_expansion_budget if decision.planner == "astar"
                                    else settings.rrt_attempt_budget)
-                    tail = plan(snapshot, target, goal, decision.planner, "balanced",
+                    tail = search(snapshot, target, goal, decision.planner, "balanced",
                                 config.electromagnetic.interference_reference_dbm, tail_budget,
                                 config.seed + len(plans))
                     plans.append({"time_seconds": clock, "purpose": "probe_tail_check", "profile": "balanced",
@@ -286,6 +348,10 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                         active_probe = None
                     accepted = decision.action
                 else:
+                    # Count the recovery attempt even when it can only retain the
+                    # old route or cannot find any feasible route at all.
+                    fallbacks += 1
+                    fallback_events.append(notify_fallback("planning_failure", failure))
                     fallback = Decision("replan", initial_planner, "balanced", "数值求解回退")
                     replacement = solve(snapshot, goal, fallback, "planning_fallback")
                     remaining_cost = (path_length(replacement.path) / aircraft.speed_mps
@@ -298,7 +364,6 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                                            "target_id": active_probe["id"], "reason": "planning_fallback"})
                         route, active_probe, accepted = replacement.path, None, "fallback_replan"
                         route_planner = replacement.planner
-                        fallbacks += 1
                     elif route and math.isfinite(PlanningProblem(
                             snapshot, config.electromagnetic.interference_reference_dbm, "balanced").route_cost(route)):
                         retained_energy = path_length(route) / aircraft.speed_mps * aircraft.flight_power_w / 3600
@@ -317,10 +382,12 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                      "decision": asdict(decision), "accepted_action": accepted,
                      "accepted_planner": route_planner,
                      "planning_failure": failure, "override": override, "advisor_seconds": elapsed,
+                     "fallback_events": fallback_events,
                      "accepted_route_balanced_cost": (PlanningProblem(
                          snapshot, config.electromagnetic.interference_reference_dbm, "balanced").route_cost(route)
                          if route else None),
-                     "model_runtime": getattr(advisor, "last_call", {}) if backend == "local" else {}}
+                     "model_runtime": getattr(advisor, "last_call", {})
+                                      if backend not in ("numeric", "budget_fallback") else {}}
             entry["source_refinement_trace"] = refinement_trace
             entry["source_model_after"] = belief.source_tracker.summary(clock)
             entry["execution_checkpoint"] = {"flight_m": flight_m, "remaining_energy_wh": remaining_energy}
@@ -403,12 +470,11 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                         "outage_duration_enforced": False, "truth_not_in_advisor_context": True,
                         "model_deployment": "local_research_process_not_link_gated",
                         "actual_compute_advances_simulation": False,
-                        "propagation_model": ("external_static_power_grid" if world.power_grid is not None
-                                              else config.electromagnetic.propagation_mode),
+                        "propagation_model": config.electromagnetic.propagation_mode,
                         "sensor_model": config.sensor.mode,
+                        "map_estimation_method": config.belief.estimation_method,
                         "remote_field_scan": False, "range_measurement": False,
-                        "first_order_reflections": (world.power_grid is None
-                                                    and config.electromagnetic.propagation_mode == "single_reflection"),
+                        "first_order_reflections": config.electromagnetic.propagation_mode == "single_reflection",
                         "diffraction": False, "coherent_phase_sum": False,
                         "uncertainty_is_calibrated": False},
         "metrics": {"success": termination == "goal_reached", "termination": termination,
@@ -417,6 +483,7 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                     "high_interference_exposure_seconds": high_interference_seconds,
                     "interference_excess_integral_db_seconds": excess_integral,
                     "observations": belief.observation_count,
+                    "flight_observations": sum(item["event"] == "observation" for item in events),
                     "directional_scans": sum(item["event"] == "observation"
                                              and item.get("directional_scan") is not None for item in events),
                     "directional_detected_scans": sum(item["event"] == "observation"

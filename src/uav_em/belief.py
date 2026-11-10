@@ -12,6 +12,7 @@ from .environment import Geometry, Measurement
 from .source_model import SourceTracker
 from .sensing import scan_record
 from .propagation import PropagationModel
+from .local_estimation import local_gp_prediction, local_support_evidence
 
 
 @dataclass
@@ -21,16 +22,20 @@ class MapSnapshot:
     time_seconds: float
     # 以下栅格数组按[行,列]索引；无支持处的背景估计仅为数值先验。
     estimate_dbm: np.ndarray
-    # 启发式误差尺度，dB；不是风险概率，也不是统计置信区间。
+    # 常值模式为启发式尺度，GP为模型条件下的预测标准差dB；均非校准风险概率。
     uncertainty_db: np.ndarray
     supported: np.ndarray
-    # 支持该格估计的点测量年龄，s；-1表示当前没有有效支持。
+    # 常值为选中测量年龄；GP为最近训练点年龄s，并非全部GP证据的年龄；无支持为-1。
     age_seconds: np.ndarray
     observation_count: int
     geometry: Geometry
     source_prediction_dbm: np.ndarray | None = None
     source_hypothesis: dict | None = None
     directional_observations: tuple[dict, ...] = ()
+    estimation_details: dict | None = None
+    nearest_support_distance_m: np.ndarray | None = None
+    local_support_count: np.ndarray | None = None
+    recent_point_measurements: tuple[dict, ...] = ()
 
     def at(self, position) -> tuple[float, float, bool]:
         """取最近网格的估计功率dBm、误差dB及支持标记，不访问真值。"""
@@ -92,7 +97,29 @@ class ElectromagneticBelief:
                       if hypothesis is not None else None)
         if prediction is not None:
             estimate = prediction.copy()
-        for measurement in self.measurements.values():
+        details = None
+        support_distance, support_count = None, None
+        if settings.estimation_method == "local_gp":
+            prior_at_measurements = (lambda m: self.source_tracker.predict(
+                hypothesis, m.position_m, m.time_seconds)) if prediction is not None else None
+            estimate, error, supported, age, count = local_gp_prediction(
+                grid, time_seconds, self.measurements.values(), settings,
+                prediction if prediction is not None else self.config.electromagnetic.background_dbm,
+                prior_at_measurements)
+            support_distance, support_count = local_support_evidence(
+                grid, time_seconds, self.measurements.values(), settings)
+            details = {"method": "local_gp", "kernel": "matern32_space_times_exponential_time",
+                       "training_point_count": count, "maximum_training_points": settings.gp_max_points,
+                       "spatial_length_scale_m": settings.gp_length_scale_m,
+                       "temporal_length_scale_seconds": settings.gp_time_scale_seconds,
+                       "local_prediction_radius_m": settings.support_radius_m,
+                       "maximum_measurement_age_seconds": settings.max_age_seconds,
+                       "uncertainty_kind": "GP_predictive_std_db_under_assumed_model_not_calibrated",
+                       "support_is_not_direct_measurement": True,
+                       "support_count_is_not_independent_sample_count": True,
+                       "temporal_decay_is_not_evidence_of_source_shutdown": True,
+                       "building_shadow_boundaries_are_not_modelled_by_kernel": True}
+        for measurement in (() if details is not None else self.measurements.values()):
             elapsed = time_seconds - measurement.time_seconds
             if elapsed < 0 or elapsed > settings.max_age_seconds:
                 continue
@@ -113,7 +140,12 @@ class ElectromagneticBelief:
         scans = [item for item in self.directional_measurements
                  if 0 <= time_seconds - item.time_seconds <= settings.max_age_seconds]
         indexes = np.unique(np.linspace(0, len(scans) - 1, min(6, len(scans))).astype(int)) if scans else []
+        recent = [m for m in self.source_tracker.recent(time_seconds) if m.time_seconds <= time_seconds]
+        point_indexes = np.unique(np.linspace(0, len(recent) - 1, min(8, len(recent))).astype(int)) if recent else []
+        points = tuple({"position_m": list(recent[i].position_m), "time_seconds": recent[i].time_seconds,
+                        "interference_dbm": recent[i].interference_dbm} for i in point_indexes)
         return MapSnapshot(float(time_seconds), estimate, error, supported, age,
                            self.observation_count, self.geometry, prediction,
                            asdict(hypothesis) if hypothesis is not None else None,
-                           tuple(scan_record(scans[index]) for index in indexes))
+                           tuple(scan_record(scans[index]) for index in indexes), details,
+                           support_distance, support_count, points)

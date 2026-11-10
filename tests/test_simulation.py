@@ -243,7 +243,7 @@ def test_seeded_episode_has_reproducible_decisions_and_trajectory(small_config):
 
 
 def test_default_config_file_is_valid():
-    config = load_config(Path(__file__).resolve().parent.parent / "configs/demo.json")
+    config = load_config(Path(__file__).resolve().parent.parent / "configs/local_power.json")
     assert config.map.goal_m == [760, 300]
 
 

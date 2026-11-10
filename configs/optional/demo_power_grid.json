@@ -1,9 +1,0 @@
-{
-  "map": {"columns": 41, "rows": 31, "resolution_m": 20.0, "start_m": [40,300], "goal_m": [760,300],
-          "geometry_mode": "fixed_altitude", "obstacles_m": [],
-          "buildings": [{"id": "low", "footprint_m": [[160,260],[240,260],[240,340],[160,340]], "height_m": 12},
-                        {"id": "high", "footprint_m": [[320,220],[400,220],[400,360],[320,360]], "height_m": 45}]},
-  "aircraft": {"altitude_m": 30, "vertical_clearance_m": 5},
-  "sensor": {"mode": "power_only"},
-  "electromagnetic": {"fields": [], "power_grid": {"path": "../../datasets/example_power_grid.json"}}
-}

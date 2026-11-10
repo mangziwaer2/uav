@@ -1,0 +1,41 @@
+{
+  "seed": 109,
+  "map": {
+    "columns": 41,
+    "rows": 31,
+    "resolution_m": 20.0,
+    "start_m": [40.0, 300.0],
+    "goal_m": [760.0, 300.0],
+    "geometry_mode": "fixed_altitude",
+    "obstacles_m": [],
+    "buildings": [
+      {"id": "low_roof", "footprint_m": [[160, 260], [240, 260], [240, 340], [160, 340]], "height_m": 12, "height_source": "synthetic"},
+      {"id": "tall", "footprint_m": [[320, 220], [400, 220], [400, 360], [320, 360]], "height_m": 45, "loss_db": 9, "height_source": "synthetic"},
+      {"id": "south", "footprint_m": [[520, 100], [620, 100], [620, 230], [520, 230]], "height_m": 38, "height_source": "synthetic"}
+    ],
+    "provenance": {"source": "synthetic fixture; known geometry, unknown emitters"}
+  },
+  "aircraft": {"altitude_m": 30.0, "vertical_clearance_m": 5.0},
+  "simulation": {"max_seconds": 120.0, "source_refinement_rounds": 1},
+  "electromagnetic": {
+    "propagation_mode": "single_reflection",
+    "path_loss_exponent": 2.0,
+    "carrier_frequency_hz": 2400000000.0,
+    "measurement_noise_db": 1.0,
+    "fields": [
+      {"center_m": [450, 330], "eirp_dbm": 0.0, "height_m": 1.5, "start_seconds": 0, "end_seconds": 45, "velocity_mps": [0, 0]},
+      {"center_m": [620, 350], "eirp_dbm": -2.0, "height_m": 1.5, "start_seconds": 20, "end_seconds": 121, "velocity_mps": [0, -0.4]}
+    ]
+  },
+  "sensor": {"mode": "power_only"},
+  "belief": {
+    "estimation_method": "local_gp",
+    "support_radius_m": 80.0,
+    "max_age_seconds": 35.0,
+    "measured_error_db": 1.0,
+    "unknown_error_db": 15.0,
+    "gp_length_scale_m": 60.0,
+    "gp_time_scale_seconds": 20.0,
+    "gp_max_points": 64
+  }
+}

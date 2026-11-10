@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>当前UAV研究结果</title>
+<style>body{font:17px/1.8 sans-serif;max-width:1150px;margin:30px auto;padding:0 18px}a{color:#175e9e}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ddd;padding:9px}</style>
+<h1>当前研究：局部点功率下的LLM辅助动态重规划</h1>
+<p><a href="interference_point_agent_20261109/index.html">打开完整实验报告</a> · <a href="interference_point_agent_20261109/replay/index.html">直接看4个GIF</a> · <a href="../docs/current_roadmap.md">后续研究路线</a> · <a href="../docs/research_method_20261109.md">具体方法与候选贡献</a></p>
+<p>UAV只测当前位置的总干扰功率，局部时空GP提供有不确定性的估计；新在线决策子agent使用相同点测/估计和已知建筑选择补测、绕行与重规划。无预飞行稀疏测量、无测向、无源真值。</p>
+<table><tr><th>场景</th><th>方法</th><th>到达</th><th>航程/m</th><th>暴露/s</th><th>超参考积分/dB·s</th></tr><tr><td>p01</td><td>数值RRT*</td><td>True</td><td>729.96</td><td>25.450</td><td>150.810</td></tr><tr><td>p01</td><td>在线agent + RRT*</td><td>True</td><td>1002.15</td><td>19.781</td><td>15.186</td></tr><tr><td>p02</td><td>数值RRT*</td><td>True</td><td>757.26</td><td>38.484</td><td>210.950</td></tr><tr><td>p02</td><td>在线agent + RRT*</td><td>True</td><td>1122.23</td><td>43.686</td><td>106.880</td></tr></table><p>两个构造场景各一个种子；20次真实模型响应，0响应失败、0数值回退。静态场景可见绕行；动态场景积分减少但暴露时长增加；其终点本身也高于软参考，不能以零暴露验收，更不能称为全程避开强干扰。航程、profile和总搜索资源不同，尚不证明同预算LLM优化优势。−80dBm为软参考，积分不是物理剂量。</p>
+<p>清理后352项当前范围测试通过。4项任务在当前源码上重放已记录动作，轨迹与主要指标全部一致；这不是新模型实验。<a href="interference_point_agent_20261109/reports/reproduction.json">重放核验</a> · <a href="interference_point_agent_20261109/reports/cleanup_manifest.json">实际清理清单</a> · <a href="interference_point_agent_20261109/logs/tests_current.log">测试日志</a></p>
+<p>当前只保留本轮研究，旧实验结果与废弃代码/配置已按授权删除；用户模型、原始数据、提交材料和已有环境原位保留。后续实现证据条件化的区段修复与固定目标/约束/总预算的数值反馈优化，再做公平对照。</p></html>

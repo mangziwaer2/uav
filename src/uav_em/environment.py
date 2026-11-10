@@ -11,7 +11,6 @@ from .config import MapConfig, ProjectConfig
 from .propagation import PropagationModel, source_received_dbm, source_arrivals
 from .sensing import DirectionalReceiver, DirectionalScan
 from .buildings import Building
-from .power_grid import PowerGrid
 
 
 @dataclass(frozen=True)
@@ -99,7 +98,6 @@ class ElectromagneticWorld:
         self.config = config
         self.geometry = Geometry(config.map, config.aircraft.clearance_m, config.aircraft.altitude_m,
                                  config.aircraft.vertical_clearance_m)
-        self.power_grid = PowerGrid(config.electromagnetic.power_grid) if config.electromagnetic.power_grid is not None else None
         self.propagation = PropagationModel.from_config(config)
         if not self.geometry.free(config.map.start_m) or not self.geometry.free(config.map.goal_m):
             raise ValueError("start or goal intersects geometry or is outside map")
@@ -121,8 +119,6 @@ class ElectromagneticWorld:
     def truth(self, points, time_seconds: float):
         """合成总干扰功率，dBm；背景和各源在线性毫瓦域叠加，无服务站。"""
         points = np.asarray(points, dtype=float)
-        if self.power_grid is not None:
-            return self.power_grid.sample(points)
         electromagnetic = self.config.electromagnetic
         interference = np.full(points.shape[:-1], 10 ** (electromagnetic.background_dbm / 10))
         for _, center, item in self._active_fields(time_seconds):

@@ -9,16 +9,7 @@ venv/
 !/temp/debug_full_pipeline.md
 /outputs/*
 !/outputs/README.md
-!/outputs/interference_debug_none_20261103_144015_801006/
-/outputs/interference_debug_none_20261103_144015_801006/*
-!/outputs/interference_debug_none_20261103_144015_801006/episode.json
-!/outputs/interference_debug_none_20261103_144015_801006/metrics.json
-!/outputs/interference_debug_none_20261103_144015_801006/decision_log.txt
-!/outputs/interference_debug_none_20261103_144015_801006/debug_stages.jsonl
-!/outputs/interference_debug_none_20261103_144015_801006/evaluation_only_config.json
-!/outputs/interference_debug_none_20261103_144015_801006/run_metadata.json
-!/outputs/interference_debug_none_20261103_144015_801006/summary.png
-!/outputs/interference_debug_none_20261103_144015_801006/review.md
+!/outputs/index.html
 /models/
 /.idea/
 /.vscode/
@@ -33,3 +24,5 @@ venv/
 *.p12
 /datasets/*
 !/datasets/README.md
+
+.ipynb_checkpoints/

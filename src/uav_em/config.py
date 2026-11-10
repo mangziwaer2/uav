@@ -100,7 +100,6 @@ class ElectromagneticConfig:
     relative_permittivity为墙／地面统一相对介电常数，有限且>=1；conductivity_s_per_m为电导率S/m，非负。
     反射采用非极化平均Fresnel功率系数；只含单次墙／地面反射，不计算相干相位或绕射。
     obstacle_height_m和obstacle_loss_db为所有矩形的统一高度m和每次穿透损耗dB，非负。
-    power_grid可为总接收干扰dBm静态栅格；路径在load_config时解析，必须power_only、空fields且频率／机高一致。
     fields可为传播源（eirp_dbm、height_m）或显式高斯基线（sigma_m、peak_dbm），不混用参数。
     EIRP是观测频带内等效全向辐射功率dBm；源高m非负，其活动时间和速度仅供真值生成。
     """
@@ -113,7 +112,6 @@ class ElectromagneticConfig:
     propagation_mode: str = "log_distance"
     relative_permittivity: float = 4.0
     conductivity_s_per_m: float = 0.005
-    power_grid: dict | None = None
 
     # 均匀背景功率，dBm；用于无局部观测时的先验，不代表已测安全。
     background_dbm: float = -100.0
@@ -182,6 +180,13 @@ class BeliefConfig:
     source_count_penalty_db2: float = 1.0
     source_bearing_weight_db2: float = 9.0
     source_max_bearing_rmse_deg: float = 45.0
+    # local_constant保留历史局部常值外推；local_gp为点测驱动的局部时空高斯过程。
+    estimation_method: str = "local_constant"
+    # GP空间Matérn-3/2长度尺度m、时间指数核尺度s；均为正，非探测范围或已标定性能。
+    gp_length_scale_m: float = 60.0
+    gp_time_scale_seconds: float = 20.0
+    # 每次拟合最多使用最近这些已访问网格的测量；整数[1,256]，限制CPU开销。
+    gp_max_points: int = 64
 
 
 @dataclass(frozen=True)
@@ -202,7 +207,7 @@ class ProjectConfig:
     def validate(self) -> None:
         for section in (self.aircraft, self.simulation, self.map, self.electromagnetic, self.belief, self.sensor):
             for name, value in asdict(section).items():
-                if name in ("buildings", "provenance", "power_grid"):
+                if name in ("buildings", "provenance"):
                     continue
                 if section is self.electromagnetic and name == "propagation_mode":
                     if value not in ("log_distance", "single_reflection"):
@@ -216,6 +221,10 @@ class ProjectConfig:
                     if value not in ("power_only", "power_bearing"):
                         raise ValueError("sensor mode must be power_only or power_bearing")
                     continue
+                if section is self.belief and name == "estimation_method":
+                    if value not in ("local_constant", "local_gp"):
+                        raise ValueError("estimation_method must be local_constant or local_gp")
+                    continue
                 if name not in ("start_m", "goal_m", "obstacles_m", "fields") and (
                         isinstance(value, bool) or not isinstance(value, (int, float))):
                     raise ValueError(f"configuration field must be numeric: {name}")
@@ -228,6 +237,7 @@ class ProjectConfig:
                     self.simulation.probe_budget_seconds, self.map.resolution_m,
                     self.belief.support_radius_m, self.belief.max_age_seconds,
                     self.belief.measured_error_db, self.belief.unknown_error_db)
+        positive += (self.belief.gp_length_scale_m, self.belief.gp_time_scale_seconds)
         positive += (self.belief.source_max_fit_rmse_db, self.belief.source_bearing_weight_db2,
                      self.belief.source_max_bearing_rmse_deg)
         positive += (self.aircraft.altitude_m, self.electromagnetic.carrier_frequency_hz,
@@ -271,11 +281,14 @@ class ProjectConfig:
             ("astar_expansion_budget", self.simulation.astar_expansion_budget, 1),
             ("rrt_attempt_budget", self.simulation.rrt_attempt_budget, 1),
             ("azimuth_bins", self.sensor.azimuth_bins, 4),
+            ("gp_max_points", self.belief.gp_max_points, 1),
         ):
             if type(value) is not int or value < minimum:
                 raise ValueError(f"{name} must be an integer >= {minimum}")
         if self.sensor.azimuth_bins > 360:
             raise ValueError("at most 360 azimuth beams")
+        if self.belief.gp_max_points > 256:
+            raise ValueError("gp_max_points must be <= 256")
         for point in (self.map.start_m, self.map.goal_m):
             if len(point) != 2 or any(isinstance(value, bool) or not math.isfinite(value) for value in point):
                 raise ValueError("positions must contain two finite coordinates")
@@ -288,9 +301,6 @@ class ProjectConfig:
         buildings = [Building.from_dict(item) for item in self.map.buildings]
         if len({item.id for item in buildings}) != len(buildings):
             raise ValueError("building ids must be unique")
-        if self.electromagnetic.power_grid is not None:
-            from .power_grid import validate_power_grid
-            validate_power_grid(self.electromagnetic.power_grid, self)
         common = {"center_m", "start_seconds", "end_seconds", "velocity_mps"}
         for item in self.electromagnetic.fields:
             if not isinstance(item, dict) or set(item) not in (
@@ -326,20 +336,12 @@ def load_config(path: str | Path) -> ProjectConfig:
                "sensor": SensorConfig}
     if not isinstance(value, dict) or set(value) - {"seed", *classes}:
         raise ValueError("unknown project configuration field")
-    if isinstance(value.get("electromagnetic"), dict):
-        grid = value["electromagnetic"].get("power_grid")
-        if isinstance(grid, dict) and "path" in grid:
-            if set(grid) - {"path", "provenance"} or not isinstance(grid["path"], str):
-                raise ValueError("external power grid requires path and optional provenance only")
-            from .power_grid import load_power_grid
-            import hashlib
-            grid_path = Path(path).resolve().parent / grid["path"]
-            resolved = load_power_grid(grid_path)
-            provenance = {**resolved.get("provenance", {}), **grid.get("provenance", {}),
-                          "input_file": grid_path.name, "input_sha256": hashlib.sha256(grid_path.read_bytes()).hexdigest(),
-                          "quantity": "total_received_interference_power_dbm", "time_model": "static"}
-            resolved["provenance"] = provenance
-            value["electromagnetic"]["power_grid"] = resolved
+    electromagnetic = value.get("electromagnetic", {})
+    if isinstance(electromagnetic, dict) and "power_grid" in electromagnetic:
+        # Frozen local-source runs carried this unused null field before its removal.
+        if electromagnetic["power_grid"] is not None:
+            raise ValueError("external power_grid support was removed; only a legacy null field is accepted")
+        del electromagnetic["power_grid"]
     sections = {name: cls(**value.get(name, {})) for name, cls in classes.items()}
     config = ProjectConfig(seed=value.get("seed", 7), **sections)
     config.validate()

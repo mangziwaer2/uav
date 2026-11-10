@@ -18,7 +18,7 @@ def main() -> None:
     """使用同一仿真闭环切换后端；none与mock不能用于证明真实模型能力。"""
     root = Path(__file__).resolve().parent.parent
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", type=Path, default=root / "configs/demo.json", help="研究配置文件")
+    parser.add_argument("--config", type=Path, default=root / "configs/local_power.json", help="研究配置文件")
     parser.add_argument("--advisor", choices=("none", "mock", "local"), default="none",
                         help="none为数值基线，mock为固定模拟响应，local才调用本地模型")
     parser.add_argument("--planner", choices=("astar", "rrt_star"), default="rrt_star",
@@ -32,7 +32,7 @@ def main() -> None:
                         help="可选生成软时限，单位秒，必须为有限正数；默认不限时，不是硬实时期限")
     parser.add_argument("--max-calls", type=int, help="覆盖模型调用上限；耗尽后明确记录数值回退")
     parser.add_argument("--seed", type=int)
-    parser.add_argument("--output-dir", type=Path, help="独立实验目录；同目录重跑会覆盖结果")
+    parser.add_argument("--output-dir", type=Path, help="新建独立实验目录；已有目录拒绝覆盖")
     parser.add_argument("--no-plot", action="store_true")
     parser.add_argument("--gif", action="store_true")
     parser.add_argument("--gif-speed", type=float, default=1.0, help="GIF播放倍速，正数；默认1倍仿真时间")
@@ -52,9 +52,9 @@ def main() -> None:
             str(args.model_path), args.model_device, max_new_tokens=args.model_max_tokens,
             generation_seconds=args.model_timeout))
         advisor.load()
-    result = simulate(config, advisor, args.planner, args.advisor)
     directory = args.output_dir or root / "outputs" / f"interference_{args.advisor}_{args.planner}_seed{config.seed}"
-    directory.mkdir(parents=True, exist_ok=True)
+    directory.mkdir(parents=True, exist_ok=False)
+    result = simulate(config, advisor, args.planner, args.advisor)
     (directory / "episode.json").write_text(json.dumps(result, ensure_ascii=False, allow_nan=False), encoding="utf-8")
     (directory / "metrics.json").write_text(json.dumps(result["metrics"], ensure_ascii=False, indent=2,
                                                       allow_nan=False), encoding="utf-8")

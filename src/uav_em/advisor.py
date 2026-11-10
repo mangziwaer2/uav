@@ -47,9 +47,11 @@ class Decision:
     regions: tuple[SamplingRegion, ...] = ()
     stage_plan: StagePlan | None = None
     source_hypothesis: SourceHypothesis | None = None
+    # 可选离线绕行实验：经此中间点向终点重规划；正式默认禁用。
+    waypoint_m: tuple[float, float] | None = None
 
 
-def parse_decision(response: str, bounds, probe_ids: set[str]) -> Decision:
+def parse_decision(response: str, bounds, probe_ids: set[str], allow_waypoint: bool = False) -> Decision:
     """拒绝未知字段、重复键、非有限数、越界区域和未经批准的算子。"""
     if not isinstance(response, str) or len(response) > 4096:
         raise ValueError("response must be JSON text of at most 4096 characters")
@@ -67,8 +69,10 @@ def parse_decision(response: str, bounds, probe_ids: set[str]) -> Decision:
 
     value = json.loads(response, object_pairs_hook=unique, parse_constant=invalid_constant)
     required = {"action", "planner", "profile", "reason"}
-    if not isinstance(value, dict) or not required <= set(value) <= required | {
-            "target_id", "regions", "stage_plan", "source_hypothesis"}:
+    optional = {"target_id", "regions", "stage_plan", "source_hypothesis"}
+    if allow_waypoint:
+        optional.add("waypoint_m")
+    if not isinstance(value, dict) or not required <= set(value) <= required | optional:
         raise ValueError("decision requires action/planner/profile/reason and optional target_id/regions/stage_plan/source_hypothesis")
     if value["action"] not in ("continue", "replan", "probe"):
         raise ValueError("unsupported action")
@@ -119,8 +123,17 @@ def parse_decision(response: str, bounds, probe_ids: set[str]) -> Decision:
             raise ValueError("stage_plan focus must be goal or an available corridor id")
         stage_plan = StagePlan(**{key: stage[key].strip() for key in fields})
     source = parse_source_hypothesis(value["source_hypothesis"], bounds) if "source_hypothesis" in value else None
+    waypoint = None
+    if "waypoint_m" in value:
+        point = value["waypoint_m"]
+        if (value["action"] != "replan" or not isinstance(point, list) or len(point) != 2
+                or any(isinstance(number, bool) or not isinstance(number, (int, float))
+                       or not math.isfinite(number) for number in point)
+                or np.any(np.asarray(point) < 0) or np.any(np.asarray(point) > bounds)):
+            raise ValueError("waypoint_m requires replan and one finite point inside map bounds")
+        waypoint = tuple(float(number) for number in point)
     return Decision(value["action"], value["planner"], value["profile"], value["reason"],
-                    target, tuple(regions), stage_plan, source)
+                    target, tuple(regions), stage_plan, source, waypoint)
 
 
 def build_prompt(context: dict) -> str:
@@ -180,6 +193,14 @@ def build_prompt(context: dict) -> str:
         "\"reason\":\"比较替代航路\",\"stage_plan\":{\"objective\":\"向目标搜索替代航路\","
         "\"focus\":\"goal\",\"assumption\":\"未知部分尚待观测\",\"revision_condition\":\"新测量偏离估计或求解失败时复核\"}}\n"
     )
+    if context.get("electromagnetic_estimate", {}).get("estimator", {}).get("method") == "local_gp":
+        instruction += (
+            "本轮为点测驱动的局部GP：measurement_evidence才是已获得的点测，local_samples/coarse_samples是模型估计。"
+            "supported只表示附近有近期训练点，结合最近点距离/年龄、局部点数和预测标准差判断证据；点数不是独立样本数。"
+            "GP随时间回归背景不表示测到干扰下降或源关闭；沿途功率变化和innovation也不能唯一证明源移动。"
+            "未知处null不能当低干扰；标准差不是已校准安全概率，不能从点功率编造测向或测距。"
+            "当前航路干扰按此刻快照评价，预计到达时间不是该时刻电磁场预测。\n"
+        )
     if context.get("probe_candidates"):
         example = {"action": "probe", "planner": context.get("preferred_planner", "rrt_star"), "profile": "balanced",
                    "target_id": context["probe_candidates"][0]["id"], "reason": "在预算内补充局部观测"}
@@ -266,7 +287,7 @@ class LocalModelAdvisor:
             import torch
             from transformers import AutoModelForCausalLM, AutoTokenizer
         except ImportError as exception:
-            raise RuntimeError("local inference requires the toolkit environment or requirements-llm.txt") from exception
+            raise RuntimeError("local inference requires torch, transformers and safetensors; see README.md") from exception
         device = self.config.device
         if device == "auto":
             device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -287,7 +308,7 @@ class LocalModelAdvisor:
         started = time.perf_counter()
         try:
             self.load()
-            messages = [{"role": "user", "content": build_prompt(context)}]
+            messages = [{"role": "user", "content": self.build_model_prompt(context)}]
             text = self.tokenizer.apply_chat_template(
                 messages, tokenize=False, add_generation_prompt=True, enable_thinking=False)
             self.last_call["model_input_text"] = text
@@ -315,3 +336,7 @@ class LocalModelAdvisor:
             raise
         finally:
             self.last_call["elapsed_seconds"] = time.perf_counter() - started
+
+    def build_model_prompt(self, context: dict) -> str:
+        """允许离线实验显式选择提示；正式后端默认协议保持原样。"""
+        return build_prompt(context)

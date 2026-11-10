@@ -184,13 +184,11 @@ def test_invalid_physical_parameters_are_rejected(changes):
         replace(config, electromagnetic=replace(config.electromagnetic, **changes)).validate()
 
 
-def test_primary_demo_uses_local_dynamic_sources_and_bearing_without_external_grid():
+def test_primary_profile_uses_local_dynamic_sources_and_point_power():
     from pathlib import Path
 
-    for name in ("demo.json", "demo_25d.json"):
-        config = load_config(Path(__file__).resolve().parents[1] / "configs" / name)
-        assert config.electromagnetic.propagation_mode == "single_reflection"
-        assert config.electromagnetic.power_grid is None
-        assert config.sensor.mode == "power_bearing"
-        assert any(source["start_seconds"] > 0 for source in config.electromagnetic.fields)
-        assert any(np.linalg.norm(source["velocity_mps"]) > 0 for source in config.electromagnetic.fields)
+    config = load_config(Path(__file__).resolve().parents[1] / "configs/local_power.json")
+    assert config.electromagnetic.propagation_mode == "single_reflection"
+    assert config.sensor.mode == "power_only"
+    assert any(source["start_seconds"] > 0 for source in config.electromagnetic.fields)
+    assert any(np.linalg.norm(source["velocity_mps"]) > 0 for source in config.electromagnetic.fields)

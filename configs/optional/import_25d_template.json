@@ -1,5 +1,0 @@
-{
-  "map": {"columns": 41, "rows": 31, "resolution_m": 20.0, "start_m": [40, 300], "goal_m": [760, 300],
-          "geometry_mode": "fixed_altitude", "obstacles_m": [], "buildings": []},
-  "aircraft": {"altitude_m": 30.0, "vertical_clearance_m": 5.0}
-}

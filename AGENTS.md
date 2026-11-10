@@ -1,14 +1,14 @@
 # 当前项目维护约定
 
-- 先读`docs/AGENT_HANDOFF.md`、`docs/current_roadmap.md`和`docs/first_version.md`。
-- 当前代码为`src/uav_em/`及src下实验／回放入口；可选离线工具在`tools/`，配置在`configs/optional/`，指定调试入口仍为`temp/debug_full_pipeline.py`。em指Electromagnetic（电磁），不是旧项目。输出使用`interference_`前缀。旧归档不是依赖，不恢复历史接口。
-- 仿真基础支持定高2.5D建筑及静态外部总干扰功率栅格，见`docs/environment_25d.md`。只声称仿真数据实验，不以无实测标定为由阻止研究，也不声称已验证任意设备迁移。功率栅格不能伪造测向，数据适配不能泄漏全图真值。
-- 主配置为`configs/demo.json`和`demo_25d.json`：普通建筑＋本地时变多源＋有限一次Fresnel反射，不依赖外部数据、GPU或Sionna。Sionna只保留可选核查；省略传播模式的历史配置仍为log_distance，不擅自重算历史语义。
-- 范围：飞行局部测量、地图更新、直接模型咨询、路径优化及补测。2026-11-04新增随机场景、离线时序地图与小编解码器；2026-11-05用户进一步授权独立测向证据、冻结LLM主体的地图投影／时间层训练，遇本地显存不足后交接云端，见docs/map_sensor_alignment.md及docs/CLOUD_ALIGNMENT_HANDOFF.md。不擅自启动LLM主体微调／RL、专门模型评价、中断时间、门控或在线代码执行。
-- 研究顺序与待办以`docs/current_roadmap.md`为准：先完善闭环和模型策略，再按前提探索中断穿越、局部代码及可选门控；模型评价与调优不以代码生成或门控成功为条件。未来方向不等于本轮实现授权。
-- 当前环境量为总电磁干扰功率dBm，越大干扰越强；不是服务站覆盖或通信质量。默认RRT*，A*仅为可选对照；日志版本2拒绝旧通信质量日志，不做错误的语义兼容。
-- 配置字段中文解释含义、单位与限制。明确研究近似、信息来源及未实现能力。
-- 决策不能访问未观测真值或未来脚本。模拟响应、真实模型与回退分开记账，回退到达不等于模型优化有效。
-- 云端迁移先读`docs/CLOUD_HANDOFF.md`。基础测试命令：`python -m pytest -q -p no:cacheprovider`；Windows历史解释器为`E:\Miniforge\envs\uav\python.exe`。云端使用独立且CUDA可用的环境，不复制Windows的toolkit路径混用方案。
-- Git保留源码、测试、接手文档、指定调试入口及明确选定的现存复现记录；旧三份精选记录当前已缺失，不恢复或冒充现存证据。当前数值验收清单见`outputs/README.md`。模型权重、其他输出、缓存、原始提交文件和根目录压缩包不上传、不自动删除。新实验必须写入新的`outputs/interference_...`目录，不覆盖入库证据。
-- 用户已要求直接删除旧项目，不再创建或保留归档；此前自动删除被策略拦截，2026-10-22复查旧归档和旧通信输出已不在工作区，不再列为待删，也不声称由本次操作删除。保留用户模型、提交文件和来源不明的外部缓存。
+- 先读`docs/AGENT_HANDOFF.md`、`docs/current_roadmap.md`和`docs/first_version.md`。本文件按2026-11-09最新授权收敛，旧方案不构成隐含待办。
+- 主代码`src/uav_em/`，入口`src/run_experiment.py`、`src/replay_experiment.py`，工具`tools/`；主配置`configs/local_power.json`。指定调试入口`temp/debug_full_pipeline.py`保留。em指Electromagnetic。
+- 当前主线：合成2.5D已知建筑+隐藏时变发射源；有限一次反射/穿楼/毫瓦叠加；UAV仅当前位置带噪总干扰功率点测；局部时空GP；LLM辅助重规划/补测。无预飞行稀疏测量、全图补全、地图编码训练、外部功率栅格或Sionna依赖。
+- 环境依据与研究参数边界见`docs/local_power_environment.md`、`docs/llm_information_contract.md`。论文支撑建模路线，不冒充具体参数实测标定。只声称仿真研究，不以未实测阻止研究，也不宣称任意设备迁移。
+- 总外部干扰功率dBm越大越强，不是通信质量或服务站覆盖；参考值是软代价，不是禁飞/失效保证。已知几何、自定位和机载计算是显式条件。缺失测向不能从标量功率伪造，未知不等于低干扰。
+- 子agent可作为在线决策LLM；必须新建独立会话，仅给本轮public请求、合同和同任务记忆，禁止真源/未来脚本/真值图/其他实验泄漏。共享文件系统仅为流程allowlist，不是OS隔离。实际请求、原始响应、解析接受、执行、错误与回退分别留证。
+- 默认RRT*，A*仅可选对照。当前基础验证仅continue/replan/probe、预设profile及一个中间点；内部保留的其他接口不构成本轮方法授权或结果。后续候选创新是证据条件化的区段修复操作选择+固定目标约束总预算下的数值反馈优化，尚需实现与同条件对照。
+- 用户允许离线LLM设计算法、在线选择/修订算法和算子组合。不得把未来设计写成已实现。不得擅自启动主体微调/RL、门控、通信中断模型或在线代码执行。后续顺序以current_roadmap为准。
+- 用户已明确授权删除旧实验、temp冗余、训练编码代码和失效文档，不创建历史项目归档。保留用户models、原始datasets、提交文件、来源不明外部缓存及现有venv；不要自动删除这些资产。旧实验结果不再作为当前证据引用。
+- 新输出必须新建`outputs/interference_...`，拒绝覆盖；一研究一入口，GIF集中`replay/`。当前证据见outputs/index.html。冻结运行源码与清理后源码可能不同，必须说明版本和重放核验，不伪造哈希一致。
+- 依赖只维护requirements.txt；当前无需GPU。基本测试`python -m pytest -q -p no:cacheprovider`；本机解释器`temp/uav_cloud_env/bin/python`。不通过补造/跳过缺失夹具冒充测试成功；随明确删除功能移除的旧测试需说明范围。
+- 中文解释配置含义、单位和限制。文档无旧方向歧义；任何结果必须区分基础可行性与方法优化收益。不要自动git提交/推送。

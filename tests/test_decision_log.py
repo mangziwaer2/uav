@@ -72,6 +72,22 @@ def test_log_distinguishes_proposed_stage_plan_and_suspended_execution(episode):
     assert "active不表示目标已实现" in text
 
 
+def test_budgeted_thinking_log_distinguishes_generated_text_control_and_action(episode):
+    episode['decisions'][0]['model_runtime'] = {
+        'response_is_action_codebook_mapping': True, 'selection_mode': 'budgeted_reasoning_logits',
+        'raw_model_response': 'unfinished observation analysis', 'final_action_letter': 'C',
+        'action_readout_input_text': 'unfinished observation analysis</think>\n\n',
+        'thinking_closed_by_controller': True, 'inserted_control_token_ids': [99, 3],
+    }
+    text = render_decision_log(episode)
+    assert '模型生成原文；思考可能未完成' in text
+    assert '由控制器关闭思考】True' in text
+    assert '插入的控制token，非模型生成' in text
+    assert '【最终动作字母】\nC\n' in text
+    assert '不是模型自由生成的JSON' in text
+    assert '原始动作字母；logits模式' not in text
+
+
 def test_cli_writes_readable_log_beside_episode(monkeypatch):
     import run_experiment
 

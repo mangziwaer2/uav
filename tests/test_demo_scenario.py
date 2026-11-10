@@ -6,11 +6,11 @@ from uav_em.config import ProjectConfig, load_config
 from uav_em.environment import ElectromagneticWorld
 
 
-def test_default_and_file_use_the_same_localized_interference_fields():
-    config = load_config(Path(__file__).resolve().parent.parent / "configs/demo.json")
-    assert list(config.electromagnetic.fields) == list(ProjectConfig().electromagnetic.fields)
-    assert [field["eirp_dbm"] for field in config.electromagnetic.fields] == [-2, -5]
-    assert config.sensor == ProjectConfig().sensor
+def test_primary_config_is_explicit_point_power_with_current_physics():
+    config = load_config(Path(__file__).resolve().parent.parent / "configs/local_power.json")
+    assert config.sensor.mode == "power_only"
+    assert config.belief.estimation_method == "local_gp"
+    assert config.electromagnetic.propagation_mode == "single_reflection"
 
 
 def test_initial_demo_does_not_force_start_or_goal_into_strong_interference():

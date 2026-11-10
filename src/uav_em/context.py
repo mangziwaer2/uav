@@ -25,6 +25,9 @@ def route_summary(route, snapshot: MapSnapshot, config: ProjectConfig) -> dict:
         nodes = [snapshot.geometry.node(point) for point in points]
         predicted = [snapshot.source_prediction_dbm[row, column] for column, row in nodes]
     return {"available": True, "length_m": round(path_length(route), 2),
+            "field_evaluation_time_seconds": snapshot.time_seconds,
+            "field_at_arrival_times_predicted": False,
+            "statistics_are_sample_based_estimates_not_measured_exposure": True,
             "supported_fraction": round(float(np.mean([value[2] for value in values])), 3),
             "supported_above_reference_fraction": round(float(np.mean(
                 np.asarray(observed) > config.electromagnetic.interference_reference_dbm)), 3) if observed else None,
@@ -81,16 +84,38 @@ def build_context(position, goal, route, snapshot: MapSnapshot, config: ProjectC
     geometry = snapshot.geometry
     current_interference, current_error, current_support = snapshot.at(position)
     grid_samples = []
+    sample_columns = ["x_m", "y_m", "estimate_dbm", "uncertainty_db", "supported"]
+    if snapshot.source_prediction_dbm is not None:
+        sample_columns.append("source_prediction_dbm")
+    has_support_details = snapshot.nearest_support_distance_m is not None
+    if has_support_details:
+        sample_columns += ["nearest_support_age_seconds", "nearest_support_distance_m", "local_training_point_count"]
+
+    def sample_at(column, row):
+        support = bool(snapshot.supported[row, column])
+        sample = [float(column * config.map.resolution_m), float(row * config.map.resolution_m),
+                  round(float(snapshot.estimate_dbm[row, column]), 1) if support else None,
+                  round(float(snapshot.uncertainty_db[row, column]), 1), support]
+        if snapshot.source_prediction_dbm is not None:
+            sample.append(round(float(snapshot.source_prediction_dbm[row, column]), 1))
+        if has_support_details:
+            distance = float(snapshot.nearest_support_distance_m[row, column])
+            sample += [round(float(snapshot.age_seconds[row, column]), 2) if support else None,
+                       round(distance, 2) if distance >= 0 else None,
+                       int(snapshot.local_support_count[row, column])]
+        return sample
     # 稀疏摘要控制输入规模，可能漏掉局部峰值；它不是训练后的注意力／地图编码器。
     for row in np.unique(np.linspace(0, config.map.rows - 1, min(5, config.map.rows)).astype(int)):
         for column in np.unique(np.linspace(0, config.map.columns - 1, min(7, config.map.columns)).astype(int)):
-            grid_samples.append([float(column * config.map.resolution_m), float(row * config.map.resolution_m),
-                                 round(float(snapshot.estimate_dbm[row, column]), 1)
-                                 if snapshot.supported[row, column] else None,
-                                 round(float(snapshot.uncertainty_db[row, column]), 1),
-                                 bool(snapshot.supported[row, column])])
-            if snapshot.source_prediction_dbm is not None:
-                grid_samples[-1].append(round(float(snapshot.source_prediction_dbm[row, column]), 1))
+            grid_samples.append(sample_at(column, row))
+    local_samples = []
+    if has_support_details:
+        column, row = geometry.node(position)
+        stride = max(1, int(config.belief.support_radius_m / config.map.resolution_m / 2))
+        for y in sorted({max(0, min(config.map.rows - 1, row + d * stride)) for d in (-1, 0, 1)}):
+            for x in sorted({max(0, min(config.map.columns - 1, column + d * stride)) for d in (-1, 0, 1)}):
+                if geometry.free(geometry.position((x, y))):
+                    local_samples.append(sample_at(x, y))
     corridors = []
     for label, low_fraction, high_fraction in (("south", 0, 1 / 3), ("middle", 1 / 3, 2 / 3),
                                                ("north", 2 / 3, 1)):
@@ -129,20 +154,46 @@ def build_context(position, goal, route, snapshot: MapSnapshot, config: ProjectC
                 "geometry_mode": config.map.geometry_mode, "altitude_m": config.aircraft.altitude_m,
                 "vertical_clearance_m": config.aircraft.vertical_clearance_m,
                 "building_count": len(geometry.buildings), "blocking_building_count": len(geometry.blocking_buildings),
+                "known_buildings": [{"id": b.id, "footprint_m": b.footprint_m, "holes_m": b.holes_m,
+                                     "base_m": b.base_m, "height_m": b.height_m} for b in geometry.buildings],
                 "geometry_meaning": "known buildings; fixed altitude, no climb action; legacy rectangles remain planar exclusions"},
         "electromagnetic_estimate": {"observation_count": snapshot.observation_count,
+                           "estimator": snapshot.estimation_details or {"method": "local_constant",
+                               "uncertainty_kind": "heuristic_error_scale_not_calibrated"},
                            "current_grid_estimate_dbm": round(current_interference, 2) if current_support else None,
                            "current_grid_error_scale_db": round(current_error, 2),
                            "current_grid_supported": current_support,
                            "measurement_is_at_vehicle_only": True,
+                           "snapshot_time_seconds": snapshot.time_seconds,
+                           "field_at_arrival_times_predicted": False,
+                           "supported_means": "nearby_recent_point_data_not_direct_cell_measurement_or_safety",
+                           "unknown_prior_is_not_a_measurement": True,
+                           "temporal_decay_is_not_a_new_measurement": True,
                            "uncertainty_is_calibrated": False,
                            "quantity": "aggregate_interference_power_dbm",
                            "higher_value_means_stronger_interference": True,
                            "interference_reference_dbm": config.electromagnetic.interference_reference_dbm,
                            "supported_fraction": round(float(snapshot.supported.mean()), 3),
-                           "sample_columns": ["x_m", "y_m", "estimate_dbm", "uncertainty_db", "supported"]
-                           + (["source_prediction_dbm"] if snapshot.source_prediction_dbm is not None else []),
-                           "coarse_samples": grid_samples, "corridor_summaries": corridors},
+                           "sample_columns": sample_columns,
+                           "coarse_samples": grid_samples, "local_samples": local_samples,
+                           "corridor_summaries": corridors},
+        "measurement_evidence": {
+            "origin": "received_point_measurements", "recent_points": list(snapshot.recent_point_measurements),
+            "units": {"position_m": "m", "time_seconds": "s", "interference_dbm": "dBm"},
+            "power_noise_std_db": config.electromagnetic.measurement_noise_db,
+            "noise_parameter_origin": "simulation_setting_not_device_calibration",
+            "sample_selection": "at_most_8_spaced_points_in_recent_time_window_not_all_measurements",
+            "along_track_change_may_be_spatial_or_temporal": True,
+            "innovation_does_not_identify_source_motion_or_switching": True},
+        "information_sources": {
+            "map": "known_geometry_prior", "vehicle": "available_pose_and_assumed_vehicle_state",
+            "measurement_evidence": "received_point_measurements",
+            "electromagnetic_estimate": "model_estimate_from_past_measurements_not_sensor_scan",
+            "route": "numerical_plan_scored_on_current_estimate_not_future_truth",
+            "probe_candidates": "known_geometry_and_estimate_based_unmeasured_targets",
+            "interference_reference": "task_soft_cost_setting_not_failure_threshold",
+            "forbidden_environment_information": ["unobserved_power_truth", "true_emitter_positions",
+                "true_emitter_count", "true_emitter_EIRP", "future_emitter_scripts"]},
         "route": {**route_summary(route, snapshot, config), "points": route_points},
         "directional_sensing": {
             "available": config.sensor.mode == "power_bearing",
@@ -150,8 +201,7 @@ def build_context(position, goal, route, snapshot: MapSnapshot, config: ProjectC
                                  if config.sensor.mode == "power_bearing" else "not_equipped"),
             "model_scope": ("direct_and_first_order_wall_ground_reflections; incoherent_power; array_IQ_not_simulated"
                             if config.electromagnetic.propagation_mode == "single_reflection"
-                            and config.electromagnetic.power_grid is None else
-                            "direct_path_dominated_surrogate; reflections_and_array_IQ_not_simulated"),
+                            else "direct_path_dominated_surrogate; reflections_and_array_IQ_not_simulated"),
             "calibration_correlation_seconds": config.sensor.calibration_correlation_seconds,
             "bearing_error_std_deg": config.sensor.bearing_error_deg,
             "minimum_peak_separation_deg": config.sensor.beamwidth_deg,

@@ -11,6 +11,7 @@ def render_decision_log(episode: dict) -> str:
         "无人机电磁干扰实验：决策日志",
         "本文件在仿真结束后生成，不是实时日志。",
         "numeric=无模型数值基线；mock=固定模拟响应；local=真实本地模型；budget_fallback=调用预算回退。",
+        "codex_subagent=在线子agent决策LLM；offline_algorithm=离线设计的固定数值算法，无在线LLM。",
         "未知不等于低干扰；模型提议不等于实际执行；到达不代表模型有效或飞行安全。",
     ]
 
@@ -55,7 +56,21 @@ def render_decision_log(episode: dict) -> str:
         elif entry.get("backend") == "local":
             lines.append("【实际提示词未记录；不能将可见上下文冒充完整模型输入】")
         raw = entry.get("raw_response")
-        lines.append("【原始输出：未经修复】")
+        if runtime.get("response_is_action_codebook_mapping"):
+            if runtime.get("selection_mode") in ("reasoned_generate", "budgeted_reasoning_logits"):
+                lines.extend(["【模型生成原文；思考可能未完成，不能冒充最终动作】", str(runtime.get("raw_model_response")),
+                              "【最终动作字母】", str(runtime.get("final_action_letter"))])
+                if runtime.get("action_readout_input_text") is not None:
+                    lines.extend(["【动作读出的实际输入；包含模型思考及明确记录的控制token】",
+                                  runtime["action_readout_input_text"],
+                                  "【由控制器关闭思考】" + str(runtime.get("thinking_closed_by_controller")),
+                                  "【插入的控制token，非模型生成】" + str(runtime.get("inserted_control_token_ids"))])
+            else:
+                lines.extend(["【模型原始动作字母；logits模式为合法选项中最高分字母，未生成解释】",
+                              str(runtime.get("raw_model_response"))])
+            lines.append("【动作码本映射后的规范指令；不是模型自由生成的JSON】")
+        else:
+            lines.append("【原始输出：未经修复】")
         if raw is None:
             lines.append("未取得原始响应；是否调用过模型须结合后端、调用编号和错误判断。")
         elif isinstance(raw, str):
@@ -78,7 +93,7 @@ def render_decision_log(episode: dict) -> str:
             if result["time_seconds"] == entry["time_seconds"]:
                 append_json("本次传统算子求解摘要：", {
                     key: result.get(key) for key in (
-                        "purpose", "planner", "profile", "regions", "reason", "length_m", "cost",
+                        "purpose", "planner", "profile", "regions", "waypoint_m", "reason", "length_m", "cost",
                         "iterations", "iteration_unit", "elapsed_seconds",
                     )
                 })
