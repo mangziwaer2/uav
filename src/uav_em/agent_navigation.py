@@ -48,7 +48,7 @@ VISIBLE_FIELDS = frozenset((
     'probe_candidates', 'active_probe', 'recent_feedback', 'constraints', 'preferred_planner',
     'waypoint_replanning', 'decision_trigger', 'latest_observation', 'sensing_warning',
     'source_inference', 'source_refinement', 'stage_plan', 'execution_feedback',
-    'remaining_budgets', 'available_actions',
+    'remaining_budgets', 'available_actions', 'route_repair',
 ))
 
 
@@ -98,7 +98,8 @@ class FileDecisionAdvisor:
     The 0.5s simulation decision delay remains independent of actual wall time;
     both are logged. Invalid responses are not repaired into model successes.
     """
-    def __init__(self, public_root, mission_id, timeout_seconds=600.0):
+    def __init__(self, public_root, mission_id, timeout_seconds=600.0, validator=None):
+        self.validator = validator or response_policy
         self.public_root = Path(public_root).resolve()
         self.mission_id = mission_id
         self.timeout_seconds = timeout_seconds
@@ -141,7 +142,7 @@ class FileDecisionAdvisor:
             self.last_call.update(raw_agent_response=response_text,
                                   response_sha256=hashlib.sha256(response_text.encode()).hexdigest())
             value = strict_json(response_text)
-            raw, strategy, memory = response_policy(value, identifier, context)
+            raw, strategy, memory = self.validator(value, identifier, context)
             self.last_call.update(status='accepted', raw_agent_response=response_text,
                                   strategy=strategy, memory=memory,
                                   strategy_applies_on_next_search=True,

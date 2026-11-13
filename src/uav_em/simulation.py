@@ -46,8 +46,14 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
              initial_planner: str = "rrt_star", advisor_name: str = "none",
              debug_hook: Callable[[str, dict], None] | None = None,
              allow_waypoints: bool = False,
-             planning_backend: Callable[..., PlanResult] | None = None) -> dict:
+             planning_backend: Callable[..., PlanResult] | None = None,
+             route_optimizer=None) -> dict:
     """模型不可改硬约束；可选调试钩子仅收到可见状态的深拷贝，返回值不参与决策。"""
+    if route_optimizer is not None:
+        if advisor is not None or planning_backend is not None or allow_waypoints or initial_planner != "rrt_star":
+            raise ValueError("route_optimizer has its own policy/search; use rrt_star without legacy advisor/backend/waypoints")
+        if config.sensor.mode != "power_only" or config.belief.estimation_method != "local_gp":
+            raise ValueError("route repair v1 requires point power and fixed local GP")
     world = ElectromagneticWorld(config)
     geometry = world.geometry
     belief = ElectromagneticBelief(config, geometry)
@@ -243,7 +249,31 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
             raw, error, backend, elapsed = None, None, "numeric", 0.0
             refinement_trace = []
             fallback_events = []
-            if advisor is not None and advisor_calls < settings.max_advisor_calls:
+            optimizer_report = None
+            optimized_result = None
+            if route_optimizer is not None:
+                maximum_length = max(0., (remaining_energy - aircraft.reserve_energy_wh
+                    - settings.decision_delay_seconds * aircraft.hover_power_w / 3600)
+                    * 3600 * aircraft.speed_mps / aircraft.flight_power_w)
+                optimized_result, optimizer_report = route_optimizer.optimize(
+                    snapshot, context, route, maximum_length, config.seed + len(plans),
+                    max(0, settings.max_advisor_calls - advisor_calls))
+                advisor_calls += optimizer_report["actual_advisor_calls"]
+                advisor_failures += optimizer_report["advisor_failures"]
+                elapsed = optimizer_report["advisor_seconds"]
+                total_advisor_seconds += elapsed
+                backend = ("repair_call_budget_exhausted" if optimizer_report["call_budget_exhausted"] else advisor_name) if route_optimizer.policy is not None else "numeric_repair"
+                if optimizer_report["numeric_recovery"]:
+                    fallbacks += 1
+                    fallback_events.append(notify_fallback("repair_numeric_recovery_with_remaining_budget"))
+                error = next((t.get("error") for t in optimizer_report["trace"] if t.get("error")), None)
+                raw = next((t.get("raw_response") for t in reversed(optimizer_report["trace"])
+                            if t.get("raw_response") is not None), None)
+                decision = Decision("replan", "rrt_star", "balanced", "固定目标与总预算的区段修复；完整提议/反馈见repair_optimization")
+                for search_record in optimizer_report["searches"]:
+                    plans.append({"time_seconds": clock, "profile": "balanced", "regions": [], **search_record})
+                    emit("plan_solved", plan=plans[-1])
+            elif advisor is not None and advisor_calls < settings.max_advisor_calls:
                 backend = advisor_name
                 previous_source = None
                 for round_index in range(settings.source_refinement_rounds):
@@ -305,7 +335,20 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                 override = "route_required"
                 fallback_events.append(notify_fallback("route_required"))
             accepted, failure = None, None
-            if decision.action != "continue":
+            if optimizer_report is not None:
+                # No legacy search/fallback may escape the session's shared resource limits.
+                candidate = optimized_result.path
+                required_energy = path_length(candidate) / aircraft.speed_mps * aircraft.flight_power_w / 3600
+                required_energy += settings.decision_delay_seconds * aircraft.hover_power_w / 3600
+                if (candidate and np.allclose(candidate[0], position, atol=1e-8, rtol=0)
+                        and np.allclose(candidate[-1], goal, atol=1e-8, rtol=0)
+                        and optimizer_report["final_geometry_verified"]
+                        and required_energy <= remaining_energy - aircraft.reserve_energy_wh + 1e-8):
+                    route, route_planner, accepted, active_probe = candidate, "rrt_star", "replan", None
+                else:
+                    failure = optimized_result.reason if not candidate else "repair_execution_verification_failed"
+                    termination = "no_feasible_route_within_budget"
+            elif decision.action != "continue":
                 target = goal
                 if decision.action == "probe":
                     selected = next(item for item in candidates if item["id"] == decision.target_id)
@@ -376,7 +419,7 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
             else:
                 accepted = "continue"
             entry = {"time_seconds": clock, "trigger": trigger, "backend": backend,
-                     "advisor_call": advisor_calls if backend not in ("numeric", "budget_fallback") else None,
+                     "advisor_call": advisor_calls if backend not in ("numeric", "numeric_repair", "budget_fallback") else None,
                      "context": context, "raw_response": raw, "error": error,
                      "proposed_decision": proposed_decision,
                      "decision": asdict(decision), "accepted_action": accepted,
@@ -385,9 +428,13 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                      "fallback_events": fallback_events,
                      "accepted_route_balanced_cost": (PlanningProblem(
                          snapshot, config.electromagnetic.interference_reference_dbm, "balanced").route_cost(route)
-                         if route else None),
+                         if route and optimizer_report is None else None),
                      "model_runtime": getattr(advisor, "last_call", {})
                                       if backend not in ("numeric", "budget_fallback") else {}}
+            if optimizer_report is not None:
+                entry["repair_optimization"] = optimizer_report
+                entry["model_runtime"] = route_optimizer.last_call
+                entry["accepted_route_fixed_objective"] = optimizer_report["best_metrics"]
             entry["source_refinement_trace"] = refinement_trace
             entry["source_model_after"] = belief.source_tracker.summary(clock)
             entry["execution_checkpoint"] = {"flight_m": flight_m, "remaining_energy_wh": remaining_energy}
@@ -505,5 +552,18 @@ def simulate(config: ProjectConfig, advisor: Advisor | None = None,
                     "model_load_seconds": getattr(advisor, "load_seconds", 0.0)},
         "frames": frames, "events": events, "plans": plans, "decisions": decisions,
     }
+    if route_optimizer is not None:
+        reports = [d["repair_optimization"] for d in decisions]
+        episode["assumptions"]["route_optimizer"] = "fixed_objective_segment_repair_v1"
+        episode["assumptions"]["same_snapshot_feedback_rounds"] = True
+        episode["metrics"].update(
+            planner_seconds=sum(r["numeric_compute_seconds"] for r in reports),
+            repair_rrt_seconds=sum(item["elapsed_seconds"] for item in plans),
+            repair_sessions=len(reports), repair_edge_evaluations=sum(r["resources"]["edges"] for r in reports),
+            repair_sample_proposals=sum(r["resources"]["samples"] for r in reports),
+            repair_accepted_proposals=sum(r["accepted_proposals"] for r in reports),
+            repair_accepted_model_proposals=sum(r["accepted_model_proposals"] for r in reports),
+            repair_accepted_recovery_proposals=sum(r["accepted_recovery_proposals"] for r in reports),
+            repair_numeric_recoveries=sum(r["numeric_recovery"] for r in reports))
     emit("finished", metrics=episode["metrics"])
     return episode

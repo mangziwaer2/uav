@@ -11,7 +11,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 
-LABELS = {'numeric_rrt': '数值RRT*', 'numeric_astar': '数值A*', 'online_agent': '在线决策agent'}
+LABELS = {'numeric_rrt': '数值RRT*', 'numeric_astar': '数值A*', 'online_agent': '在线决策agent', 'repair_numeric': '数值修复',
+          'repair_single': '单轮LLM修复', 'repair_feedback': '多轮反馈LLM修复'}
 
 
 def digest(path):

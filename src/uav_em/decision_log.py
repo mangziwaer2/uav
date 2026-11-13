@@ -99,6 +99,8 @@ def render_decision_log(episode: dict) -> str:
                 })
         if runtime:
             append_json("【模型运行信息】", runtime)
+        if entry.get("repair_optimization") is not None:
+            append_json("【区段修复：固定目标、共享预算、每轮真实提议/反馈及接受结果】", entry["repair_optimization"])
         trace = entry.get("source_refinement_trace", [])
         for round_index, consultation in enumerate(trace, start=1):
             lines.append(f"【源假设咨询子轮 {round_index}；调用编号 {consultation['advisor_call']}；无额外飞行或观测】")
