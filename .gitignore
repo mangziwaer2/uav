@@ -10,6 +10,9 @@ venv/
 /outputs/*
 !/outputs/README.md
 !/outputs/index.html
+!/outputs/replay/
+/outputs/replay/*
+!/outputs/replay/index.html
 /models/
 /.idea/
 /.vscode/
