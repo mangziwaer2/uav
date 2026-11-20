@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/EIqhXAWicyicq5gYFfVK0T37m+g</id>
+  <title>arXiv Query: search_query=all:"event-triggered" AND (all:"path planning" OR all:"motion planning")&amp;id_list=&amp;start=0&amp;max_results=5</title>
+  <updated>2026-11-19T08:46:17Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:%22event-triggered%22+AND+(all:%22path+planning%22+OR+all:%22motion+planning%22)&amp;start=0&amp;max_results=5&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>5</opensearch:itemsPerPage>
+  <opensearch:totalResults>12</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2210.07190v2</id>
+    <title>Chance-Constrained Motion Planning with Event-Triggered Estimation</title>
+    <updated>2023-03-20T21:57:52Z</updated>
+    <link href="https://arxiv.org/abs/2210.07190v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2210.07190v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We consider the problem of autonomous navigation using limited information from a remote sensor network. Because the remote sensors are power and bandwidth limited, we use event-triggered (ET) estimation to manage communication costs. We introduce a fast and efficient sampling-based planner which computes motion plans coupled with ET communication strategies that minimize communication costs, while satisfying constraints on the probability of reaching the goal region and the point-wise probability of collision. We derive a novel method for offline propagation of the expected state distribution, and corresponding bounds on this distribution. These bounds are used to evaluate the chance constraints in the algorithm. Case studies establish the validity of our approach, demonstrating fast computation of optimal plans.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2022-10-13T17:12:04Z</published>
+    <arxiv:comment>8 pages, to appear in IEEE International Conference on Robotics and Automation (ICRA), 2023</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Anne Theurkauf</name>
+    </author>
+    <author>
+      <name>Qi Heng Ho</name>
+    </author>
+    <author>
+      <name>Roland Ilyes</name>
+    </author>
+    <author>
+      <name>Nisar Ahmed</name>
+    </author>
+    <author>
+      <name>Morteza Lahijanian</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2206.11020v1</id>
+    <title>Event-triggered and distributed model predictive control for guaranteed collision avoidance in UAV swarms</title>
+    <updated>2022-06-22T12:42:21Z</updated>
+    <link href="https://arxiv.org/abs/2206.11020v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2206.11020v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Distributed model predictive control (DMPC) is often used to tackle path planning for unmanned aerial vehicle (UAV) swarms. However, it requires considerable computations on-board the UAV, leading to increased weight and power consumption. In this work, we propose to offload path planning computations to multiple ground-based computation units. As simultaneously communicating and recomputing all trajectories is not feasible for a large swarm with tight timing requirements, we develop a novel event-triggered DMPC that selects a subset of most relevant UAV trajectories to be replanned. The resulting architecture reduces UAV weight and power consumption, while the active redundancy provides robustness against computation unit failures. Moreover, the DMPC guarantees feasible and collision-free trajectories for UAVs with linear dynamics. In simulations, we demonstrate that our method can reliably plan trajectories, while saving 60% of network traffic and required computational power. Hardware-in-the-loop experiments show that it is suitable to control real quadcopter swarms.</summary>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2022-06-22T12:42:21Z</published>
+    <arxiv:comment>Accepted for publication at the IFAC Conference on Networked Systems (NecSys) 2022</arxiv:comment>
+    <arxiv:primary_category term="eess.SY"/>
+    <author>
+      <name>Alexander Gräfe</name>
+    </author>
+    <author>
+      <name>Joram Eickhoff</name>
+    </author>
+    <author>
+      <name>Sebastian Trimpe</name>
+    </author>
+    <arxiv:doi>10.1016/j.ifacol.2022.07.239</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1016/j.ifacol.2022.07.239" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2505.02603v1</id>
+    <title>Wise Goose Chase: A Predictive Path Planning Algorithm for Dynamic Rebalancing in Ride-Hailing Systems</title>
+    <updated>2025-05-05T12:15:01Z</updated>
+    <link href="https://arxiv.org/abs/2505.02603v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2505.02603v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Traditional rebalancing methods in ride-hailing systems direct idle drivers to fixed destinations, overlooking the fact that ride allocations frequently occur while cruising. This destination-centric view fails to exploit the path-dependent nature of modern platforms, where real-time matching depends on the entire trajectory rather than a static endpoint. We propose the Wise Goose Chase (WGC) algorithm, an event-triggered, driver-specific path planning framework that anticipates future matching opportunities by forecasting spatio-temporal supply and demand dynamics. WGC uses a system of Retarded Functional Differential Equations (RFDEs) to model the evolution of idle driver density and passenger queues at the road-segment level, incorporating both en-route matching and competition among drivers. Upon request, WGC computes personalized cruising paths that minimize each driver's expected time to allocation. Monte Carlo simulations on synthetic urban networks show that WGC consistently outperforms baseline strategies, highlighting the advantage of predictive, context-aware rebalancing in dynamic mobility systems.</summary>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-05-05T12:15:01Z</published>
+    <arxiv:primary_category term="eess.SY"/>
+    <author>
+      <name>Avalpreet Singh Brar</name>
+    </author>
+    <author>
+      <name>Rong Su</name>
+    </author>
+    <author>
+      <name>Christos G. Cassandras</name>
+    </author>
+    <author>
+      <name>Gioele Zardini</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.25629v1</id>
+    <title>Event-Adaptive Motion Planning with Distilled Vision-Language Model in Safety-Critical Situations</title>
+    <updated>2026-06-24T09:35:26Z</updated>
+    <link href="https://arxiv.org/abs/2606.25629v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.25629v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Robot navigation in safety-critical scenarios faces significant challenges from unforeseen semantic events, where collisions arise primarily from the unpredictable behaviors of dynamic agents rather than unseen objects. While large vision-language models (VLMs) offer remarkable capabilities in commonsense reasoning, frequently invoking them within the continuous control loop introduces severe computational latency, fundamentally destabilizing physical execution. To address these challenges, we propose event-adaptive motion planning (EAMP), an efficient framework for VLM-based robot navigation. Specifically, a prompt-configurable semantic event trigger (PC-SET) selectively activates semantic intervention by continuously monitoring short temporal clips for behavioral anomalies. Upon triggering, an event-triggered distilled SemNav-VLM, fine-tuned via physically verified semantic distillation, maps detected anomalies into discrete strategy-level decisions. Subsequently, a semantic model predictive control (SMPC) module translates these strategies into dynamic reconfigurations of optimization objectives and geometric references. Extensive experiments in safety-critical logistics scenarios demonstrate that EAMP effectively aligns high-level reasoning with low-level control, significantly improving dynamic safety margins over existing baselines while preserving real-time efficiency.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-24T09:35:26Z</published>
+    <arxiv:comment>8 pages, 8 figures, 4 tables. Accepted by IROS 2026</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Zhenwei Huang</name>
+    </author>
+    <author>
+      <name>Changsheng You</name>
+    </author>
+    <author>
+      <name>Shuai Wang</name>
+    </author>
+    <author>
+      <name>Chao Zhou</name>
+    </author>
+    <author>
+      <name>Wei Xu</name>
+    </author>
+    <author>
+      <name>Yi Gong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2509.10692v4</id>
+    <title>STL-Based Motion Planning and Uncertainty-Aware Risk Analysis for Human-Robot Collaboration with a Multi-Rotor Aerial Vehicle</title>
+    <updated>2026-05-12T07:31:27Z</updated>
+    <link href="https://arxiv.org/abs/2509.10692v4" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2509.10692v4" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper presents a motion planning and risk analysis framework for enhancing human-robot collaboration with a Multi-Rotor Aerial Vehicle. The proposed method employs Signal Temporal Logic to encode key mission objectives, including safety, temporal requirements, and human preferences, with particular emphasis on ergonomics and comfort. An optimization-based planner generates dynamically feasible trajectories while explicitly accounting for the vehicle's nonlinear dynamics and actuation constraints. To address the resulting non-convex and non-smooth optimization problem, smooth robustness approximations and gradient-based techniques are adopted. In addition, an uncertainty-aware risk analysis is introduced to quantify the likelihood of specification violations under human-pose uncertainty. A robustness-aware event-triggered replanning strategy further enables online recovery from disturbances and unforeseen events by preserving safety margins during execution. The framework is validated through MATLAB and Gazebo simulations on an object handover task inspired by power line maintenance scenarios. Results demonstrate the ability of the proposed method to achieve safe, efficient, and resilient human-robot collaboration under realistic operating conditions.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-09-12T21:09:57Z</published>
+    <arxiv:comment>46 pages, 14 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <arxiv:journal_ref>Journal of Intelligent &amp; Robotic Systems, volume 112, article number 66, 2026</arxiv:journal_ref>
+    <author>
+      <name>Giuseppe Silano</name>
+    </author>
+    <author>
+      <name>Amr Afifi</name>
+    </author>
+    <author>
+      <name>Martin Saska</name>
+    </author>
+    <author>
+      <name>Antonio Franchi</name>
+    </author>
+    <arxiv:doi>10.1007/s10846-026-02403-y</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1007/s10846-026-02403-y" title="doi"/>
+  </entry>
+</feed>

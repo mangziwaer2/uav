@@ -130,21 +130,13 @@ class ElectromagneticConfig:
 
 @dataclass(frozen=True)
 class SensorConfig:
-    """理想化已标定360°阵列的同步波束功率快照，不是空间圆盘真值扫描。
+    """当前只执行power_only点功率测量。
 
-    azimuth_bins为均分360°的波束数，整数且在[4,360]；方向以东为0°，逆时针增加。
-    beamwidth_deg为半功率全波束宽度°，(0,180]；front_back_db为方向抑制上限dB，非负。
-    detection_threshold_dbm为有限的波束检测灵敏度dBm，不是干扰危险阈值；还须通过背景及角对比检测。
-    minimum_excess_db为相对背景最小检测增量dB，正数；noise_db为波束功率噪声标准差dB，非负。
-    minimum_contrast_db为角峰相对扫描中位功率的最小突出量dB，正数，抑制平坦旁瓣的伪方向。
-    mode为power_bearing（功率与测向）或power_only（只有点功率），不是自动从功率推出来向。
-    bearing_error_deg为整次扫描的方位标定误差稳态标准差°，[0,45]。
-    calibration_correlation_seconds为方位误差相关时间s，非负；0退回独立快照误差。
-    同一主瓣内角峰按beamwidth_deg去重，是分辨能力近似，不是源数估计或置信区间。
-    参数均未由实测标定；无测距能力或固定探测半径。
+    mode以外的旧波束/标定字段仅用于严格读取冻结配置快照，不启用测向。
+    非power_only模式会被环境拒绝；这些字段不是本研究的机载能力。
     """
 
-    mode: str = "power_bearing"
+    mode: str = "power_only"
     azimuth_bins: int = 24
     beamwidth_deg: float = 45.0
     front_back_db: float = 25.0
@@ -158,12 +150,11 @@ class SensorConfig:
 
 @dataclass(frozen=True)
 class BeliefConfig:
-    """干扰功率测量的局部外推；误差尺度是启发式，不是校准概率。
+    """局部GP参数；支持和误差尺度不是校准安全概率。
 
-    source_max_fit_rmse_db是源假设窗口拟合RMSE上限dB，必须为有限正数。
-    source_count_penalty_db2是每源复杂度惩罚dB²，必须有限且非负；均非物理安全阈值。
-    source_bearing_weight_db2为归一化方向Huber误差的权重dB²，有限正数；默认9，不是概率。
-    source_max_bearing_rmse_deg为方向残差均方根容限°，(0,180]，默认45；不是定位精度。
+    当前PointGP只读取支持/年龄、噪声和GP核/容量参数。
+    source_*、error_per_*及旧estimation_method取值为快照兼容保留，
+    不会启用旧源定位、测向或常值外推控制器。
     """
 
     # 点观测可支持局部估计的最大距离；不是传感器能直接观测一个圆盘。

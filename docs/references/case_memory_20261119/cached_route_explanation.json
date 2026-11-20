@@ -1,0 +1,445 @@
+{
+  "scope": "Read cached route scores and current-time display arrays; scalar display ranges only, no optimizer/GP/field query, new route scoring or flight.",
+  "input_sha256": {
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/episode.json": "728766a76cc779669ed17e7fa5e5c56242bacfde37a3e52c6b7373d34ca3f405",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/index.html": "38d241599e5fd33c816feaa6006c9e5abf68fd3b513b18a1c0ddaa3afcad6e7f"
+  },
+  "decisions": [
+    {
+      "time_seconds": 0.0,
+      "selected_id": "goal",
+      "plan": {
+        "request_id": "25bf41f7fe55ad04ae580957be8e07861b625d56eea724a913c5a62d180f86a4",
+        "action": "keep",
+        "waypoint_m": null,
+        "sample_quotas": [],
+        "sampling": "uniform",
+        "reason": "仅有起点一次标量点测，两张替代解释均为空间常值，缺少支持侧向绕行的证据。共同池直达goal可行且各解释的整路代价均最低，已知建筑未挡直线；保留已选直达路线，不消耗搜索额度。"
+      },
+      "routes": [
+        {
+          "id": "goal",
+          "path": [
+            [
+              40.0,
+              300.0
+            ],
+            [
+              760.0,
+              300.0
+            ]
+          ],
+          "cached_T": 48.0,
+          "cached_Q": 327.6226413779582,
+          "cached_C": 375.6226413779582,
+          "cached_scenario_scores": [
+            {
+              "id": "persistence",
+              "weight": 0.5,
+              "power_proxy_seconds": 21.300840445374423,
+              "score_seconds": 69.30084044537442
+            },
+            {
+              "id": "broad_residual",
+              "weight": 0.5,
+              "power_proxy_seconds": 633.944442310542,
+              "score_seconds": 681.944442310542
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_seconds": 8.0,
+      "selected_id": "goal",
+      "plan": {
+        "request_id": "72733c36b0352fd073e4efec5ab1e8a424e93ca1fb18a23f8acf0ffa595f93a1",
+        "action": "via",
+        "waypoint_m": [
+          280.0,
+          325.0
+        ],
+        "sample_quotas": [
+          24,
+          24
+        ],
+        "sampling": "corridor",
+        "reason": "共同池大角度北绕的额外航时超过功率下降，但未检验浅北偏。新生静态/平移形状主要位于航迹南侧，衰减形状也给出北移可略降预测功率的可能；提出(280,325)小幅偏移，两个直线腿未穿已知建筑，预期只增加数米。新形状尚无出生后证据，不据此改质量；使用少量两腿额度，由整路未来到达时刻评分决定是否接受。"
+      },
+      "routes": [
+        {
+          "id": "goal",
+          "path": [
+            [
+              152.5,
+              300.0
+            ],
+            [
+              760.0,
+              300.0
+            ]
+          ],
+          "cached_T": 40.5,
+          "cached_Q": 30.686789104875704,
+          "cached_C": 71.1867891048757,
+          "cached_scenario_scores": [
+            {
+              "id": "persistence",
+              "weight": 0.7498380340203756,
+              "power_proxy_seconds": 37.69936933120898,
+              "score_seconds": 78.19936933120897
+            },
+            {
+              "id": "broad_residual",
+              "weight": 0.00016196597962441902,
+              "power_proxy_seconds": 1121.9888589570776,
+              "score_seconds": 1162.4888589570776
+            },
+            {
+              "id": "event0_pilot_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 7.99091695946474,
+              "score_seconds": 48.49091695946474
+            },
+            {
+              "id": "event0_refine_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 10.68841131967307,
+              "score_seconds": 51.18841131967307
+            },
+            {
+              "id": "event0_refine_job1",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 8.16040088588522,
+              "score_seconds": 48.660400885885224
+            }
+          ]
+        },
+        {
+          "id": "proposal_raw",
+          "path": [
+            [
+              152.5,
+              300.0
+            ],
+            [
+              280.0,
+              325.0
+            ],
+            [
+              760.0,
+              300.0
+            ]
+          ],
+          "cached_T": 40.705231023364874,
+          "cached_Q": 30.584079535970194,
+          "cached_C": 71.28931055933506,
+          "cached_scenario_scores": [
+            {
+              "id": "persistence",
+              "weight": 0.7498380340203756,
+              "power_proxy_seconds": 37.89040834721032,
+              "score_seconds": 78.59563937057519
+            },
+            {
+              "id": "broad_residual",
+              "weight": 0.00016196597962441902,
+              "power_proxy_seconds": 1127.6744619627007,
+              "score_seconds": 1168.3796929860655
+            },
+            {
+              "id": "event0_pilot_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 6.76810230451961,
+              "score_seconds": 47.47333332788448
+            },
+            {
+              "id": "event0_refine_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 9.822911234160893,
+              "score_seconds": 50.528142257525765
+            },
+            {
+              "id": "event0_refine_job1",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 7.286170466194034,
+              "score_seconds": 47.99140148955891
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_seconds": 20.0,
+      "selected_id": "proposal_raw",
+      "plan": {
+        "request_id": "465fc0dbfde0aca363e0f204324f36d2dbf6d1e7f52595bfc3b9263dcbd3a375",
+        "action": "via",
+        "waypoint_m": [
+          430.0,
+          270.0
+        ],
+        "sample_quotas": [
+          32,
+          32
+        ],
+        "sampling": "corridor",
+        "reason": "历史沿直线路径功率上升，但不能据此测向。当前新生平移解释在前方(405,300)有窄强形状并向北移动，已评分南侧大绕行将该解释Q从249.73降到130.49，却被额外航时和高质量延续项抵消。提出池外浅南偏(430,270)，以很小长度增加检验是否能避开该形状的未来到达位置；两腿直连不穿已知建筑，保留新生解释的不确定性和全部原质量，由共同接受器核算。"
+      },
+      "routes": [
+        {
+          "id": "goal",
+          "path": [
+            [
+              325.0,
+              300.0
+            ],
+            [
+              760.0,
+              300.0
+            ]
+          ],
+          "cached_T": 29.0,
+          "cached_Q": 224.56879618615127,
+          "cached_C": 253.56879618615127,
+          "cached_scenario_scores": [
+            {
+              "id": "persistence",
+              "weight": 0.7499999991965081,
+              "power_proxy_seconds": 268.5245861108377,
+              "score_seconds": 297.5245861108377
+            },
+            {
+              "id": "broad_residual",
+              "weight": 6.981817736893708e-10,
+              "power_proxy_seconds": 7991.687906646435,
+              "score_seconds": 8020.687906646435
+            },
+            {
+              "id": "event0_pilot_job0",
+              "weight": 4.387336256954773e-14,
+              "power_proxy_seconds": 1.6765924291762375,
+              "score_seconds": 30.67659242917624
+            },
+            {
+              "id": "event0_refine_job0",
+              "weight": 1.044681650615933e-10,
+              "power_proxy_seconds": 4.409096735500658,
+              "score_seconds": 33.409096735500654
+            },
+            {
+              "id": "event0_refine_job1",
+              "weight": 7.984007067342254e-13,
+              "power_proxy_seconds": 1.7349689387440406,
+              "score_seconds": 30.73496893874404
+            },
+            {
+              "id": "event1_pilot_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 18.87184759180537,
+              "score_seconds": 47.87184759180537
+            },
+            {
+              "id": "event1_refine_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 249.72955966295171,
+              "score_seconds": 278.7295596629517
+            },
+            {
+              "id": "event1_refine_job1",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 9.502807609252176,
+              "score_seconds": 38.50280760925217
+            }
+          ]
+        },
+        {
+          "id": "proposal_raw",
+          "path": [
+            [
+              325.0,
+              300.0
+            ],
+            [
+              430.0,
+              270.0
+            ],
+            [
+              760.0,
+              300.0
+            ]
+          ],
+          "cached_T": 29.37083192365504,
+          "cached_Q": 222.3886147264451,
+          "cached_C": 251.75944665010013,
+          "cached_scenario_scores": [
+            {
+              "id": "persistence",
+              "weight": 0.7499999991965081,
+              "power_proxy_seconds": 271.9582926217396,
+              "score_seconds": 301.3291245453946
+            },
+            {
+              "id": "broad_residual",
+              "weight": 6.981817736893708e-10,
+              "power_proxy_seconds": 8093.880079048931,
+              "score_seconds": 8123.250910972586
+            },
+            {
+              "id": "event0_pilot_job0",
+              "weight": 4.387336256954773e-14,
+              "power_proxy_seconds": 1.842422402748417,
+              "score_seconds": 31.213254326403458
+            },
+            {
+              "id": "event0_refine_job0",
+              "weight": 1.044681650615933e-10,
+              "power_proxy_seconds": 4.97195910637752,
+              "score_seconds": 34.34279103003256
+            },
+            {
+              "id": "event0_refine_job1",
+              "weight": 7.984007067342254e-13,
+              "power_proxy_seconds": 1.749511172757646,
+              "score_seconds": 31.120343096412686
+            },
+            {
+              "id": "event1_pilot_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 21.00715924552825,
+              "score_seconds": 50.37799116918329
+            },
+            {
+              "id": "event1_refine_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 190.4735379198986,
+              "score_seconds": 219.84436984355364
+            },
+            {
+              "id": "event1_refine_job1",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 9.557980760208821,
+              "score_seconds": 38.92881268386386
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "time_seconds": 32.0,
+      "selected_id": "goal",
+      "plan": {
+        "request_id": "ccf0a679043f79d091a0c5ec43f367fc8ef7955d6e922c2960175a5aa42094bb",
+        "action": "keep",
+        "waypoint_m": null,
+        "sample_quotas": [],
+        "sampling": "uniform",
+        "reason": "上一浅南偏已经执行，当前位于(493.04,275.73)，直达goal不穿建筑，剩余约268米。旧前方窄形状经12次出生后读数评分质量已降至约0.000053，新生形状对南北绕行的偏好相互抵消；共同池两侧路线整体都明显更贵。保留当前顺势接回goal的路线，避免因新生未检验形状反复切换，也无必要投入几何搜索。"
+      },
+      "routes": [
+        {
+          "id": "goal",
+          "path": [
+            [
+              493.03839839958675,
+              275.73076349087154
+            ],
+            [
+              760.0,
+              300.0
+            ]
+          ],
+          "cached_T": 17.870831923655032,
+          "cached_Q": 49.670382848864655,
+          "cached_C": 67.54121477251968,
+          "cached_scenario_scores": [
+            {
+              "id": "persistence",
+              "weight": 0.7499469248865215,
+              "power_proxy_seconds": 55.27703747074384,
+              "score_seconds": 73.14786939439887
+            },
+            {
+              "id": "broad_residual",
+              "weight": 4.597912740191051e-15,
+              "power_proxy_seconds": 1645.1261996837914,
+              "score_seconds": 1662.9970316074464
+            },
+            {
+              "id": "event0_pilot_job0",
+              "weight": 5.564058101538806e-60,
+              "power_proxy_seconds": 0.40550995913196153,
+              "score_seconds": 18.276341882786994
+            },
+            {
+              "id": "event0_refine_job0",
+              "weight": 5.86264530680514e-35,
+              "power_proxy_seconds": 1.303141427231872,
+              "score_seconds": 19.173973350886904
+            },
+            {
+              "id": "event0_refine_job1",
+              "weight": 7.673761682608446e-61,
+              "power_proxy_seconds": 0.38504885442591086,
+              "score_seconds": 18.255880778080943
+            },
+            {
+              "id": "event1_pilot_job0",
+              "weight": 3.976994751876766e-08,
+              "power_proxy_seconds": 6.576287026718921,
+              "score_seconds": 24.447118950373955
+            },
+            {
+              "id": "event1_refine_job0",
+              "weight": 5.303534352633247e-05,
+              "power_proxy_seconds": 16.126093875955096,
+              "score_seconds": 33.996925799610125
+            },
+            {
+              "id": "event1_refine_job1",
+              "weight": 1.5239374721548421e-16,
+              "power_proxy_seconds": 1.0625966527905681,
+              "score_seconds": 18.9334285764456
+            },
+            {
+              "id": "event2_pilot_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 35.393847669809205,
+              "score_seconds": 53.26467959346424
+            },
+            {
+              "id": "event2_refine_job0",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 27.033343243329984,
+              "score_seconds": 44.90417516698501
+            },
+            {
+              "id": "event2_refine_job1",
+              "weight": 0.08333333333333333,
+              "power_proxy_seconds": 36.149005883285,
+              "score_seconds": 54.01983780694003
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "display_frames": [
+    {
+      "time_seconds": 20.0,
+      "last_event_seconds": 8.0,
+      "constant_mass": 0.9999999998595864,
+      "display_min_dbm": -70.33413930473485,
+      "display_max_dbm": -70.33413930445212,
+      "saved_action": "提议未被接受，执行数值路线；本帧为本次触发处理前"
+    },
+    {
+      "time_seconds": 24.5,
+      "last_event_seconds": 20.0,
+      "constant_mass": 0.992455293670234,
+      "display_min_dbm": -71.00765766170875,
+      "display_max_dbm": -70.88297498505074,
+      "saved_action": "新中间点已提交执行"
+    }
+  ]
+}

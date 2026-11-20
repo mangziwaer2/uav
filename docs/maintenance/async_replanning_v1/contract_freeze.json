@@ -1,0 +1,6 @@
+{
+  "frozen_at_utc": "2026-11-19T06:14:18.746724+00:00",
+  "path": "docs/async_replanning_v1.md",
+  "sha256": "d45996f3934ed7a310b21d838703ef7c01d5b6b5e1b59ae3be9f415991e3261e",
+  "scope": "contract frozen before new implementation and tests; synthetic checks only"
+}

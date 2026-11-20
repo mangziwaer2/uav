@@ -1,0 +1,38 @@
+{
+  "frozen_at_utc": "2026-11-19T06:25:41.256556+00:00",
+  "contract_sha256": "d45996f3934ed7a310b21d838703ef7c01d5b6b5e1b59ae3be9f415991e3261e",
+  "source_sha256": {
+    "src/uav_em/async_replanning.py": "e5780f1630cefce79da069975f62d4327bed058894a7a4ddd7109dbab1e5caae",
+    "src/uav_em/async_transport.py": "8f45e8f9ff2ceaebf2f7b16141dcf18119ccf25e679734d2b75dfba71ed5421b",
+    "tests/test_async_replanning.py": "6348f55c6b2d5a3b434c208722d6acbd0339b72e4561d96e1b4404626d84ed92",
+    "tests/test_async_transport.py": "800927549101d5e093c21b9d509a57af41413652feac8a01e3710da3408bbc92",
+    "src/run_experiment.py": "926b7d21b86a8ca1f09020073ebc817fc597e9eddcdf15b79731d9fcaf3ed4c6"
+  },
+  "unchanged_numerical_dependencies": {
+    "src/uav_em/config.py": "212e551b1f6febd354357bf8c6c757d642802116ac93b07816d6c31f49997ff0",
+    "src/uav_em/__init__.py": "41b8fb97c0589372dfa7c20ed1ddc5ecd1e041cbcdef23001ba33b7589613f43",
+    "src/uav_em/propagation.py": "be6083e4e19f07a99d4df9c073842de1ac7c76a44d919f3bb81fa74b136df2df",
+    "src/uav_em/repair_search.py": "b2103050c1268a76b56bcd8ee7a8dd1762c175ab2e6dcf98a64f3f935ef50d29",
+    "src/uav_em/planning.py": "44fd6a5256e520714c96a4dce614a3f579e4f8910bb6098afdfda017cd42748d",
+    "src/uav_em/equivalent_field.py": "bb8c424f05dba25fc93adc27bcfdd7b83ba5aeb506c7f126fbd097e401560099",
+    "src/uav_em/probability.py": "d6e64e47523c39703ee48d4c604099ba61ef71b26449892600aa286c64b70a8c",
+    "src/uav_em/event_inference.py": "9e670a794ef55e51d4b9c57afd2c2de54dfdfa0c019ff9182b980bafc5d63bf3",
+    "src/uav_em/scenario_loop.py": "401c508505b2936d99639f0ac20dc57ab7b93c1efc1323dbfb9921d023e40fad",
+    "src/uav_em/scenarios.py": "9d03af8fed21a94407b048cf0a05d57ce3bea277805803c4592c931e6b3b12f7",
+    "src/uav_em/decision_timing.py": "7e4ce632f1b95e58cd08ac72ccaf820dffd3f36fea0e682799061d4d48ed3c99",
+    "src/uav_em/event_llm_inference.py": "53622cc1686953a77b125bbfa1c9c9aceb9e20c43aab203d52b08fc4c5ca8ecf",
+    "src/uav_em/scenario_planning.py": "2e64fe1869ef4738ddba1f399316b97bb6746bf68ab7ff7b10eb9bfdf0ddd7d5",
+    "src/uav_em/motion.py": "b2d40b1525e80cc4a4eeb1d5033259df90042573cf454ebb3cd0c85d8aac7d85",
+    "src/uav_em/point_gp.py": "cc3d7a99125b55ba35a5d544d4f19e1002ee4914141b3b8b277420396371b7e6",
+    "src/uav_em/feasible_scenario.py": "4211b20b946b67cbec5c972e1371104999a0a4a4181e94c6d44a7acfe5dea267",
+    "src/uav_em/environment.py": "098218e902d2c9c1ca14afae0ae0e31861b7c5e4f4da210c3cd4fc18497b6c61",
+    "src/uav_em/buildings.py": "76d0f0bf022dffeeee5025ba7787f1035fe780633a738307acec0c3af57fb588"
+  },
+  "demonstration_cases": [
+    "delayed_useful_intent",
+    "observed_change_while_waiting",
+    "uncancellable_timeout",
+    "reject_passed_waypoint"
+  ],
+  "demonstration_scope": "Deterministic synthetic host with declared scalar observations/forecasts only; no simulated city truth or actual LLM."
+}

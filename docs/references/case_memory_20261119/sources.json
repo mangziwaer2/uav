@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-19",
+  "sources": [
+    {
+      "name": "expel",
+      "url": "https://arxiv.org/html/2308.10144v3",
+      "resolved_url": "https://arxiv.org/html/2308.10144v3",
+      "status": 200,
+      "title": "ExpeL: LLM Agents Are Experiential Learners",
+      "sha256": "b222d246e1832c08c75d2f1e1fc9643b9af611172d664459a2d8284dc09f0372",
+      "text_sha256": "eb161d8ac90f4a36894482647fa8d68e9eebf9bc93a2723d765653c78d9969f9",
+      "retrieved_utc": "2026-11-19T08:29:47.601020+00:00",
+      "characters": 81456,
+      "reading_scope": "Selected full text: section 3 deterministic-task condition; sections 4.1 to 4.3 experience gathering, success/failure comparison, insight operators and trajectory retrieval."
+    },
+    {
+      "name": "voyager",
+      "url": "https://arxiv.org/html/2305.16291v2",
+      "resolved_url": "https://arxiv.org/html/2305.16291v2",
+      "status": 200,
+      "title": "Voyager: An Open-Ended Embodied Agentwith Large Language Models",
+      "sha256": "05ff46acf6b652b93520059e251cdca1f6260385350f115947583d091bac605b",
+      "text_sha256": "0aa8f480013a6f4ad59d4f912aa3f2901ed20c2ccae8ee33576e1c19d171e0f0",
+      "retrieved_utc": "2026-11-19T08:30:15.649839+00:00",
+      "characters": 122197,
+      "reading_scope": "Selected full text: sections 2.2 to 2.3 skill library, embedding queries, retrieved skills and iterative feedback."
+    },
+    {
+      "name": "reflexion",
+      "url": "https://arxiv.org/html/2303.11366v4",
+      "resolved_url": "https://arxiv.org/html/2303.11366v4",
+      "status": 200,
+      "title": "Reflexion: Language Agents with Verbal Reinforcement Learning",
+      "sha256": "c96741a6170d6a8a1ec17f3780d561f813078190404f47792178080c4118f002",
+      "text_sha256": "d92d6d5c598d4ae9fb8b15fed19f30df7ad086835a09f8de90e7ab8e0aee63d6",
+      "retrieved_utc": "2026-11-19T08:29:49.145176+00:00",
+      "characters": 60293,
+      "reading_scope": "Selected full text: introduction; section 3 algorithm and Actor/Evaluator/Self-Reflection architecture. No reproduction."
+    }
+  ],
+  "search_results": "search_results.json",
+  "search_scope": "Three arXiv API title queries; downloaded only the named LLM-agent papers after title verification; unrelated same-word results excluded.",
+  "retrieval_environment": "Sandbox namespace creation failed for unapproved processes; explicit escalated tool requests used for network retrieval and local Python reads.",
+  "cached_analysis": "cached_route_explanation.json",
+  "new_scientific_operations": {
+    "source_fits": 0,
+    "gp_queries": 0,
+    "physical_truth_queries": 0,
+    "route_scoring_calls": 0,
+    "searches": 0,
+    "decision_llm_calls": 0,
+    "new_flights": 0,
+    "new_training": 0
+  },
+  "implementation": "Case-memory collection/retrieval and source local refinement remain proposed, not implemented."
+}

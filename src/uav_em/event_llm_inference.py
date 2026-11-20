@@ -8,8 +8,8 @@ from types import SimpleNamespace
 
 import numpy as np
 
-from .branch_belief import gaussian_logpdf, logsumexp
-from .equivalent_capacity import kernel, power_and_jacobian
+from .probability import gaussian_logpdf, logsumexp
+from .equivalent_field import kernel, power_and_jacobian
 from .event_inference import (Budget, FAMILIES, HypothesisBank, digest, fit_job,
                               inference_request, validate_plan)
 
@@ -22,7 +22,7 @@ def family_evidence(bank, records):
     for family in FAMILIES:
         scores = []
         for row in records[-6:]:
-            pred = [p for p in row['issued']['predictions'] if families[p['id']] == family]
+            pred = [p for p in row['issued']['predictions'] if families.get(p['id']) == family]
             if pred:
                 ll = [gaussian_logpdf(row['observation']['interference_dbm'],
                                      p['mean_dbm'], p['std_db']) for p in pred]
@@ -40,10 +40,10 @@ def state_digest(bank, public):
     return digest(dict(history=bank.history, hypotheses=bank.snapshot(), public=public))
 
 
-def make_request(bank, public, event, phase, records, feedback, budget):
+def make_request(bank, public, event, phase, records, feedback, budget, trigger_reason=None):
     if phase not in ('pilot', 'refine'):
         raise ValueError('unknown round')
-    context = inference_request(bank, public, 'common_initial' if event == 0 else 'common_expiry', event)
+    context = inference_request(bank, public, trigger_reason or ('common_initial' if event == 0 else 'common_expiry'), event)
     context.pop('request_id')
     context.update(phase=phase, required_jobs=1 if phase == 'pilot' else 2,
         live_state_sha256=state_digest(bank, public), family_evidence=family_evidence(bank, records),
@@ -115,12 +115,21 @@ def validate_round(bank, public, request, raw):
     return response
 
 
-def run_event(bank, public, event, records, method, advisor=None, emit=None):
+def run_event(bank, public, event, records, method, advisor=None, emit=None, *, trigger_reason=None,
+              soft_context=None):
     if method not in METHODS[1:]:
         raise ValueError('only updating methods have events')
     budget, rounds, all_models, feedback = Budget(), [], [], None
     for phase in ('pilot', 'refine'):
-        request = make_request(bank, public, event, phase, records, feedback, budget)
+        request = make_request(bank, public, event, phase, records, feedback, budget, trigger_reason)
+        if soft_context is not None:
+            from .joint_prediction import soft_constraints
+            source_history = bank.history[:-3] if phase == 'pilot' else bank.history
+            soft = soft_constraints(source_history, **soft_context)
+            request['gp_soft_constraints'] = deepcopy(soft)
+            request['request_id'] = digest({k:v for k,v in request.items() if k != 'request_id'})
+        else:
+            soft = None
         if method == 'llm':
             if advisor is None:raise ValueError('LLM method requires an explicit advisor')
             envelope = advisor(deepcopy(request))
@@ -143,7 +152,7 @@ def run_event(bank, public, event, records, method, advisor=None, emit=None):
                            if phase == 'pilot' else bank)
             before = asdict(budget)
             try:
-                fit = fit_job(source_bank, public, job, budget, f'event{event}_{phase}_job{j}')
+                fit = fit_job(source_bank, public, job, budget, f'event{event}_{phase}_job{j}', soft=soft)
                 fits.append(fit)
                 if fit['model']['bases']:
                     all_models.append(rebase_model(fit['model'], bank.history[-1]['time_seconds'], len(bank.history)-1))

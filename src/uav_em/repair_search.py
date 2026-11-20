@@ -1,11 +1,9 @@
-"""有共享预算和可控采样混合的RRT*；仅读当前估计，不持久化树或读取真值。"""
-from __future__ import annotations
-from dataclasses import dataclass, asdict
+"""Budgeted RRT* numerical tool; no legacy fixed-J experiment controller."""
+from dataclasses import dataclass,asdict
 import math
 import time
 import numpy as np
-from .planning import PlanResult, path_length
-
+from .planning import PlanResult,path_length
 
 class BudgetExhausted(RuntimeError):
     pass
@@ -40,68 +38,6 @@ class WorkBudget:
         return {**asdict(self), 'samples_left': self.sample_limit-self.samples,
                 'edges_left': self.edge_limit-self.edges-self.reserved_edges,
                 'total_edges_left': self.edge_limit-self.edges}
-
-
-class FixedObjective:
-    """固定J=长度+2×超参考惩罚+0.4×不确定性，单位m的研究性代价。
-
-    沿线段精确分割最近邻栅格的半格边界，逐格常值积分，避免仅改变
-    航路分段数量就改变分数。几何与积分合为一个预算边评价；对称缓存
-    在同一快照/决策内共享。字段采样、LLM及数组操作另计墙钟，不冒充等CPU。
-    """
-    def __init__(self, snapshot, reference_dbm, budget):
-        self.snapshot, self.geometry = snapshot, snapshot.geometry
-        self.reference, self.budget = reference_dbm, budget
-        self.cache = {}
-
-    def quadrature(self, start, end):
-        a,b=np.asarray(start,float),np.asarray(end,float)
-        delta=b-a;length=float(np.linalg.norm(delta));cuts=[0.,1.]
-        resolution=self.geometry.config.resolution_m
-        for axis,size in enumerate((self.geometry.config.columns,self.geometry.config.rows)):
-            if abs(delta[axis])>1e-12:
-                crossings=((np.arange(size-1)+.5)*resolution-a[axis])/delta[axis]
-                cuts.extend(crossings[(crossings>0)&(crossings<1)].tolist())
-        cuts=np.unique(cuts); weights=np.diff(cuts)*length
-        points=a+((cuts[:-1]+cuts[1:])/2)[:,None]*delta
-        nodes=np.rint(points/resolution).astype(int)
-        nodes=np.clip(nodes,[0,0],[self.geometry.config.columns-1,self.geometry.config.rows-1])
-        return weights,nodes
-
-    def edge(self, start, end):
-        a,b=tuple(float(x) for x in start),tuple(float(x) for x in end)
-        key=tuple(sorted((a,b)))
-        if key in self.cache:
-            self.budget.cache_hits+=1
-            return self.cache[key]
-        self.budget.take_edge()
-        if not self.geometry.edge_free(a,b):
-            value=None
-        else:
-            weights,nodes=self.quadrature(a,b)
-            mean=self.snapshot.estimate_dbm[nodes[:,1],nodes[:,0]]
-            sd=self.snapshot.uncertainty_db[nodes[:,1],nodes[:,0]]
-            length=float(weights.sum())
-            interference=float(weights@np.clip((mean-self.reference)/10,0,4))*2
-            uncertainty=float(weights@np.clip(sd/15,0,2))*.4
-            value={'length_m':length,'interference_cost':interference,'uncertainty_cost':uncertainty,
-                   'objective':length+interference+uncertainty}
-        self.cache[key]=value
-        return value
-
-    def edge_cost(self,start,end):
-        value=self.edge(start,end)
-        return value['objective'] if value is not None else math.inf
-
-    def route_metrics(self,route):
-        if not route:return None
-        result=dict(length_m=0.,interference_cost=0.,uncertainty_cost=0.,objective=0.)
-        if not all(self.geometry.free(p) for p in route):return None
-        for a,b in zip(route,route[1:]):
-            value=self.edge(a,b)
-            if value is None:return None
-            for k in result:result[k]+=value[k]
-        return result
 
 
 def validate_sampling(value, high):
@@ -189,3 +125,4 @@ def repair_rrt_star(problem,start,goal,sample_budget,seed,sampling):
         result.reason='solved' if result.reason=='no_path_within_budget' else 'solved_before_'+result.reason
     result.elapsed_seconds=time.perf_counter()-started
     return result,stats
+

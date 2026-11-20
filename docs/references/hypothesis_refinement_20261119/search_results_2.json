@@ -1,0 +1,165 @@
+[
+  {
+    "name": "llm_data_hypotheses",
+    "url": "https://export.arxiv.org/api/query?search_query=ti%3A%22Hypothesis+Generation%22+AND+all%3A%22data%22&max_results=10",
+    "resolved_url": "https://export.arxiv.org/api/query?search_query=ti%3A%22Hypothesis+Generation%22+AND+all%3A%22data%22&max_results=10",
+    "status": 200,
+    "result": [
+      {
+        "title": "AstroAgents: A Multi-Agent AI for Hypothesis Generation from Mass Spectrometry Data",
+        "url": "http://arxiv.org/abs/2503.23170v1",
+        "summary": "With upcoming sample return missions across the solar system and the increasing availability of mass spectrometry data, there is an urgent need for methods that analyze such data within the context of existing astrobiology literature and generate plausible hypotheses regarding the emergence of life on Earth. Hypothesis generation from mass spectrometry data is challenging due to factors such as environmental contaminants, the complexity of spectral peaks, and difficulties in cross-matching these peaks with prior studies. To address these challenges, we introduce AstroAgents, a large language model-based, multi-agent AI system for hypothesis generation from mass spectrometry data. AstroAgents is structured around eight collaborative agents: a data analyst, a planner, three domain scientists, an accumulator, a literature reviewer, and a critic. The system processes mass spectrometry data alongside user-provided research papers. The data analyst interprets the data, and the planner delegates specific segments to the scientist agents for in-depth exploration. The accumulator then collects and deduplicates the generated hypotheses, and the literature reviewer identifies relevant literature using Semantic Scholar. The critic evaluates the hypotheses, offering rigorous suggestions for improvement. To assess AstroAgents, an astrobiology expert evaluated the novelty and plausibility of more than a hundred hypotheses generated from data obtained from eight meteorites and ten soil samples. Of these hypotheses, 36% were identified as plausible, and among those, 66% were novel. Project website: https://astroagents.github.io/"
+      },
+      {
+        "title": "Literature Meets Data: A Synergistic Approach to Hypothesis Generation",
+        "url": "http://arxiv.org/abs/2410.17309v3",
+        "summary": "AI holds promise for transforming scientific processes, including hypothesis generation. Prior work on hypothesis generation can be broadly categorized into theory-driven and data-driven approaches. While both have proven effective in generating novel and plausible hypotheses, it remains an open question whether they can complement each other. To address this, we develop the first method that combines literature-based insights with data to perform LLM-powered hypothesis generation. We apply our method on five different datasets and demonstrate that integrating literature and data outperforms other baselines (8.97\\% over few-shot, 15.75\\% over literature-based alone, and 3.37\\% over data-driven alone). Additionally, we conduct the first human evaluation to assess the utility of LLM-generated hypotheses in assisting human decision-making on two challenging tasks: deception detection and AI generated content detection. Our results show that human accuracy improves significantly by 7.44\\% and 14.19\\% on these tasks, respectively. These findings suggest that integrating literature-based and data-driven approaches provides a comprehensive and nuanced framework for hypothesis generation and could open new avenues for scientific inquiry."
+      },
+      {
+        "title": "Sparks of Science: Hypothesis Generation Using Structured Paper Data",
+        "url": "http://arxiv.org/abs/2504.12976v1",
+        "summary": "Generating novel and creative scientific hypotheses is a cornerstone in achieving Artificial General Intelligence. Large language and reasoning models have the potential to aid in the systematic creation, selection, and validation of scientifically informed hypotheses. However, current foundation models often struggle to produce scientific ideas that are both novel and feasible. One reason is the lack of a dedicated dataset that frames Scientific Hypothesis Generation (SHG) as a Natural Language Generation (NLG) task. In this paper, we introduce HypoGen, the first dataset of approximately 5500 structured problem-hypothesis pairs extracted from top-tier computer science conferences structured with a Bit-Flip-Spark schema, where the Bit is the conventional assumption, the Spark is the key insight or conceptual leap, and the Flip is the resulting counterproposal. HypoGen uniquely integrates an explicit Chain-of-Reasoning component that reflects the intellectual process from Bit to Flip. We demonstrate that framing hypothesis generation as conditional language modelling, with the model fine-tuned on Bit-Flip-Spark and the Chain-of-Reasoning (and where, at inference, we only provide the Bit), leads to improvements in the overall quality of the hypotheses. Our evaluation employs automated metrics and LLM judge rankings for overall quality assessment. We show that by fine-tuning on our HypoGen dataset we improve the novelty, feasibility, and overall quality of the generated hypotheses. The HypoGen dataset is publicly available at huggingface.co/datasets/UniverseTBD/hypogen-dr1."
+      },
+      {
+        "title": "From Scientific Observations to Mechanisms: Benchmarking Hypothesis Generation by AI Scientists",
+        "url": "http://arxiv.org/abs/2610.05197v2",
+        "summary": "Data-driven mechanistic hypotheses are essential to scientific discovery because they explain how underlying processes produce observed phenomena. AI agents and AI scientists increasingly support scientific data analysis. However, their ability to turn empirical findings into mechanistic hypotheses remains insufficiently examined. To address this gap, we introduce MechHypoBench, the first benchmark for evaluating whether AI agents and AI scientists can generate such hypotheses from empirical data. It combines paper-derived mechanisms from 14 scientific fields with real-world datasets containing 17.98 million records. The construction retains the observational complexity of empirical data while providing a specified underlying mechanism. Agents analyze the observations and propose open-form hypotheses. We develop an evaluation framework that assesses open-form mechanistic hypotheses through their consequences under withheld conditions. Experiments with general agents and AI scientists reveal a substantial gap between generated hypotheses and the underlying mechanisms."
+      },
+      {
+        "title": "MOLIERE: Automatic Biomedical Hypothesis Generation System",
+        "url": "http://arxiv.org/abs/1702.06176v3",
+        "summary": "Hypothesis generation is becoming a crucial time-saving technique which allows biomedical researchers to quickly discover implicit connections between important concepts. Typically, these systems operate on domain-specific fractions of public medical data. MOLIERE, in contrast, utilizes information from over 24.5 million documents. At the heart of our approach lies a multi-modal and multi-relational network of biomedical objects extracted from several heterogeneous datasets from the National Center for Biotechnology Information (NCBI). These objects include but are not limited to scientific papers, keywords, genes, proteins, diseases, and diagnoses. We model hypotheses using Latent Dirichlet Allocation applied on abstracts found near shortest paths discovered within this network, and demonstrate the effectiveness of MOLIERE by performing hypothesis generation on historical data. Our network, implementation, and resulting data are all publicly available for the broad scientific community."
+      },
+      {
+        "title": "Deterministic Hypothesis Generation for Robust Fitting of Multiple Structures",
+        "url": "http://arxiv.org/abs/1807.09408v1",
+        "summary": "We present a novel algorithm for generating robust and consistent hypotheses for multiple-structure model fitting. Most of the existing methods utilize random sampling which produce varying results especially when outlier ratio is high. For a structure where a model is fitted, the inliers of other structures are regarded as outliers when multiple structures are present. Global optimization has recently been investigated to provide stable and unique solutions, but the computational cost of the algorithms is prohibitively high for most image data with reasonable sizes. The algorithm presented in this paper uses a maximum feasible subsystem (MaxFS) algorithm to generate consistent initial hypotheses only from partial datasets in spatially overlapping local image regions. Our assumption is that each genuine structure will exist as a dominant structure in at least one of the local regions. To refine initial hypotheses estimated from partial datasets and to remove residual tolerance dependency of the MaxFS algorithm, iterative re-weighted L1 (IRL1) minimization is performed for all the image data. Initial weights of IRL1 framework are determined from the initial hypotheses generated in local regions. Our approach is significantly more efficient than those that use only global optimization for all the image data. Experimental results demonstrate that the presented method can generate more reliable and consistent hypotheses than random-sampling methods for estimating single and multiple structures from data with a large amount of outliers. We clearly expose the influence of algorithm parameter settings on the results in our experiments."
+      },
+      {
+        "title": "ASTRA: An Autonomous Framework for Physics-Validated Analysis and Hypothesis Generation in Astrophysics",
+        "url": "http://arxiv.org/abs/2610.36144v1",
+        "summary": "We present ASTRA, an autonomous framework for physics-validated analysis and hypothesis generation in astrophysics without per-step human intervention. It integrates dimensional analysis, structural causal models, Bayesian evidence computation, and multi-wavelength data fusion in a single automated workflow. Five test cases on real observational data recover known results: Herschel filament scaling, Chandra Deep Field South cross-matching, SDSS galaxy correlations, Gaia causal inference, and Bayesian virial model selection. A sixth case runs unsupervised on synthetic galaxy data. The main sequence and mass-metallicity relation are recovered, and the outlier detector, with a false-discovery-rate threshold and no contamination parameter, recovers the blind injected fraction on ten sealed datasets (purity > 0.99) and flags nothing on the 3,000-galaxy sample. A knowledge-isolation ablation shows pattern detection and physical validation are invariant to removal of domain knowledge, which affects only interpretation. In a direct comparison, agentic-LLM and pure-ML baselines match the statistical fitting but not the physics-validation stage. They rarely derive the equilibrium benchmark, split evenly on the physical verdict, and adopt a supplied erroneous benchmark in all six trap runs, an astrophysics-specific fine-tuned model completes zero of six runs. On live SDSS DR16 data it flags 197 of 4,999 galaxies at a data-determined threshold, ranked extremes classifiable from withheld spectroscopy. These are recovery validations and capability demonstrations rather than discoveries, with hypothesis generation demonstrated qualitatively."
+      },
+      {
+        "title": "Gaussian Process Bandit Optimization with Machine Learning Predictions and Application to Hypothesis Generation",
+        "url": "http://arxiv.org/abs/2601.22315v1",
+        "summary": "Many real-world optimization problems involve an expensive ground-truth oracle (e.g., human evaluation, physical experiments) and a cheap, low-fidelity prediction oracle (e.g., machine learning models, simulations). Meanwhile, abundant offline data (e.g., past experiments and predictions) are often available and can be used to pretrain powerful predictive models, as well as to provide an informative prior. We propose Prediction-Augmented Gaussian Process Upper Confidence Bound (PA-GP-UCB), a novel Bayesian optimization algorithm that leverages both oracles and offline data to achieve provable gains in sample efficiency for the ground-truth oracle queries. PA-GP-UCB employs a control-variates estimator derived from a joint Gaussian process posterior to correct prediction bias and reduce uncertainty. We prove that PA-GP-UCB preserves the standard regret rate of GP-UCB while achieving a strictly smaller leading constant that is explicitly controlled by prediction quality and offline data coverage. Empirically, PA-GP-UCB converges faster than Vanilla GP-UCB and naive prediction-augmented GP-UCB baselines on synthetic benchmarks and on a real-world hypothesis evaluation task grounded in human behavioral data, where predictions are provided by large language models. These results establish PA-GP-UCB as a general and sample-efficient framework for hypothesis generation under expensive feedback."
+      },
+      {
+        "title": "AGATHA: Automatic Graph-mining And Transformer based Hypothesis generation Approach",
+        "url": "http://arxiv.org/abs/2002.05635v1",
+        "summary": "Medical research is risky and expensive. Drug discovery, as an example, requires that researchers efficiently winnow thousands of potential targets to a small candidate set for more thorough evaluation. However, research groups spend significant time and money to perform the experiments necessary to determine this candidate set long before seeing intermediate results. Hypothesis generation systems address this challenge by mining the wealth of publicly available scientific information to predict plausible research directions. We present AGATHA, a deep-learning hypothesis generation system that can introduce data-driven insights earlier in the discovery process. Through a learned ranking criteria, this system quickly prioritizes plausible term-pairs among entity sets, allowing us to recommend new research directions. We massively validate our system with a temporal holdout wherein we predict connections first introduced after 2015 using data published beforehand. We additionally explore biomedical sub-domains, and demonstrate AGATHA's predictive capacity across the twenty most popular relationship types. This system achieves best-in-class performance on an established benchmark, and demonstrates high recommendation scores across subdomains. Reproducibility: All code, experimental data, and pre-trained models are available online: sybrandt.com/2020/agatha"
+      },
+      {
+        "title": "Sparse Autoencoders for Hypothesis Generation",
+        "url": "http://arxiv.org/abs/2502.04382v3",
+        "summary": "We describe HypotheSAEs, a general method to hypothesize interpretable relationships between text data (e.g., headlines) and a target variable (e.g., clicks). HypotheSAEs has three steps: (1) train a sparse autoencoder on text embeddings to produce interpretable features describing the data distribution, (2) select features that predict the target variable, and (3) generate a natural language interpretation of each feature (e.g., \"mentions being surprised or shocked\") using an LLM. Each interpretation serves as a hypothesis about what predicts the target variable. Compared to baselines, our method better identifies reference hypotheses on synthetic datasets (at least +0.06 in F1) and produces more predictive hypotheses on real datasets (~twice as many significant findings), despite requiring 1-2 orders of magnitude less compute than recent LLM-based methods. HypotheSAEs also produces novel discoveries on two well-studied tasks: explaining partisan differences in Congressional speeches and identifying drivers of engagement with online headlines."
+      }
+    ]
+  },
+  {
+    "name": "dynamic_crossref",
+    "url": "https://api.crossref.org/works?query.title=Online+Prediction+Under+Model+Uncertainty+via+Dynamic+Model+Averaging+Application+to+a+Cold+Rolling+Mill&rows=1",
+    "resolved_url": "https://api.crossref.org/works?query.title=Online+Prediction+Under+Model+Uncertainty+via+Dynamic+Model+Averaging+Application+to+a+Cold+Rolling+Mill&rows=1",
+    "status": 200,
+    "result": {
+      "title": [
+        "Online Prediction under Model Uncertainty Via Dynamic Model Averaging: Application to a Cold Rolling Mill"
+      ],
+      "DOI": "10.21236/ada478617",
+      "URL": "https://doi.org/10.21236/ada478617",
+      "link": null,
+      "abstract": null,
+      "author": [
+        {
+          "given": "Adrian E.",
+          "family": "Raftery",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Miroslav",
+          "family": "Karny",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Josef",
+          "family": "Andrysek",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        },
+        {
+          "given": "Pavel",
+          "family": "Ettler",
+          "sequence": "first",
+          "affiliation": [],
+          "role": [
+            {
+              "role": "author",
+              "vocabulary": "crossref"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  {
+    "name": "changepoint_html",
+    "url": "https://arxiv.org/html/0710.3742",
+    "resolved_url": "https://arxiv.org/html/0710.3742",
+    "status": 200,
+    "result": "Bayesian Online Changepoint Detection Report GitHub Issue × Title: Content selection saved. Describe the issue below: Description: Submit without GitHub Submit in GitHub arXiv is now an independent nonprofit! Learn more × Back to arXiv Why HTML? Report Issue Back to Abstract Download PDF Abstract 1 INTRODUCTION 2 RECURSIVE RUN LENGTH ESTIMATION 2.1 THE CHANGEPOINT PRIOR 2.2 BOUNDARY CONDITIONS 2.3 CONJUGATE-EXPONENTIAL MODELS 2.4 COMPUTATIONAL COST 3 EXPERIMENTAL RESULTS 3.1 WELL-LOG DATA 3.2 1972-75 DOW JONES RETURNS 3.3 COAL MINE DISASTER DATA 4 DISCUSSION References License: Assumed arXiv.org perpetual non-exclusive license arXiv:0710.3742v1 [stat.ML] 19 Oct 2007 Bayesian Online Changepoint Detection Ryan Prescott Adams Affiliation: Cavendish Laboratory Affiliation: Cambridge CB3 0HE Affiliation: United Kingdom David J.C. MacKay Affiliation: Cavendish Laboratory Affiliation: Cambridge CB3 0HE Affiliation: United Kingdom Abstract Changepoints are abrupt variations in the generative parameters of a\ndata sequence. Online detection of changepoints is useful in modelling\nand prediction of time series in application areas such as finance,\nbiometrics, and robotics. While frequentist methods have yielded\nonline filtering and prediction techniques, most Bayesian papers have\nfocused on the retrospective segmentation problem. Here we examine the\ncase where the model parameters before and after the changepoint are\nindependent and we derive an online algorithm for exact inference of\nthe most recent changepoint. We compute the probability distribution\nof the length of the current “run,” or time since the last\nchangepoint, using a simple message-passing algorithm. Our\nimplementation is highly modular so that the algorithm may be applied\nto a variety of types of data. We illustrate this modularity by\ndemonstrating the algorithm on three different real-world data sets. 1 INTRODUCTION Changepoint detection is the identification of abrupt changes in the\ngenerative parameters of sequential data. As an online and offline\nsignal processing tool, it has proven to be useful in applications such\nas process control [ 1 ] , EEG analysis [ 5 , 2 , 17 ] , DNA segmentation [ 6 ] ,\neconometrics [ 7 , 18 ] , and disease\ndemographics [ 9 ] . Frequentist approaches to changepoint detection, from the pioneering\nwork of Page [ 22 , 23 ] and Lorden [ 19 ] to recent work using support vector machines [ 10 ] , offer online changepoint detectors. Most\nBayesian approaches to changepoint detection, in contrast, have been\noffline and retrospective [ 24 , 4 , 26 , 13 , 8 ] . With a few exceptions [ 16 , 20 ] , the Bayesian papers\non changepoint detection focus on segmentation and techniques to\ngenerate samples from the posterior distribution over changepoint\nlocations. In this paper, we present a Bayesian changepoint detection algorithm\nfor online inference. Rather than retrospective segmentation, we focus\non causal predictive filtering; generating an accurate distribution of\nthe next unseen datum in the sequence, given only data already\nobserved. For many applications in machine intelligence, this is a\nnatural requirement. Robots must navigate based on past sensor data\nfrom an environment that may have abruptly changed: a door may be\nclosed now, for example, or the furniture may have been moved. In\nvision systems, the brightness change when a light switch is flipped or\nwhen the sun comes out. We assume that a sequence of observations x 1 , x 2 , … , x T x_{1},x_{2},\\ldots,x_{T} may be divided into non-overlapping product partitions [ 3 ] . The delineations between partitions are\ncalled the changepoints. We further assume that for each partition ρ \\rho , the data within it are i.i.d. from some probability\ndistribution P ⁡ ( x t | 𝜼 ρ ) P(x_{t}\\,|\\,\\boldsymbol{\\eta}_{\\rho}) . The parameters 𝜼 ρ \\boldsymbol{\\eta}_{\\rho} , ρ = 1 , 2 , … \\rho=1,2,\\ldots are taken to be i.i.d. as well.\nWe denote the contiguous set of observations between time a a and b b inclusive as 𝒙 a : b \\boldsymbol{x}_{a:b} . The discrete a priori probability\ndistribution over the interval between changepoints is denoted as P 𝗀𝖺𝗉 ​ ( g ) P_{\\sf{gap}}(g) . We are concerned with estimating the posterior distribution over the\ncurrent “run length,” or time since the last changepoint, given the\ndata so far observed. We denote the length of the current run at time t t by r t r_{t} . We also use the notation 𝒙 t ( r ) \\boldsymbol{x}_{t}^{(r)} to indicate\nthe set of observations associated with the run r t r_{t} . As r r may be\nzero, the set 𝒙 ( r ) \\boldsymbol{x}^{(r)} may be empty. We illustrate the relationship\nbetween the run length r r and some hypothetical univariate data in\nFigures 1 and 1 . Figure 1: This figure illustrates how we describe a changepoint model\nexpressed in terms of run lengths. Figure 1 shows hypothetical univariate data divided by changepoints on the\nmean into three segments of lengths g 1 = 4 g_{1}=4 , g 2 = 6 g_{2}=6 , and an\nundetermined length g 3 g_{3} . Figu"
+  },
+  {
+    "name": "kriging_radio",
+    "url": "https://export.arxiv.org/api/query?search_query=all%3A%22radio+map%22+AND+all%3A%22Kriging%22&max_results=5",
+    "resolved_url": "https://export.arxiv.org/api/query?search_query=all%3A%22radio+map%22+AND+all%3A%22Kriging%22&max_results=5",
+    "status": 200,
+    "result": [
+      {
+        "title": "3D Spectrum Awareness for Radio Dynamic Zones Using Kriging and Matrix Completion",
+        "url": "http://arxiv.org/abs/2603.10443v1",
+        "summary": "Radio Dynamic Zones (RDZs) are geographically defined areas specifically allocated for testing new wireless technologies. It is essential to safeguard the regular spectrum users outside the zones from the interference caused by the deployed equipment within this zone. Previous works have utilized sparse reference signal received power (RSRP) measurements collected by unmanned aerial vehicles (UAVs) to construct a dense 3D radio map through ordinary Kriging. In this work, we illustrate that matrix completion can outperform ordinary Kriging. We partitioned a 2D area of interest into small square grids where each grid corresponds to a single entry of a matrix. The matrix completion algorithm learns the global structure of the radio environment map by leveraging the low-rank property of propagation maps. Additionally, we illustrate that the simple Kriging and trans-Gaussian Kriging yield better results when the density of known measurements is lower. Earlier works of RSRP prediction involved a training dataset at a single altitude. In this work, we also show that performance can be improved by utilizing a combined dataset from multiple altitudes."
+      },
+      {
+        "title": "Kriging-Based 3-D Spectrum Awareness for Radio Dynamic Zones Using Aerial Spectrum Sensors",
+        "url": "http://arxiv.org/abs/2307.06310v1",
+        "summary": "Radio dynamic zones (RDZs) are geographical areas within which dedicated spectrum resources are monitored and controlled to enable the development and testing of new spectrum technologies. Real-time spectrum awareness within an RDZ is critical for preventing interference with nearby incumbent users of the spectrum. In this paper, we consider a 3D RDZ scenario and propose to use unmanned aerial vehicles (UAVs) equipped with spectrum sensors to create and maintain a 3D radio map of received signal power from different sources within the RDZ. In particular, we introduce a 3D Kriging interpolation technique that uses realistic 3D correlation models of the signal power extracted from extensive measurements carried out at the NSF AERPAW platform. Using C-Band signal measurements by a UAV at altitudes between 30 m-110 m, we first develop realistic propagation models on air-to-ground path loss, shadowing, spatial correlation, and semi-variogram, while taking into account the knowledge of antenna radiation patterns and ground reflection. Subsequently, we generate a 3D radio map of a signal source within the RDZ using the Kriging interpolation and evaluate its sensitivity to the number of measurements used and their spatial distribution. Our results show that the proposed 3D Kriging interpolation technique provides significantly better radio maps when compared with an approach that assumes perfect knowledge of path loss."
+      },
+      {
+        "title": "Pricing Mechanisms for Crowd-Sensed Spatial-Statistics-Based Radio Mapping",
+        "url": "http://arxiv.org/abs/1611.07580v3",
+        "summary": "Networking on white spaces (i.e., locally unused spectrum) relies on active monitoring of spectrum usage. Spectrum databases based on empirical radio propagation models are widely adopted but shown to be error-prone, since they do not account for built environments like trees and man-made buildings. As an economically viable option, crowd-sensed radio mapping acquires more accurate local spectrum data from mobile users and constructs radio maps using spatial models such as Kriging and Gaussian Process. Success of such crowd-sensing systems presumes some incentive mechanisms to attract user participation. In this work, we consider the scenario where the platform who constructs radio environment maps makes one-time offers to selected users, and collects data from those who accept the offers. We design pricing mechanisms based on expected utility (EU) maximization, where EU captures the tradeoff between radio mapping performance (location and data quality), crowd-sensing cost and uncertainty in offer outcomes (i.e., possible expiration and rejection). Specifically, we consider sequential offering, where one best price offer is sent to the best user in each round, and batched offering, where a batch of multiple offers are made in each round. For the later, we show that EU is submodular in the discrete domain, and propose a mechanism that first fixes the pricing rule and selects users based on Unconstrained Submodular Maximization (USM); it then compares different pricing rules to find the best batch of offers in each round. We show that USM-based user selection has provable performance guarantee. Proposed mechanisms are evaluated and compared against utility-maximization-based baseline mechanisms."
+      },
+      {
+        "title": "Channel Knowledge Map Enabled Low-Complexity Dynamic Radio Environment Reconstruction",
+        "url": "http://arxiv.org/abs/2608.17322v1",
+        "summary": "Accurate and timely radio environment reconstruction is important but challenging under particularly dynamic transmitter configurations. The conventional methods such as compressed sensing (CS), Kriging method or U-Net typically require environment measurements and reconstruction overhead for radio environment updating as the transmitter locations or radiation patterns change. In this paper, we propose a novel channel knowledge map (CKM)-enabled dynamic radio environment reconstruction method for efficient radio map updating. Specifically, the recently proposed CKM can store reusable path-level propagation knowledge that is decoupled from the transmitter-side radiation characteristics. We can leverage CKM for lightweight forward radio map generation as the transmitter locations and radiation patterns are known, without requiring new target-map measurements. Simulation results show that the proposed method outperforms CS, Kriging, and U-Net in reconstruction accuracy and exhibits strong robustness performance under dynamic transmitter configurations, which demonstrates the potential of the proposed method for flexible and efficient radio environment reconstruction in dynamic wireless networks."
+      },
+      {
+        "title": "Practical Interpolation for Spectrum Cartography through Local Path Loss Modeling",
+        "url": "http://arxiv.org/abs/1611.03725v1",
+        "summary": "A fundamental building block for supporting better utilization of radio spectrum involves predicting the impact that an emitter will have at different geographic locations. To this end, fixed sensors can be deployed to spatially sample the RF environment over an area of interest, with interpolation methods used to infer received power at locations between sensors. This paper describes a radio map interpolation method that exploits the known properties of most path loss models, with the aim of minimizing the RMS errors in predicted dB-power. We show that the results come very close to those for ideal Simple Kriging. Moreover, the method is simpler in terms of real-time computation by the network and it requires no knowledge of the spatial correlation of shadow fading. Our analysis of the method is general, but we exemplify it for a specific network geometry, comprising a grid-like pattern of sensors. We also provide comparisons to other widely used interpolation methods."
+      }
+    ]
+  }
+]

@@ -1,1 +1,19 @@
-<!doctype html><html lang="zh-CN"><meta charset="utf-8"><title>当前结果</title><style>body{font:17px/1.7 system-ui;max-width:900px;margin:45px auto;padding:0 20px}a{color:#1766ad}article{padding:18px;border:1px solid #ccd6df;border-radius:9px;margin:18px 0}</style><h1>当前研究结果</h1><p>唯一方向：点测与环境假设 → 快速咨询判断 → 数值即时响应＋异步LLM重规划。小咨询模型及异步闭环尚未完成，下列均为保留对照。</p><article><h2>8条实际飞行对照（C1）</h2><p>全到达；LLM真实T+Q比数值混合平均高6.08%，未过收益门槛。LLM只提路径，等待时冻结物理时间。</p><a href="interference_scenario_loop_20261118/replay/index.html">直接看8条GIF</a> · <a href="interference_scenario_loop_20261118/index.html">原始报告</a></article><article><h2>时序缓存诊断</h2><p>420旧点测、32旧决策；只有到期触发，没有非到期告警。不是新飞行或及时闭环效果。</p><a href="interference_timing_diagnostic_20261119/index.html">原始诊断</a></article><p><a href="../docs/AGENT_HANDOFF.md">交接</a> · <a href="../docs/method.md">方法</a> · <a href="../docs/current_roadmap.md">下一步</a></p></html>
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><title>当前结果</title>
+<style>body{font:17px/1.7 system-ui;max-width:1000px;margin:45px auto;padding:0 20px}a{color:#1766ad}article{padding:18px;border:1px solid #ccd6df;border-radius:9px;margin:18px 0}</style>
+<h1>当前研究结果</h1>
+<article><h2>最新D2-M0：移除全图功率延续后的新飞行</h2>
+<p>两条数值机制飞行都到达：早期源拟合T+Q=134.09；加入失配修订为139.96。右图显示实际源聚合场及源中心；没有全图最近功率延续。修订版在20.5/31/41.5秒重新拟合，预测误差下降，但两条几何航迹相同，没有修订的任务收益。0次新决策LLM调用。</p>
+<a href="interference_source_only_d2_m0_20261120/replay/index.html">看两条新replay与指标</a> · <a href="interference_source_only_d2_m0_20261120/replay/source_revise.gif">直接看失配修订GIF</a> · <a href="../docs/source_only_results_20261120.md">结果与局限</a></article>
+<article><h2>D1：真值源与假设等效源标记</h2>
+<p>左图标出当时开启的真值源，右图可切换一个等效源假设，显示原始权重和出生后评分点。右侧仍为实际规划聚合热图；不把互斥假设叠成多个同时存在的源。仅使用D1缓存，没有新飞行、预测或拟合，原GIF保持不变。</p>
+<a href="interference_d1_source_markers_20261120/index.html">打开可切换源假设回放与8条标记GIF</a> · <a href="../docs/d1_source_pipeline_20261120.md">源假设详细流程与功率延续问题</a></article>
+<article><h2>D1：GP联合预测、软拟合及前方预警</h2>
+<p>8次飞行全部到达，3个独立决策会话共18份真实回复，真值评价和8条双图GIF均完成。实际T+Q：数值N=145.99，LLM推断I=145.99，LLM路径P=155.24（+6.33%），联合J=161.28（+10.47%）。本轮未获LLM优化收益；独立GP参考为143.32。单个已见开发场景、同步等待冻结，不作泛化或实际推理时延收益结论。</p>
+<a href="interference_joint_gp_d1_20261119_0940/replay/index.html">直接看8条双图回放与指标</a> · <a href="interference_joint_gp_d1_20261119_0940/reports/d1_core_comparison.pdf">核心对照PDF图</a> · <a href="interference_joint_gp_d1_20261119_0940/protocol.json">冻结合同</a> · <a href="../docs/d1_results_20261120.md">结果与失败诊断</a></article>
+<article><h2>旧C1：真值、等效预测与UAV行动</h2><p>左右双图，右图默认一张有源候选解释并显示原权重，可切换完整混合。本版LLM仅参与路径决策。</p>
+<a href="interference_scenario_loop_20261118/replay/overview/index.html">交互双图回放</a> · <a href="interference_scenario_loop_20261118/replay/overview/mixture_llm_overview.gif">LLM双图GIF</a> · <a href="interference_scenario_loop_20261118/replay/full_mixture/index.html">完整混合预测</a></article>
+<article><h2>旧C1原8条飞行对照</h2><p>全到达；LLM真实T+Q比数值混合平均高6.08%，没有优化收益。等待冻结物理时间。旧原件保持不变。</p>
+<a href="interference_scenario_loop_20261118/replay/index.html">原8条GIF</a> · <a href="interference_scenario_loop_20261118/index.html">原始报告</a></article>
+<p>interference_event_demo_20261119及interference_timing_diagnostic_20261119旧目录缺失；历史叙述不能代替原件，未重建。</p>
+<p><a href="../docs/AGENT_HANDOFF.md">交接</a> · <a href="../docs/method.md">方法</a> · <a href="../docs/current_roadmap.md">下一步</a></p></html>

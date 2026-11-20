@@ -1,0 +1,49 @@
+{
+  "kind": "display_revision",
+  "initial_provenance": {
+    "kind": "display_only",
+    "source_version": "旧C1固定时刻对照：LLM仅辅助路径",
+    "input_sha256": {
+      "scenarios/dynamic.json": "71cbcf8cd46f1b313ce375958368c690f37a5da2842688b0343a5112401c34e3",
+      "runs/mixture_llm_dynamic/episode.json": "728766a76cc779669ed17e7fa5e5c56242bacfde37a3e52c6b7373d34ca3f405",
+      "evaluation/mixture_llm_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+      "runs/mixture_numeric_dynamic/episode.json": "c4ea366c4663f6f71ded562fb02311e59b3b6e7666dec8e2709ff70062680c93",
+      "evaluation/mixture_numeric_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+      "runs/gp_numeric_dynamic/episode.json": "1016f9ddfadd30e86ffd3ac0ac995b73e20a08ba005287fe46c24fd76c49ed08",
+      "evaluation/gp_numeric_dynamic_grids.npz": "113fc66cc0a82bf24c5f0dc0c7e4cda2d9e15c02ad1e9bd87b1bccba0ecade41"
+    },
+    "display_basis_receiver_terms": 127008,
+    "new_truth_queries": 0,
+    "new_gp_queries": 0,
+    "new_fits": 0,
+    "new_flights": 0,
+    "new_llm_calls": 0,
+    "source_sha256": "cee19bafa5b121586011c1284eb426e41673dfe7b9fce35ab4fff2e1c338971d",
+    "original_inputs_unchanged": true,
+    "right_default": "highest-weight source-containing alternative, conditionally displayed; not the full planner mixture",
+    "generated_sha256": {
+      "mixture_numeric_overview.gif": "913681b3850b4bba7caba99e7461e7d217929e54e5d17a9cf580982481e15d51",
+      "index.html": "5458268a0ab2216664f7329ed214c9ff6f425dc0839b77bc98cbfb3c6b0feb58",
+      "gp_numeric_overview.gif": "441ad5cea52d3908a19ae3b1d6fddef84f3ca2ba1886c04b729471ccabe05c05",
+      "display_provenance.json": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "mixture_llm_overview.gif": "570643ff0102ea8253a882d09cf8f813f7900985165cafb82a817c797754bfe3"
+    }
+  },
+  "reason": "Improve colorbar margins; exclude provenance self-hash (initial self-hash was empty file, invalid). Only session-created display derivatives regenerated; original research unchanged.",
+  "missing_studies": [
+    "interference_event_demo_20261119",
+    "interference_timing_diagnostic_20261119"
+  ],
+  "final_provenance": "outputs/interference_scenario_loop_20261118/replay/overview/display_provenance.json",
+  "tests": {
+    "passed": 211,
+    "third_party_warnings": 1
+  },
+  "display_hashes_verified": true,
+  "original_input_hashes_verified": true,
+  "visual_review": "GIF frame at 24.5s inspected; interactive HTML browser runtime not tested",
+  "workspace_check": {
+    "passed": false,
+    "reason": "21 original timing_diagnostic files missing; active navigation and imports have no reported failures"
+  }
+}

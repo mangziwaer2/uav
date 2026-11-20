@@ -1,0 +1,65 @@
+[
+  {
+    "paper": "ReEvo",
+    "read_scope": "methods and selected evaluation/limitations passages, not exhaustive full-paper reproduction",
+    "text_lines": [
+      [
+        120,
+        146
+      ],
+      [
+        1380,
+        1392
+      ]
+    ],
+    "excerpt_sha256": "ed59aaa2c3e1b69c21e983b0f93498022efe4309babfc76934fd3156c83938db"
+  },
+  {
+    "paper": "EoH",
+    "read_scope": "methods and selected evaluation/limitations passages, not exhaustive full-paper reproduction",
+    "text_lines": [
+      [
+        125,
+        180
+      ]
+    ],
+    "excerpt_sha256": "773b6adb7df9688b36562320fd800c15f7667fb2b1312d2882e16fbbdc57f207"
+  },
+  {
+    "paper": "VLM-RRT",
+    "read_scope": "methods and selected evaluation/limitations passages, not exhaustive full-paper reproduction",
+    "text_lines": [
+      [
+        109,
+        181
+      ]
+    ],
+    "excerpt_sha256": "09ba79555f696f72c055ef2827b981016225aa6f57c5b1bd3bcc06948d8d46fd"
+  },
+  {
+    "paper": "IGV-RRT",
+    "read_scope": "methods and selected evaluation/limitations passages, not exhaustive full-paper reproduction",
+    "text_lines": [
+      [
+        74,
+        140
+      ]
+    ],
+    "excerpt_sha256": "3ed661e88363eb9f8da48dff79384106c3da5c96677688c6e49bd8a9244e0bb5"
+  },
+  {
+    "paper": "Trajectory_Adaptation",
+    "read_scope": "methods and selected evaluation/limitations passages, not exhaustive full-paper reproduction",
+    "text_lines": [
+      [
+        73,
+        85
+      ],
+      [
+        124,
+        135
+      ]
+    ],
+    "excerpt_sha256": "de0b1a222b67d6713234931603e86f93facc998ea8897988bfb5a4632160f1f7"
+  }
+]

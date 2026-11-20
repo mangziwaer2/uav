@@ -1,0 +1,129 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/noZy89JEA3NP92QtJyNsZlX3p2s</id>
+  <title>arXiv Query: search_query=all:"Gaussian process" AND all:"event-triggered"&amp;id_list=&amp;start=0&amp;max_results=5</title>
+  <updated>2026-11-19T08:46:20Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:%22Gaussian+process%22+AND+all:%22event-triggered%22&amp;start=0&amp;max_results=5&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>5</opensearch:itemsPerPage>
+  <opensearch:totalResults>19</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2110.12214v3</id>
+    <title>Learning-based Event-triggered MPC with Gaussian processes under terminal constraints</title>
+    <updated>2024-01-01T15:09:35Z</updated>
+    <link href="https://arxiv.org/abs/2110.12214v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2110.12214v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Event-triggered control strategy is capable of significantly reducing the number of control task executions without sacrificing control performance. In this paper, we propose a novel learning-based approach towards an event-triggered model predictive control (MPC) for nonlinear control systems whose dynamics are unknown apriori. In particular, the optimal control problems (OCPs) are formulated based on predictive states learned by Gaussian process (GP) regression under a terminal constraint constructed by a symbolic abstraction. The event-triggered condition proposed in this paper is derived from the recursive feasibility so that the OCPs are solved only when an error between the predictive and the actual states exceeds a certain threshold. Based on the event-triggered condition, we analyze the stability of the closed-loop system and show that the finite-time convergence to the terminal set is achieved as the uncertainty of the GP model becomes smaller. Moreover, in order to reduce the uncertainty of the GP model and increase efficiency to find the optimal solution, we provide an overall learning-based event-triggered MPC algorithm based on an iterative task. Finally, we demonstrate the proposed approach through a tracking control problem.</summary>
+    <category term="math.OC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2021-10-23T13:15:10Z</published>
+    <arxiv:comment>submitted for publication</arxiv:comment>
+    <arxiv:primary_category term="math.OC"/>
+    <author>
+      <name>Yuga Onoue</name>
+    </author>
+    <author>
+      <name>Kazumune Hashimoto</name>
+    </author>
+    <author>
+      <name>Akifumi Wachi</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2408.16144v3</id>
+    <title>Safe Event-triggered Gaussian Process Learning for Barrier-Constrained Control</title>
+    <updated>2025-10-01T03:39:14Z</updated>
+    <link href="https://arxiv.org/abs/2408.16144v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2408.16144v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>While control barrier functions (CBFs) are employed in addressing safety, control synthesis methods based on them generally rely on accurate system dynamics. This is a critical limitation, since the dynamics of complex systems are often not fully known. Supervised machine learning techniques hold great promise for alleviating this weakness by inferring models from data. We propose a novel \revision{approach for safe event-triggered learning of Gaussian process models in CBF-based continuous-time control for unknown control-affine systems. By applying a finite excitation at triggering times, our approach ensures a sufficient information gain to maintain the feasibility of the CBF-based safety condition with high probability. Our approach probabilistically guarantees safety based on a suitable GP prior and rules out} Zeno behavior in the triggering scheme. The effectiveness of the proposed approach and theory is demonstrated in simulations.</summary>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-08-28T21:15:37Z</published>
+    <arxiv:comment>The first two authors contributed equally to the work</arxiv:comment>
+    <arxiv:primary_category term="eess.SY"/>
+    <author>
+      <name>Armin Lederer</name>
+    </author>
+    <author>
+      <name>Azra Begzadić</name>
+    </author>
+    <author>
+      <name>Sandra Hirche</name>
+    </author>
+    <author>
+      <name>Jorge Cortés</name>
+    </author>
+    <author>
+      <name>Sylvia Herbert</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2304.05138v3</id>
+    <title>Cooperative Online Learning for Multi-Agent System Control via Gaussian Processes with Event-Triggered Mechanism: Extended Version</title>
+    <updated>2024-09-17T17:31:07Z</updated>
+    <link href="https://arxiv.org/abs/2304.05138v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2304.05138v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In the realm of the cooperative control of multi-agent systems (MASs) with unknown dynamics, Gaussian process (GP) regression is widely used to infer the uncertainties due to its modeling flexibility of nonlinear functions and the existence of a theoretical prediction error bound. Online learning, which involves incorporating newly acquired training data into Gaussian process models, promises to improve control performance by enhancing predictions during the operation. Therefore, this paper investigates the online cooperative learning algorithm for MAS control. Moreover, an event-triggered data selection mechanism, inspired by the analysis of a centralized event-trigger, is introduced to reduce the model update frequency and enhance the data efficiency. With the proposed learning-based control, the practical convergence of the MAS is validated with guaranteed tracking performance via the Lynaponve theory. Furthermore, the exclusion of the Zeno behavior for individual agents is shown. Finally, the effectiveness of the proposed event-triggered online learning method is demonstrated in simulations.</summary>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2023-04-11T11:03:28Z</published>
+    <arxiv:primary_category term="eess.SY"/>
+    <author>
+      <name>Xiaobing Dai</name>
+    </author>
+    <author>
+      <name>Zewen Yang</name>
+    </author>
+    <author>
+      <name>Sihua Zhang</name>
+    </author>
+    <author>
+      <name>Di-Hua Zhai</name>
+    </author>
+    <author>
+      <name>Yuanqing Xia</name>
+    </author>
+    <author>
+      <name>Sandra Hirche</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/1911.06565v1</id>
+    <title>Feedback Linearization based on Gaussian Processes with event-triggered Online Learning</title>
+    <updated>2019-11-15T11:06:55Z</updated>
+    <link href="https://arxiv.org/abs/1911.06565v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/1911.06565v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Combining control engineering with nonparametric modeling techniques from machine learning allows to control systems without analytic description using data-driven models. Most existing approaches separate learning, i.e. the system identification based on a fixed dataset, and control, i.e. the execution of the model-based control law. This separation makes the performance highly sensitive to the initial selection of training data and possibly requires very large datasets. This article proposes a learning feedback linearizing control law using online closed-loop identification. The employed Gaussian process model updates its training data only if the model uncertainty becomes too large. This event-triggered online learning ensures high data efficiency and thereby reduces the computational complexity, which is a major barrier for using Gaussian processes under real-time constraints. We propose safe forgetting strategies of data points to adhere to budget constraint and to further increase data-efficiency. We show asymptotic stability for the tracking error under the proposed event-triggering law and illustrate the effective identification and control in simulation.</summary>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2019-11-15T11:06:55Z</published>
+    <arxiv:comment>The work has been submitted to the IEEE Transactions on Automatic Control on Dec 10th, 2018</arxiv:comment>
+    <arxiv:primary_category term="eess.SY"/>
+    <author>
+      <name>Jonas Umlauft</name>
+    </author>
+    <author>
+      <name>Sandra Hirche</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2305.08169v1</id>
+    <title>Can Learning Deteriorate Control? Analyzing Computational Delays in Gaussian Process-Based Event-Triggered Online Learning</title>
+    <updated>2023-05-14T14:37:33Z</updated>
+    <link href="https://arxiv.org/abs/2305.08169v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2305.08169v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>When the dynamics of systems are unknown, supervised machine learning techniques are commonly employed to infer models from data. Gaussian process (GP) regression is a particularly popular learning method for this purpose due to the existence of prediction error bounds. Moreover, GP models can be efficiently updated online, such that event-triggered online learning strategies can be pursued to ensure specified tracking accuracies. However, existing trigger conditions must be able to be evaluated at arbitrary times, which cannot be achieved in practice due to non-negligible computation times. Therefore, we first derive a delay-aware tracking error bound, which reveals an accuracy-delay trade-off. Based on this result, we propose a novel event trigger for GP-based online learning with computational delays, which we show to offer advantages over offline trained GP models for sufficiently small computation times. Finally, we demonstrate the effectiveness of the proposed event trigger for online learning in simulations.</summary>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2023-05-14T14:37:33Z</published>
+    <arxiv:primary_category term="eess.SY"/>
+    <author>
+      <name>Xiaobing Dai</name>
+    </author>
+    <author>
+      <name>Armin Lederer</name>
+    </author>
+    <author>
+      <name>Zewen Yang</name>
+    </author>
+    <author>
+      <name>Sandra Hirche</name>
+    </author>
+  </entry>
+</feed>

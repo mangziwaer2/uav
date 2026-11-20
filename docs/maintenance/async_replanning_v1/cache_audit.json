@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "checks": {
+    "ticks": 13,
+    "scores": 33,
+    "scenario_integrals": 33,
+    "candidate_edges": 46,
+    "commits": 1,
+    "dispatches": 5
+  },
+  "scope": "Independent scalar cached time/motion/energy, budget and route-score arithmetic. Does not independently reproduce field kernels, GP, geometry collision algorithms, planning or actual LLM.",
+  "trace_sha256": "3342e7a1bc8f16ad42f3ca6cb2c50758cd38f0bbfe353e840ee7217e2112dfca"
+}

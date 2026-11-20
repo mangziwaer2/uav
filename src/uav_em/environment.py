@@ -1,4 +1,4 @@
-"""几何与时变干扰真值；仅点接收功率及阵列波束观测进入策略。"""
+"""几何与时变干扰真值；策略只接收当前位置带噪总功率。"""
 
 from __future__ import annotations
 
@@ -8,19 +8,17 @@ import math
 import numpy as np
 
 from .config import MapConfig, ProjectConfig
-from .propagation import PropagationModel, source_received_dbm, source_arrivals
-from .sensing import DirectionalReceiver, DirectionalScan
+from .propagation import PropagationModel, source_received_dbm
 from .buildings import Building
 
 
 @dataclass(frozen=True)
 class Measurement:
-    """位置m、时间s、含噪总功率dBm及可选波束快照；不是远处场的直接测量。"""
+    """位置m、时间s、含噪总功率dBm；不是远处场的直接测量。"""
 
     position_m: tuple[float, float]
     time_seconds: float
     interference_dbm: float
-    directional_scan: DirectionalScan | None = None
 
 
 class Geometry:
@@ -102,7 +100,8 @@ class ElectromagneticWorld:
         if not self.geometry.free(config.map.start_m) or not self.geometry.free(config.map.goal_m):
             raise ValueError("start or goal intersects geometry or is outside map")
         self.random = np.random.default_rng(config.seed)
-        self.receiver = DirectionalReceiver(config)
+        if config.sensor.mode != "power_only":
+            raise ValueError("current environment supports point power sensing only")
 
     def _active_fields(self, time_seconds: float):
         for index, item in enumerate(self.config.electromagnetic.fields):
@@ -127,19 +126,11 @@ class ElectromagneticWorld:
         return float(result) if result.ndim == 0 else result
 
     def observe(self, position, time_seconds: float) -> Measurement:
-        """同步点测和360°波束接收；源数量、位置、距离及远处功率均不直接返回。"""
+        """当前位置总功率点测，不返回方位、源数或周围功率。"""
         if not self.geometry.free(position) or not math.isfinite(time_seconds) or time_seconds < 0:
             raise ValueError("invalid sensor position or time")
         measured = self.truth(position, time_seconds) + self.random.normal(
             0.0, self.config.electromagnetic.measurement_noise_db)
         if not math.isfinite(measured):
             raise ValueError("nonfinite observation")
-        if self.config.sensor.mode == "power_only":
-            return Measurement(tuple(float(value) for value in position), float(time_seconds), float(measured))
-        contributions, bearings = [], []
-        for _, center, source in self._active_fields(time_seconds):
-            for arrival in source_arrivals(position, center, source, self.config, self.propagation):
-                contributions.append(float(arrival.power_dbm))
-                bearings.append(float(arrival.bearing_deg) if np.isfinite(arrival.bearing_deg) else None)
-        scan = self.receiver.scan(contributions, bearings, time_seconds)
-        return Measurement(tuple(float(value) for value in position), float(time_seconds), float(measured), scan)
+        return Measurement(tuple(float(value) for value in position), float(time_seconds), float(measured))

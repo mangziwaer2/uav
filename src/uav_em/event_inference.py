@@ -13,8 +13,8 @@ import math
 import numpy as np
 from scipy.optimize import least_squares
 
-from .branch_belief import gaussian_logpdf, logsumexp, normalized
-from .equivalent_capacity import kernel, power_and_jacobian
+from .probability import gaussian_logpdf, logsumexp, normalized
+from .equivalent_field import kernel, power_and_jacobian
 
 
 FAMILIES = ('static', 'translate', 'strength_change')
@@ -241,7 +241,7 @@ def operator_dictionary(job, public, position):
             for c in centers for s in (40., 80., 160.) for v in velocities for r in rates]
 
 
-def fit_job(bank, public, job, budget, identifier):
+def fit_job(bank, public, job, budget, identifier, *, soft=None):
     history = bank.history[-12:]
     now, position = history[-1]['time_seconds'], history[-1]['position_m']
     xy, times = [p['position_m'] for p in history], [p['time_seconds'] for p in history]
@@ -265,11 +265,24 @@ def fit_job(bank, public, job, budget, identifier):
             if len(warm) == job['max_bases']:
                 break
     bases = warm+bases
+    point_count = len(labels)
+    has_soft = soft is not None and bool(soft['position_m'])
+    scales = np.full(point_count, 1./math.sqrt(point_count))
+    if has_soft:
+        if soft['prefix_end_seconds'] != now or soft['independent_evidence_points'] != 0:
+            raise ValueError('GP constraints must share exactly this fit prefix')
+        weights=np.asarray(soft['weights'],float)
+        if np.any(weights<0) or not math.isclose(float(weights.sum()),1.,abs_tol=1e-10):
+            raise ValueError('normalized nonnegative soft weights required')
+        xy = xy+soft['position_m']
+        times = times+soft['time_seconds']
+        labels = np.r_[labels, soft['mean_dbm']]
+        scales = np.r_[scales, np.sqrt(soft['strength']*np.asarray(soft['weights']))]
     matrix = kernel(bases, xy, times, now)
     budget.dictionary_kernel_terms += int(matrix.size)
     chosen, peaks, traces = [], [], []
     prediction = np.full(len(labels), -100.)
-    loss = float(np.mean((prediction-labels)**2))
+    loss = float(np.sum(((prediction-labels)*scales)**2)) if has_soft else float(np.mean((prediction-labels)**2))
     for step in range(job['max_bases']):
         if step == 0 and warm:
             columns, initial = list(range(len(warm))), np.array(warm_peaks)
@@ -277,8 +290,9 @@ def fit_job(bank, public, job, budget, identifier):
             if len(chosen) >= job['max_bases'] or not len(bases):
                 break
             derivatives = matrix/10.**((prediction+80.)/10.)[:, None]
-            norms = np.linalg.norm(derivatives, axis=0)
-            scores = np.divide(derivatives.T@(labels-prediction), norms,
+            norms = np.linalg.norm(derivatives*scales[:, None] if has_soft else derivatives, axis=0)
+            gradient=(derivatives*scales[:, None]).T@((labels-prediction)*scales) if has_soft else derivatives.T@(labels-prediction)
+            scores = np.divide(gradient, norms,
                                out=np.full(len(bases), -np.inf), where=norms > 1e-12)
             scores[chosen] = -np.inf
             index = int(np.argmax(scores))
@@ -286,7 +300,8 @@ def fit_job(bank, public, job, budget, identifier):
                 break
             residual = 10.**((labels+80.)/10.)-10.**((prediction+80.)/10.)
             a = matrix[:, index]
-            amplitude = max(1e-6, float(a@residual)/max(float(a@a), 1e-30))
+            amplitude = (max(1e-6, float((a*scales)@(residual*scales))/max(float((a*scales)@(a*scales)), 1e-30))
+                         if has_soft else max(1e-6,float(a@residual)/max(float(a@a),1e-30)))
             initial = np.r_[peaks, np.clip(-80.+10.*math.log10(amplitude), -140.+1e-8, upper-1e-8)]
             columns = chosen+[index]
         selected = matrix[:, columns]
@@ -301,18 +316,20 @@ def fit_job(bank, public, job, budget, identifier):
                 raise ValueError('residual budget exhausted')
             residual_calls += 1
             budget.residual_calls += 1
-            return (power_and_jacobian(selected, p)[0]-labels)/math.sqrt(len(labels))
+            residual=power_and_jacobian(selected,p)[0]-labels
+            return residual*scales if has_soft else residual/math.sqrt(len(labels))
 
         def jacobian(p):
             nonlocal jacobian_calls
             jacobian_calls += 1
             budget.jacobian_calls += 1
-            return power_and_jacobian(selected, p)[1]/math.sqrt(len(labels))
+            jac=power_and_jacobian(selected,p)[1]
+            return jac*scales[:,None] if has_soft else jac/math.sqrt(len(labels))
 
         solved = least_squares(objective, initial, jac=jacobian, bounds=(-140., upper),
                                max_nfev=40, ftol=1e-8, xtol=1e-8, gtol=1e-8)
         result = power_and_jacobian(selected, solved.x)[0]
-        mse = float(np.mean((result-labels)**2))
+        mse = float(np.sum(((result-labels)*scales)**2)) if has_soft else float(np.mean((result-labels)**2))
         accepted = bool(solved.success and np.all(np.isfinite(solved.x))
                         and np.all(solved.x >= -140.) and np.all(solved.x <= upper)
                         and mse <= loss+1e-8)
@@ -326,10 +343,14 @@ def fit_job(bank, public, job, budget, identifier):
         chosen, peaks, prediction, loss = columns, solved.x.tolist(), result, mse
     model = dict(id=identifier, family=job['family'], std_db=4., born_index=len(bank.history)-1,
                  scored_points=0, reference_time_seconds=now, bases=[bases[i] for i in chosen],
-                 peaks_dbm=peaks, fit_mse=loss)
+                 peaks_dbm=peaks, fit_mse=float(np.mean((prediction[:point_count]-labels[:point_count])**2)))
     return dict(job=deepcopy(job), dictionary=bases, window=deepcopy(history), model=model,
                 bounds_dbm=[-140., upper], trace=traces,
-                warm_start_bases=len(warm), training_error_is_predictive_evidence=False)
+                warm_start_bases=len(warm), training_error_is_predictive_evidence=False,
+                fit_objective=loss, gp_soft_constraints=deepcopy(soft),
+                gp_dictionary_kernel_terms=len(bases)*(len(labels)-point_count),
+                gp_shape_mse=float(np.sum(np.asarray(soft['weights'])*(prediction[point_count:]-labels[point_count:])**2))
+                    if soft is not None and soft['position_m'] else None)
 
 
 def execute_plan(bank, request, response, public, identifier):

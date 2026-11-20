@@ -1,0 +1,3605 @@
+Event-triggered and distributed model predictive control for guaranteed collision avoidance in UAV swarms footnoteinfo
+Skip to main content
+Report GitHub Issue
+×
+Title:
+Content selection saved. Describe the issue below:
+Description:
+Submit without GitHub
+Submit in GitHub
+Why HTML?
+Report Issue
+Back to Abstract
+Download PDF
+Contents
+Reading mode
+Colour theme
+Abstract
+1
+Introduction
+2
+Related Work
+3
+Problem Setting
+4
+Event-triggered Distributed Model Predictive Control
+5
+Experiments and Discussion
+6
+Conclusions
+References
+License: CC BY-NC-ND 4.0
+arXiv:2206.11020v1 [eess.SY] 22 Jun 2022
+Event-triggered and distributed model predictive control for guaranteed collision avoidance in UAV swarms
+footnoteinfo
+This work was supported in part by the German Research Foundation (DFG) within the priority program 1914 (grant TR 1433/1-2).
+Alexander Gräfe
+Joram Eickhoff
+Sebastian Trimpe
+Address:
+Institute for Data Science in Mechanical Engineering (DSME), RWTH Aachen University, 52068 Aachen, Germany (e-mail: alexander.graefe@dsme.rwth-aachen.de).
+Abstract
+Distributed model predictive control (DMPC) is often used to tackle path planning for unmanned aerial vehicle (UAV) swarms. However, it requires considerable computations on-board the UAV, leading to increased weight and power consumption. In this work, we propose to offload path planning computations to multiple ground-based computation units. As simultaneously communicating and recomputing all trajectories is not feasible for a large swarm with tight timing requirements, we develop a novel event-triggered DMPC that selects a subset of most relevant UAV trajectories to be replanned. The resulting architecture reduces UAV weight and power consumption, while the active redundancy provides robustness against computation unit failures. Moreover, the DMPC guarantees feasible and collision-free trajectories for UAVs with linear dynamics. In simulations, we demonstrate that our method can reliably plan trajectories, while saving
+60
+%
+60\text{\,}\mathrm{\%}
+of network traffic and required computational power. Hardware-in-the-loop experiments show that it is suitable to control real quadcopter swarms.
+keywords
+Distributed constrained control and MPC, Event-triggered and self-triggered control, Multi-agent systems
+Accepted for publication at the IFAC Conference on Networked Systems (NecSys) 2022
+©2022 the authors. This work has been accepted to IFAC for publication under a Creative Commons Licence CC-BY-NC-ND.
+1
+Introduction
+In the recent years, unmanned aerial vehicle (UAV) swarms have become larger and larger, reaching sizes from 50 up to 100 UAVs (
+Preiss et al. (2017)
+). To find trajectories that do not lead to colliding UAVs for such big swarms poses a challenge for path planning algorithms. The planning usually requires a lot of computational power, which can either be centralized or distributed among the UAVs. In the first case, a stationary computer transmits the trajectories to the UAVs over a wireless network. In the latter, the UAVs calculate their paths on-board and have to exchange information among themselves over a wireless network.
+Central model predictive control (MPC) approaches like
+Augugliaro et al. (2012)
+need no powerful processor on board of the UAV. This decreases weight and thus energy consumption of the UAV. However, they do not scale well with an increasing number of UAVs (
+Luis and Schoellig (2019)
+) and expose the system to the potential risk of a whole system failure if the central computer fails (
+AlZain et al. (2012)
+). Distributed model predictive control (DMPC) based approaches have become increasingly popular (
+Zhou et al. (2017)
+,
+Luis and Schoellig (2019)
+,
+Luis et al. (2020)
+Park et al. (2021)
+). First, they do not require any central node since all computations are done on the UAVs. Second, they scale well with increasing number of UAVs. However, the on-board processing needs computational capacity and thus increases weight, leading to a higher energy consumption of the UAVs.
+This work uses the “best of both” and combines centralized and distributed features based on a novel event-triggered DMPC (ET-DMPC) design.
+Our approach consists of multiple stationary computation units (CU, Figure
+1
+). Every CU is placed on the ground and has enough power to replan the trajectory of one UAV at a time. It shares the resulting trajectory with other CUs and the UAVs over a wireless network, leveraging recent advances in low-power wireless technology (
+Mager et al. (2021)
+). The UAVs then follow their respective
+trajectories. However, it is not viable to provide one CU for each UAV in the swarm, which makes the system more expensive and may exceed the available network bandwidth. We thus propose to use fewer CUs than UAVs and present an event-triggering (ET) mechanism that enables trajectory replanning for only a subset of UAVs at a time.
+This approach has benefits over purely centralized or distributed approaches. First, the UAVs need less on-board computational power, which saves weight and reduces energy consumption. Second, in contrast to standard centralized approaches, it is more robust against failures, because a failure of one CU does not lead to a whole system failure, as the remaining CUs in combination with ET can still plan the paths of the UAVs.
+The presented ET-DMPC uses features from existing DMPCs and scales well with the size of the swarm.
+In summary, this paper makes the following contributions:
+•
+A novel distributed computing method for path planning of large UAV swarms which uses ET for improved resource efficiency;
+•
+a new ET-DMPC formulation based on existing DMPC approaches (
+Luis and Schoellig (2019)
+;
+Luis et al. (2020)
+;
+Park et al. (2021)
+);
+•
+formal proofs of recursive feasibility and collision free trajectories for UAVs with linear dynamics;
+•
+an experimental evaluation of the effect that the ET has on the overall performance
+1
+1
+1
+A video of the method controlling a real quadcopter swarm can be found in
+https://youtu.be/2UzqOnUJQCA
+.
+.
+Figure 1
+:
+Proposed event-triggered distributed Model Predictive Control (ET-DMPC) setup for path planning of UAV swarms.
+The computation units (CU) solve an MPC problem. They transmit the solution to the UAVs. An event-trigger decides which UAV’s paths are replanned.
+2
+Related Work
+Many DMPC based trajectory planners (
+Zhou et al. (2017)
+;
+Cai et al. (2018)
+;
+Luis and Schoellig (2019)
+;
+Luis et al. (2020)
+;
+Park et al. (2021)
+) have the same communication structure but differ in their use of constraints and UAV models. In this structure, every UAV
+i
+i
+has knowledge about the last planned path of all other UAVs. It uses them to creates pairwise anti-collision constraints between them and the new planned path of itself. These constraints are used in an optimization problem, whose solution is the new planned path. In a next step, all UAVs share their calculated paths over a communication network with all other UAVs. We build on the same structure and leverage features of prior work such as the communication structure and DMPC formulation, however, we add CUs with ET to save resources and combine existing techniques to guarantee recursive feasibility and collisions free trajectories.
+Although our ET mechanism can be used to adapt existing DMPC approaches, we will combine constraints and UAV models from different works to create our own DMPC algorithm, which guarantees feasibility and collision-free trajectories.
+In this work, we will use the approach of
+Luis and Schoellig (2019)
+and
+Luis et al. (2020)
+to use a linear state space model and linear anti-collision constraints to generate a quadratic-programming problem (QP). However, the anti-collision constraints presented in
+Luis and Schoellig (2019)
+do not guarantee collision free trajectories, because the pairwise constraints have common intersections (see Figure
+2
+).
+One method, which guarantees collision free trajectories are Buffered Voronoi Cells (BVC). They restrict the positions of the agents to be in separated sets (
+Zhou et al. (2017)
+). However, for large swarms, these sets are small and lead to poor performance (
+Luis et al. (2020)
+).
+To overcome this problem,
+Park et al. (2021)
+use time-variant constraints based on the convex hull property of Bernstein polynomials. These constraints ensure that there are no collisions along the entire continuous trajectory.
+Van Parys and Pipeleers (2017)
+present a similar approach, where BVC are varied at every sample point of the optimization problem. We build on their idea of time-variant BVC (TV-BVC) in this paper.
+Additional, we will use the idea of
+Park et al. (2021)
+to introduce additional constraints to ensure recursive feasibility.
+Concurrent with this work,
+Chen et al. (2022)
+have developed a similar strategy using TV-BVC and additional constraints to ensure recursive feasibility. However, the approach does not use ET to lower the communication bandwidth and calculates the solution of the DMPC on the UAVs.
+Cai et al. (2018)
+present an ET-DMPC for quadcopter swarms. The DMPC uses nonlinear dynamics but does not guarantee feasibility and collision free trajectories. The ET has multiple triggering conditions and triggers recalculation if at least one of them is fulfilled. However, none of the conditions takes the limited computation power directly into account. This approach is thus not suitable for our setup, because the CUs can only replan a fixed number of UAVs at once.
+3
+Problem Setting
+As a key conceptual difference to the aforementioned works, we introduce an architecture with
+M
+M
+CUs to control
+N
+≥
+M
+N\geq M
+UAVs (see Figure
+1
+).
+In the following, the task of the UAVs is to fly to target positions without colliding with each other. While the UAVs’ on-board computers do not have enough computational power to solve a trajectory planning problem, every CU has enough capacity to solve it for one UAV at a time. In order to share information, UAVs and CUs use a wireless network. In this work, we assume a perfect connection without any message loss. However, we assume that the network has limited bandwidth and some delay.
+The problem considered in this work splits into three different subproblems.
+First, we need to design a
+communication architecture
+to facilitate robust data exchange between multiple stationary CUs and mobile UAVs.
+Second, we need to formulate the
+DMPC
+that runs on the CUs. In this paper, as done in related works (
+Zhou et al. (2017)
+;
+Luis and Schoellig (2019)
+;
+Luis et al. (2020)
+;
+Wang et al. (2021)
+), we assume that the dynamics of the UAVs can be modeled by a linear system. We also assume that they are able to hover, e.g. like multicopters or balloon-based robots. The overall dynamics are described as
+𝒙
+˙
+i
+=
+[
+𝒑
+˙
+i
+𝒗
+˙
+i
+𝒚
+˙
+i
+]
+=
+[
+𝟎
+𝐈
+3
+𝟎
+𝟎
+𝐀
+22
+,
+i
+𝐀
+23
+,
+i
+𝟎
+𝐀
+32
+,
+i
+𝐀
+33
+,
+i
+]
+​
+[
+𝒑
+i
+𝒗
+i
+𝒚
+i
+]
++
+[
+𝟎
+𝐁
+2
+,
+i
+𝐁
+3
+,
+i
+]
+​
+𝒖
+i
+=
+𝐀
+i
+​
+𝒙
+i
++
+𝐁
+i
+​
+𝒖
+i
+,
+\begin{split}\dot{{\bm{x}}}_{i}&=\begin{bmatrix}\dot{{\bm{p}}}_{i}\\
+\dot{{\bm{v}}}_{i}\\
+\dot{{\bm{y}}}_{i}\end{bmatrix}=\begin{bmatrix}{\bm{\mathrm{0}}}&{\bm{\mathrm{I}}}_{3}&{\bm{\mathrm{0}}}\\
+{\bm{\mathrm{0}}}&{\bm{\mathrm{A}}}_{22,i}&{\bm{\mathrm{A}}}_{23,i}\\
+{\bm{\mathrm{0}}}&{\bm{\mathrm{A}}}_{32,i}&{\bm{\mathrm{A}}}_{33,i}\end{bmatrix}\begin{bmatrix}{\bm{p}}_{i}\\
+{\bm{v}}_{i}\\
+{\bm{y}}_{i}\end{bmatrix}+\begin{bmatrix}{\bm{\mathrm{0}}}\\
+{\bm{\mathrm{B}}}_{2,i}\\
+{\bm{\mathrm{B}}}_{3,i}\end{bmatrix}{\bm{u}}_{i}\\
+&={\bm{\mathrm{A}}}_{i}{\bm{x}}_{i}+{\bm{\mathrm{B}}}_{i}{\bm{u}}_{i},\end{split}
+(1)
+where
+𝒑
+i
+{\bm{p}}_{i}
+and
+𝒗
+i
+{\bm{v}}_{i}
+describe the position and speed of the UAV,
+𝒚
+i
+{\bm{y}}_{i}
+summarizes the rest of the statespace of UAV
+i
+i
+(e.g. acceleration, jerk).
+𝒖
+i
+,
+min
+≤
+𝒖
+i
+≤
+𝒖
+i
+,
+max
+{\bm{u}}_{i,\mathrm{min}}\leq{\bm{u}}_{i}\leq{\bm{u}}_{i,\mathrm{max}}
+is the control input of the system.
+Third, the swarm and the CUs need to decide which UAV’s trajectory gets replanned using
+ET
+. Because the system has more UAVs than CUs, the ET has to take the exact number of CUs directly into account.
+The combination of the network, DMPC and ET should steer the UAVs to their targets
+𝒙
+i
+,
+target
+=
+[
+𝒑
+i
+,
+target
+,
+𝟎
+,
+𝟎
+]
+{\bm{x}}_{i,\mathrm{target}}=[{\bm{p}}_{i,\mathrm{target}},{\bm{0}},{\bm{0}}]
+. To maintain safety, they have to guarantee that the UAVs do not collide. For collision-free trajectories, we will require that the positions are never closer than
+r
+min
+r_{\mathrm{min}}
+,
+‖
+𝚯
+−
+1
+​
+[
+𝒑
+i
+​
+(
+t
+)
+−
+𝒑
+j
+​
+(
+t
+)
+]
+‖
+2
+≥
+r
+min
+,
+∀
+t
+>
+0
+∀
+i
+,
+j
+∈
+{
+1
+,
+…
+,
+N
+}
+,
+i
+≠
+j
+.
+\begin{split}||{\bm{\mathrm{\Theta}}}^{-1}\left[{\bm{p}}_{i}\left(t\right)-{\bm{p}}_{j}\left(t\right)\right]||_{\mathrm{2}}\geq r_{\mathrm{min}},\\
+\forall t>0~\forall i,j\in\left\{1,...,N\right\},i\neq j.\end{split}
+(2)
+Because some types of UAV need to maintain a higher distance in one direction, e.g. due to downwash, the coordinate system is scaled using a symmetric positive definite matrix
+𝚯
+{\bm{\mathrm{\Theta}}}
+(
+Luis and Schoellig (2019)
+;
+Luis et al. (2020)
+;
+Park et al. (2021)
+).
+Additionally, the whole system has to guarantee that the DMPC problem is feasible at all time. Otherwise, the UAVs might collide because the algorithm fails to find a trajectory.
+4
+Event-triggered Distributed Model Predictive Control
+(a)
+Linearized constraints (
+Luis and Schoellig (2019)
+)
+(b)
+TV-BVC (
+Van Parys and Pipeleers (2017)
+)
+Figure 2
+:
+Comparison of different anti-collision constraints for the trajectory at time
+k
+​
+T
++
+T
++
+T
+c
+kT+T+T_{\mathrm{c}}
+.
+The colored areas specify the corresponding constraint of the trajectory with the same color. (a): Linearization of the constraints. There exists a set, where both trajectories can lie in.
+(b): Time variant BVC (TV-BVC). The generated constraints restrict the allowed set of trajectories to separated sets. Here
+d
+=
+|
+|
+𝐧
+i
+​
+j
+​
+(
+T
+c
++
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+|
+|
+2
+d=||{\bm{n}}_{ij}\left(T_{\mathrm{c}}+2T|(k-1)T\right)||_{2}
+.
+In this section, we will now solve the three subproblems that we have defined in the section above.
+Communication architecture.
+The choice of the communication architecture is mainly influenced by related works (
+Zhou et al. (2017)
+;
+Cai et al. (2018)
+;
+Luis and Schoellig (2019)
+;
+Luis et al. (2020)
+;
+Park et al. (2021)
+). To simplify the design of the DMPC and the ET, the algorithms should not have to deal with different timings and information states of the agents. Therefore, we choose a round based many-to-all architecture. During every round, it distributes all messages sent to all agents in the network. This synchronizes the agents, i.e they send/receive at the same time, and all agents have the same knowledge about the data sent in the network. From an implementation based point of view, this choice is reasonable too. There exist real world implementations of round based many-to-all architectures like Glossy (
+Ferrari (2011)
+) or Mixer (
+Herrmann et al. (2018)
+), which have been shown to meet the strict real-time and reliability requirements needed for fast control (
+Mager et al. (2019)
+;
+Mager et al. (2021)
+).
+During the communication round, the UAVs send their current state and the CUs share their results of the path planning, which the corresponding UAVs and all CUs save in a buffer.
+After the communication round, the CUs decide which CU replans the path of which UAV using ET. Because of the many-to-all protocol, every CU has the same information and thus knows which UAV will be selected by the other CUs. This avoids the case of two CUs replanning the trajectory of the same UAV. Afterwards, each unit replans the trajectory of its chosen UAV. The maximum duration for the scheduling and replanning
+T
+calc
+T_{\mathrm{calc}}
+is constant for every agent and time. A new communication round (length
+T
+com
+T_{\mathrm{com}}
+) starts afterwards. The combined duration between the starts of two rounds is
+T
+=
+T
+calc
++
+T
+com
+T=T_{\mathrm{calc}}+T_{\mathrm{com}}
+.
+ET-DMPC.
+The event trigger decides if during the
+k
+k
+-th round, CU
+q
+q
+replans the path of UAV
+i
+i
+(
+γ
+q
+​
+i
+​
+(
+k
+)
+=
+1
+\gamma_{qi}\left(k\right)=1
+) or not (
+γ
+q
+​
+i
+​
+(
+k
+)
+=
+0
+\gamma_{qi}\left(k\right)=0
+). Every CU can only replan the path of one UAV in one round and every CU should replan the path of a different UAV.
+In this work, we use a priority based trigger rule (PBT) (
+Mager et al. (2021)
+), which we present at the end of this section, because it uses features from the DMPC, which we present next.
+The control input for each UAV is piecewise-constant with sampling time
+T
+s
+T_{\mathrm{s}}
+and horizon
+h
+s
+h_{\mathrm{s}}
+𝒖
+i
+​
+(
+τ
++
+T
+|
+k
+​
+T
+)
+=
+∑
+κ
+=
+0
+h
+s
+−
+1
+Γ
+T
+s
+​
+(
+τ
+−
+κ
+​
+T
+s
+)
+​
+𝒖
+i
+,
+κ
+|
+k
+,
+{\bm{u}}_{i}\left(\tau+T|kT\right)=\sum_{\kappa=0}^{h_{\mathrm{s}}-1}\Gamma_{\mathrm{T_{\mathrm{s}}}}\left(\tau-\kappa T_{\mathrm{s}}\right){\bm{u}}_{i,\kappa|k},
+(3)
+where
+Γ
+T
+s
+​
+(
+t
+)
+\Gamma_{\mathrm{T_{\mathrm{s}}}}\left(t\right)
+is equal to
+1
+1
+for
+0
+≤
+t
+<
+T
+s
+0\leq t<T_{\mathrm{s}}
+and
+0
+0
+otherwise, and
+𝒖
+i
+,
+κ
+|
+k
+{\bm{u}}_{i,\kappa|k}
+are the time-discrete inputs. Additionally, we require
+T
+T
+s
+=
+h
+s
+H
+∈
+ℕ
+\tfrac{T}{T_{\mathrm{s}}}=\tfrac{h_{\mathrm{s}}}{H}\in\mathbb{N}
+to ensure recursive feasibility of the following optimization problem with prediction horizon
+H
+H
+(
+Park et al. (2021)
+). When a CU recalculates the trajectory of UAV
+i
+i
+at time
+k
+​
+T
+kT
+, it solves the following optimization problem:
+min
+𝒖
+i
+,
+⋅
+|
+k
+∑
+κ
+=
+0
+h
+o
+[
+\displaystyle\min_{{\bm{u}}_{i,\cdot|k}}\sum_{\kappa=0}^{h_{\mathrm{o}}}\big[
+‖
+𝒙
+i
+​
+(
+κ
+​
+T
+o
++
+T
+|
+k
+​
+T
+)
+−
+𝒙
+i
+,
+target
+‖
+𝐐
+i
+2
+\displaystyle||{\bm{x}}_{i}\left(\kappa T_{\mathrm{o}}+T|kT\right)-{\bm{x}}_{i,\mathrm{target}}||_{{\bm{\mathrm{Q}}}_{i}}^{2}
+(4a)
++
+|
+|
+𝒖
+i
+(
+κ
+T
+o
++
+T
+|
+k
+T
+)
+|
+|
+𝐑
+i
+2
+]
+\displaystyle+||{\bm{u}}_{i}\left(\kappa T_{\mathrm{o}}+T|kT\right)||_{{\bm{\mathrm{R}}}_{i}}^{2}\big]
+s.t.
+𝒙
+i
+​
+(
+κ
+​
+T
+s
++
+T
++
+δ
+|
+k
+​
+T
+)
+\displaystyle{\bm{x}}_{i}\left(\kappa T_{\mathrm{s}}+T+\delta|kT\right)
+(4b)
+=
+e
+𝐀
+i
+​
+(
+κ
+​
+T
+s
++
+δ
+)
+​
+𝒙
+i
+​
+(
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
++
+∫
+0
+δ
+e
+𝐀
+i
+​
+τ
+​
+𝐁
+i
+​
+d
+​
+τ
+​
+𝒖
+i
+,
+κ
+|
+k
+\displaystyle=e^{{\bm{\mathrm{A}}}_{i}(\kappa T_{\mathrm{s}}+\delta)}{\bm{x}}_{i}\left(2T|(k-1)T\right)+\int_{0}^{\delta}e^{{\bm{\mathrm{A}}}_{i}\tau}{\bm{\mathrm{B}}}_{i}\text{d}\tau{\bm{u}}_{i,\kappa|k}
++
+∑
+ℓ
+=
+0
+κ
+−
+1
+e
+𝐀
+i
+​
+(
+(
+κ
+−
+ℓ
+−
+1
+)
+​
+T
+s
++
+δ
+)
+∫
+0
+T
+s
+e
+𝐀
+i
+​
+τ
+𝐁
+i
+d
+τ
+𝒖
+i
+,
+ℓ
+|
+k
+,
+\displaystyle+\sum_{\ell=0}^{\kappa-1}e^{{\bm{\mathrm{A}}}_{i}((\kappa-\ell-1)T_{\mathrm{s}}+\delta)}\int_{0}^{T_{\mathrm{s}}}e^{{\bm{\mathrm{A}}}_{i}\tau}{\bm{\mathrm{B}}}_{i}\text{d}\tau{\bm{u}}_{i,\ell|k},
+with
+​
+0
+≤
+δ
+<
+T
+s
+\displaystyle\mathrm{with~}0\leq\delta<T_{\mathrm{s}}
+𝒖
+i
+,
+min
+≤
+𝒖
+i
+,
+ℓ
+|
+k
+≤
+𝒖
+i
+,
+max
+,
+∀
+ℓ
+∈
+{
+0
+,
+…
+,
+h
+s
+−
+1
+}
+{\bm{u}}_{i,\mathrm{min}}\leq{\bm{u}}_{i,\ell|k}\leq{\bm{u}}_{i,\mathrm{max}},\forall\ell\in\left\{0,...,h_{\mathrm{s}}-1\right\}
+(4c)
+𝒙
+i
+,
+min
+≤
+𝒙
+i
+(
+κ
+T
+b
++
+T
+|
+k
+T
+)
+≤
+𝒙
+i
+,
+max
+∀
+κ
+∈
+{
+0
+,
+…
+,
+h
+b
+}
+\begin{split}{\bm{x}}_{i}{}_{,\mathrm{min}}\leq{\bm{x}}_{i}\left(\kappa T_{\mathrm{b}}+T|kT\right)\leq{\bm{x}}_{i}{}_{,\mathrm{max}}~\forall\kappa\in\{0,...,h_{\mathrm{b}}\}\end{split}
+(4d)
+𝒗
+i
+​
+(
+H
+​
+T
++
+T
+|
+k
+​
+T
+)
+=
+𝟎
+,
+𝒚
+i
+​
+(
+H
+​
+T
++
+T
+|
+k
+​
+T
+)
+=
+𝟎
+\begin{split}{\bm{v}}_{i}\left(HT+T|kT\right)={\bm{0}},~{\bm{y}}_{i}\left(HT+T|kT\right)={\bm{0}}\end{split}
+(4e)
+𝐀
+i
+,
+j
+,
+c
+​
+[
+𝒑
+i
+​
+(
+T
+|
+k
+​
+T
+)
+𝒑
+i
+​
+(
+T
+c
++
+T
+|
+k
+​
+T
+)
+𝒑
+i
+​
+(
+h
+c
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+]
+≤
+𝐛
+i
+,
+j
+,
+c
+,
+∀
+j
+∈
+{
+1
+,
+…
+,
+N
+}
+,
+j
+≠
+i
+,
+\begin{split}{\bm{\mathrm{A}}}_{i,j,\mathrm{c}}\begin{bmatrix}{\bm{p}}_{i}\left(T|kT\right)\\
+{\bm{p}}_{i}\left(T_{\mathrm{c}}+T|kT\right)\\
+\vdots\\
+{\bm{p}}_{i}\left(h_{\mathrm{c}}T_{\mathrm{c}}+T|kT\right)\end{bmatrix}\leq{\bm{\mathrm{b}}}_{i,j,\mathrm{c}},\\
+\forall j\in\{1,...,N\},~j\neq i,\end{split}
+(4f)
+with
+T
+T
+o
+=
+h
+o
+H
+,
+T
+T
+b
+=
+h
+b
+H
+,
+T
+T
+c
+=
+h
+c
+H
+∈
+ℕ
+\tfrac{T}{T_{\mathrm{o}}}=\tfrac{h_{\mathrm{o}}}{H},\tfrac{T}{T_{\mathrm{b}}}=\tfrac{h_{\mathrm{b}}}{H},\tfrac{T}{T_{\mathrm{c}}}=\tfrac{h_{\mathrm{c}}}{H}\in\mathbb{N}
+.
+The solution of the optimization problem results in input values of the linear system (
+1
+) such that a quadratic term between the planned trajectory and the desired target
+𝒙
+i
+,
+target
+{\bm{x}}_{i,\mathrm{target}}
+, and of the input with positive definite weights
+𝐐
+i
+{\bm{\mathrm{Q}}}_{i}
+,
+𝐑
+i
+{\bm{\mathrm{R}}}_{i}
+is minimized under several conditions. All conditions are time-discrete and the state is obtained using the solution of linear state space systems (
+4b
+).
+The different sample times
+T
+s
+,
+T
+o
+,
+T
+b
+,
+T
+c
+T_{\mathrm{s}},T_{\mathrm{o}},T_{\mathrm{b}},T_{\mathrm{c}}
+allow us to tune the time density of the constraints independent of the inter-round time
+T
+T
+, which cannot be tuned freely, because it depends on
+T
+calc
+T_{\mathrm{calc}}
+and
+T
+com
+T_{\mathrm{com}}
+. The sample times are chosen such that the ends of communication rounds fall on sample time points and the corresponding horizons
+h
+s
+,
+h
+o
+,
+h
+b
+,
+h
+c
+h_{\mathrm{s}},h_{\mathrm{o}},h_{\mathrm{b}},h_{\mathrm{c}}
+are chosen such that all last sample time points fall on the same time
+H
+​
+T
+HT
+, with prediction horizon
+H
+H
+. This is important to ensure recursive feasibility (
+Park et al. (2021)
+). Because of the delay of calculation and communication, the trajectory starts in the next step
+(
+k
++
+1
+)
+​
+T
+(k+1)T
+.
+The inputs and states are limited to a minimum and maximum (
+4c
+)–(
+4d
+) according to dynamic limits of the UAV. Equation (
+4e
+) is important for the feasibility at the next sample time point
+(
+k
++
+1
+)
+​
+T
+(k+1)T
+(
+Park et al. (2021)
+). The property
+𝒖
+i
+​
+(
+τ
++
+T
+|
+k
+​
+T
+)
+=
+𝟎
+{\bm{u}}_{i}\left(\tau+T|kT\right)={\bm{0}}
+for all
+τ
+≥
+H
+​
+T
+\tau\geq HT
+then leads to
+𝒙
+i
+​
+(
+τ
++
+T
+|
+k
+​
+T
+)
+=
+𝒙
+i
+​
+(
+H
+​
+T
++
+T
+|
+k
+​
+T
+)
+{\bm{x}}_{i}\left(\tau+T|kT\right)={\bm{x}}_{i}\left(HT+T|kT\right)
+for all
+τ
+≥
+H
+​
+T
+\tau\geq HT
+. Thus, at the end of the horizon, the UAV stops and stays at its position
+𝒑
+i
+​
+(
+H
+​
+T
++
+T
+|
+k
+​
+T
+)
+{\bm{p}}_{i}\left(HT+T|kT\right)
+.
+The last constraint (
+4f
+) ensures that the UAV does not collide with others. The matrices
+𝐀
+i
+,
+j
+,
+c
+{\bm{\mathrm{A}}}_{i,j,\mathrm{c}}
+and
+𝐛
+i
+,
+j
+,
+c
+{\bm{\mathrm{b}}}_{i,j,\mathrm{c}}
+are calculated using TV-BVC (
+Van Parys and Pipeleers (2017)
+), which Figure
+2
+illustrates.
+For every sample time point, the CU calculates the difference vectors between UAV
+i
+i
+’s and UAV
+j
+j
+’s last planned trajectory for all
+h
+∈
+{
+0
+,
+…
+,
+h
+c
+}
+h\in\{0,...,h_{\mathrm{c}}\}
+𝒏
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+=
+𝚯
+−
+1
+[
+𝒑
+j
+(
+h
+T
+c
++
+2
+T
+|
+(
+k
+−
+1
+)
+T
+)
+−
+𝒑
+i
+(
+h
+T
+c
++
+2
+T
+|
+(
+k
+−
+1
+)
+T
+)
+]
+.
+\begin{split}{\bm{n}}_{ij}\left(hT_{\mathrm{c}}+2T|(k-1)T\right)={\bm{\mathrm{\Theta}}}&{}^{-1}[{\bm{p}}_{j}\left(hT_{\mathrm{c}}+2T|(k-1)T\right)\\
+&-{\bm{p}}_{i}\left(hT_{\mathrm{c}}+2T|(k-1)T\right)].\end{split}
+Then a plane with the normal vector
+𝒏
+i
+​
+j
+{\bm{n}}_{ij}
+is spanned in the center between the UAVs positions. UAV
+i
+i
+has to stay on the plane’s right side with distance of at least
+0.5
+​
+r
+^
+min
+0.5\hat{r}_{\mathrm{min}}
+𝒏
+0
+,
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+​
+𝚯
+T
+\displaystyle{\bm{n}}_{0,ij}\left(hT_{\mathrm{c}}+2T|(k-1)T\right){}^{\mathrm{T}}{\bm{\mathrm{\Theta}}}
+[
+𝒑
+j
+(
+h
+T
+c
++
+2
+T
+|
+(
+k
+−
+1
+)
+T
+)
+−
+1
+\displaystyle{}^{-1}\left[{\bm{p}}_{j}\left(hT_{\mathrm{c}}+2T|(k-1)T\right)\right.
+−
+𝒑
+i
+(
+h
+T
+c
++
+T
+|
+k
+T
+)
+]
+\displaystyle\left.-{\bm{p}}_{i}\left(hT_{\mathrm{c}}+T|kT\right)\right]
+≥
+1
+2
+(
+r
+^
+min
++
+|
+|
+𝒏
+i
+​
+j
+(
+h
+T
+c
++
+2
+T
+|
+(
+\displaystyle\geq\frac{1}{2}(\hat{r}_{\mathrm{min}}+||{\bm{n}}_{ij}(hT_{\mathrm{c}}+2T|(
+k
+−
+1
+)
+T
+)
+|
+|
+2
+)
+,
+\displaystyle k-1)T)||_{2}),
+(5)
+where
+𝒏
+0
+,
+i
+​
+j
+=
+𝒏
+i
+​
+j
+‖
+𝒏
+i
+​
+j
+‖
+2
+{\bm{n}}_{0,ij}=\frac{{\bm{n}}_{ij}}{||{\bm{n}}_{ij}||_{\mathrm{2}}}
+and
+r
+^
+min
+≥
+r
+min
+\hat{r}_{\mathrm{min}}\geq r_{\mathrm{min}}
+. We will show how to select
+r
+^
+min
+\hat{r}_{\mathrm{min}}
+such that (
+2
+) holds in Theorem
+2
+. Combining (
+5
+) for all
+h
+∈
+{
+0
+,
+…
+,
+h
+c
+}
+h\in\{0,...,h_{\mathrm{c}}\}
+, leads to constraint (
+4f
+).
+After the CU has solved optimization problem (
+4
+), it sends the calculated trajectory and inputs to the UAV and all other CUs via the wireless network. The UAV sets
+𝒖
+i
+​
+(
+τ
++
+k
+​
+T
+)
+=
+𝒖
+i
+​
+(
+τ
+|
+k
+​
+T
+)
+{\bm{u}}_{i}\left(\tau+kT\right)={\bm{u}}_{i}\left(\tau|kT\right)
+for
+τ
+∈
+[
+T
+,
+2
+​
+T
+)
+\tau\in[T,2T)
+.
+In cases of no recalculation (
+γ
+q
+​
+i
+​
+(
+k
+)
+=
+0
+,
+∀
+q
+\gamma_{qi}\left(k\right)=0,\forall q
+), the UAV reuses the previously planned trajectory
+similar to
+Cai et al. (2018)
+𝒙
+i
+​
+(
+t
+|
+k
+​
+T
+)
+=
+𝒙
+i
+​
+(
+t
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+\displaystyle{\bm{x}}_{i}\left(t|kT\right)={\bm{x}}_{i}\left(t+T|(k-1)T\right)
+(6)
+𝒖
+i
+​
+(
+t
+|
+k
+​
+T
+)
+=
+𝒖
+i
+​
+(
+t
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+.
+\displaystyle{\bm{u}}_{i}\left(t|kT\right)={\bm{u}}_{i}\left(t+T|(k-1)T\right).
+(7)
+for all
+t
+≥
+T
+t\geq T
+In both situations, replanning or reusing,
+the resulting trajectories are not closer than
+r
+^
+min
+\hat{r}_{\mathrm{min}}
+at the sampling points.
+Lemma 1
+If
+‖
+𝐧
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+‖
+2
+≥
+r
+^
+min
+||{\bm{n}}_{ij}\left(hT_{\mathrm{c}}+2T|(k-1)T\right)||_{\mathrm{2}}\geq\hat{r}_{\mathrm{min}}
+for
+i
+≠
+j
+i\neq j
+and
+∀
+h
+∈
+{
+0
+,
+…
+,
+h
+c
+}
+\forall h\in\{0,...,h_{\mathrm{c}}\}
+,
+and if (
+4f
+) holds for both
+i
+i
+and
+j
+j
+independent of
+γ
+q
+​
+i
+​
+(
+k
+)
+\gamma_{qi}\left(k\right)
+and
+γ
+q
+​
+j
+​
+(
+k
+)
+​
+∀
+q
+∈
+{
+1
+,
+…
+,
+M
+}
+\gamma_{qj}\left(k\right)~\forall q\in\{1,...,M\}
+, then
+‖
+𝚯
+−
+1
+​
+[
+𝒑
+j
+​
+(
+h
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+−
+𝒑
+i
+​
+(
+h
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+]
+‖
+2
+≥
+r
+^
+min
+\displaystyle||{\bm{\mathrm{\Theta}}}^{-1}\left[{\bm{p}}_{j}\left(hT_{\mathrm{c}}+T|kT\right)-{\bm{p}}_{i}\left(hT_{\mathrm{c}}+T|kT\right)\right]||_{\mathrm{2}}\geq\hat{r}_{\mathrm{min}}
+(8)
+Proof.
+If agent
+j
+j
+’s trajectory is not recalculated (
+γ
+q
+​
+j
+​
+(
+k
+)
+=
+0
+,
+∀
+q
+\gamma_{qj}\left(k\right)=0,\forall q
+), it is with
+τ
+=
+h
+​
+T
+c
++
+T
+\tau=hT_{\mathrm{c}}+T
+:
+‖
+𝚯
+−
+1
+​
+[
+𝒑
+j
+​
+(
+τ
+|
+k
+​
+T
+)
+−
+𝒑
+i
+​
+(
+τ
+|
+k
+​
+T
+)
+]
+‖
+2
+\displaystyle||{\bm{\mathrm{\Theta}}}^{-1}\left[{\bm{p}}_{j}\left(\tau|kT\right)-{\bm{p}}_{i}\left(\tau|kT\right)\right]||_{\mathrm{2}}
+=
+|
+|
+𝒏
+0
+,
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+|
+|
+2
+\displaystyle=||{\bm{n}}_{0,ij}\left(\tau+T|(k-1)T\right)||_{\mathrm{2}}
+×
+|
+|
+𝚯
+−
+1
+​
+[
+𝒑
+j
+​
+(
+τ
+|
+k
+​
+T
+)
+−
+𝒑
+i
+​
+(
+τ
+|
+k
+​
+T
+)
+]
+|
+|
+2
+\displaystyle\qquad\times||{\bm{\mathrm{\Theta}}}^{-1}\left[{\bm{p}}_{j}\left(\tau|kT\right)-{\bm{p}}_{i}\left(\tau|kT\right)\right]||_{\mathrm{2}}
+≥
+𝒏
+0
+,
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+T
+​
+𝚯
+−
+1
+​
+(
+𝒑
+j
+​
+(
+τ
+|
+k
+​
+T
+)
+−
+𝒑
+i
+​
+(
+τ
+|
+k
+​
+T
+)
+)
+\displaystyle\geq{\bm{n}}_{0,ij}\left(\tau+T|(k-1)T\right)^{\mathrm{T}}{\bm{\mathrm{\Theta}}}^{-1}({\bm{p}}_{j}\left(\tau|kT\right)-{\bm{p}}_{i}\left(\tau|kT\right))
+=
+𝒏
+0
+,
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+T
+\displaystyle={\bm{n}}_{0,ij}\left(\tau+T|(k-1)T\right)^{\mathrm{T}}
+×
+𝚯
+−
+1
+​
+(
+𝒑
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+−
+𝒑
+i
+​
+(
+τ
+|
+k
+​
+T
+)
+)
+\displaystyle\qquad\times{\bm{\mathrm{\Theta}}}^{-1}({\bm{p}}_{j}\left(\tau+T|(k-1)T\right)-{\bm{p}}_{i}\left(\tau|kT\right))
+≥
+1
+2
+​
+(
+r
+^
+min
++
+|
+|
+𝒏
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+|
+|
+2
+)
+≥
+r
+^
+min
+.
+\displaystyle\geq\frac{1}{2}(\hat{r}_{\mathrm{min}}+||{\bm{n}}_{ij}\left(\tau+T|(k-1)T\right)||_{\mathrm{2}})\geq\hat{r}_{\mathrm{min}}.
+If
+∃
+q
+,
+s.t.
+​
+γ
+q
+​
+j
+​
+(
+k
+)
+=
+1
+\exists q,\text{~s.t.~}\gamma_{qj}\left(k\right)=1
+, we can follow the proof for Lemma 1 of
+Zhou et al. (2017)
+. Because (
+4f
+) also holds for
+j
+j
+, we know that (
+5
+) is also fulfilled when
+i
+i
+and
+j
+j
+swap places. Adding it to (
+5
+), we get (using
+𝒏
+i
+​
+j
+=
+−
+𝒏
+j
+​
+i
+{\bm{n}}_{ij}=-{\bm{n}}_{ji}
+)
+𝒏
+0
+,
+i
+​
+j
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+T
+)
+T
+𝚯
+−
+1
+[
+(
+𝒑
+j
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+T
+)
+\displaystyle{\bm{n}}_{0,ij}\left(\tau+T|(k-1)T\right)^{\mathrm{T}}{\bm{\mathrm{\Theta}}}^{-1}\left[({\bm{p}}_{j}\left(\tau+T|(k-1)T\right)\right.
+−
+𝒑
+i
+(
+τ
+|
+k
+T
+)
+)
+−
+(
+𝒑
+i
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+T
+)
+−
+𝒑
+j
+(
+τ
+|
+k
+T
+)
+)
+]
+\displaystyle\qquad\left.-{\bm{p}}_{i}\left(\tau|kT\right))-({\bm{p}}_{i}\left(\tau+T|(k-1)T\right)-{\bm{p}}_{j}\left(\tau|kT\right))\right]
+=
+𝒏
+0
+,
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+T
+​
+𝚯
+−
+1
+​
+(
+𝒑
+j
+​
+(
+τ
+|
+k
+​
+T
+)
+−
+𝒑
+i
+​
+(
+τ
+|
+k
+​
+T
+)
+)
+\displaystyle={\bm{n}}_{0,ij}\left(\tau+T|(k-1)T\right)^{\mathrm{T}}{\bm{\mathrm{\Theta}}}^{-1}({\bm{p}}_{j}\left(\tau|kT\right)-{\bm{p}}_{i}\left(\tau|kT\right))
++
+‖
+𝒏
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+‖
+2
+\displaystyle\qquad+||{\bm{n}}_{ij}\left(\tau+T|(k-1)T\right)||_{\mathrm{2}}
+≥
+r
+^
+min
++
+|
+|
+𝒏
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+|
+|
+2
+.
+\displaystyle\geq\hat{r}_{\mathrm{min}}+||{\bm{n}}_{ij}\left(\tau+T|(k-1)T\right)||_{\mathrm{2}}.
+Canceling
+‖
+𝒏
+i
+​
+j
+​
+(
+τ
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+‖
+2
+||{\bm{n}}_{ij}\left(\tau+T|(k-1)T\right)||_{\mathrm{2}}
+on both sides and applying the Cauchy-Schwarz inequality to the right side, we get (
+8
+).
+∎
+With this result, we can state:
+Theorem 1
+If
+𝐱
+i
+​
+(
+t
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+{\bm{x}}_{i}\left(t+T|(k-1)T\right)
+fulfills (
+4b
+)–(
+4f
+) and if
+‖
+𝐧
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+‖
+2
+≥
+r
+^
+min
+||{\bm{n}}_{ij}(hT_{\mathrm{c}}+T|(k-1)T)||_{2}\geq\hat{r}_{\mathrm{min}}
+for all pairwise different UAVs
+i
+≠
+j
+i\neq j
+and
+∀
+h
+∈
+{
+0
+,
+…
+,
+h
+c
+}
+\forall h\in\{0,...,h_{\mathrm{c}}\}
+, then the subsequent trajectory
+𝐱
+i
+​
+(
+t
+|
+k
+​
+T
+)
+{\bm{x}}_{i}\left(t|kT\right)
+generated by (
+6
+) also fulfills the constraints, the optimization problem (
+4
+) is feasible at the following timestep
+k
+​
+T
+kT
+and
+‖
+𝐧
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+‖
+2
+≥
+r
+^
+min
+||{\bm{n}}_{ij}\left(hT_{\mathrm{c}}+T|kT\right)||_{\mathrm{2}}\geq\hat{r}_{\mathrm{min}}
+.
+Proof.
+We use techniques from the proof of Theorem 2 in
+Park et al. (2021)
+.
+Because trajectory
+𝒙
+i
+​
+(
+t
+|
+k
+​
+T
+)
+{\bm{x}}_{i}\left(t|kT\right)
+generated by (
+6
+) is equal to
+𝒙
+i
+​
+(
+t
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+{\bm{x}}_{i}\left(t+T|(k-1)T\right)
+and the time duration
+T
+T
+is an integer multiple of the constraint sample times, it fulfills (
+4b
+)–(
+4e
+) in the first part (
+t
+≤
+H
+​
+T
+t\leq HT
+). The second part of the trajectory for
+t
+>
+H
+​
+T
+t>HT
+fulfills those constraints too, because the UAV stays at its position.
+The positions
+𝒑
+i
+​
+(
+t
+|
+k
+​
+T
+)
+{\bm{p}}_{i}\left(t|kT\right)
+and
+𝒑
+i
+​
+(
+t
++
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+{\bm{p}}_{i}\left(t+T|(k-1)T\right)
+are also equal with the same argumentation as above. If we now set this into the left side of (
+5
+), the left side is equal to
+‖
+𝒏
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+‖
+2
+||{\bm{n}}_{ij}(hT_{\mathrm{c}}+2T|(k-1)T)||_{2}
+, which is bigger than the right side of (
+5
+)
+∀
+h
+∈
+{
+0
+,
+…
+,
+h
+c
+}
+\forall h\in\{0,...,h_{\mathrm{c}}\}
+due to the second condition of this theorem and because the UAV stops for
+t
+≥
+H
+​
+T
+t\geq HT
+. Thus, the constraint (
+4f
+) holds. Because (
+6
+) fulfills all constraints of (
+4
+), (
+4
+) is feasible at
+k
+​
+T
+kT
+. The argumentation above also holds, if
+i
+i
+and
+j
+j
+swap places. Lemma
+1
+then states that
+‖
+𝒏
+i
+​
+j
+​
+(
+h
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+‖
+2
+≥
+r
+^
+min
+||{\bm{n}}_{ij}\left(hT_{\mathrm{c}}+T|kT\right)||_{\mathrm{2}}\geq\hat{r}_{\mathrm{min}}
+.
+∎
+It directly follows from the recursive nature of this theorem that as long as the initial trajectories fulfill the conditions, we can generate trajectories without any collisions at sample time points with sample time
+T
+c
+T_{\mathrm{c}}
+using (
+4
+) or (
+6
+) at all times.
+However, this does not guarantee that (
+2
+) is fulfilled and the UAVs do not collide. The trajectories might get too close in between the sample time points (
+Luis and Schoellig (2019)
+). The following theorem states under which conditions the swarm is guaranteed to be collision free:
+Theorem 2
+If
+𝐱
+i
+​
+(
+t
+|
+−
+T
+)
+{\bm{x}}_{i}\left(t|-T\right)
+fulfills the conditions of Theorem (
+1
+), if
+𝐱
+i
+​
+(
+T
+|
+−
+T
+)
+=
+𝐱
+⁡
+(
+0
+)
+{\bm{x}}_{i}\left(T|-T\right)={\bm{x}}(0)
+,
+and if
+r
+^
+min
+−
+Δ
+𝐩
+i
+(
+T
+c
+)
+,
+max
+−
+Δ
+𝐩
+j
+(
+T
+c
+)
+,
+max
+≥
+r
+min
+\hat{r}_{\mathrm{min}}-\Delta{\bm{p}}_{i}{}_{\mathrm{,max}}\left(T_{\mathrm{c}}\right)-\Delta{\bm{p}}_{j}{}_{\mathrm{,max}}\left(T_{\mathrm{c}}\right)\geq r_{\mathrm{min}}
+∀
+i
+,
+j
+∈
+{
+1
+,
+…
+,
+N
+}
+,
+i
+≠
+j
+\forall i,j\in\{1,...,N\},i\neq j
+with
+Δ
+​
+𝒑
+i
+,
+max
+​
+(
+T
+~
+)
+\displaystyle\Delta{\bm{p}}_{i,\mathrm{max}}(\tilde{T})
+=
+max
+𝒙
+i
+∈
+[
+𝒙
+i
+,
+min
+,
+𝒙
+i
+,
+max
+]
+,
+𝒖
+i
+(
+t
+)
+∈
+[
+𝒖
+i
+,
+min
+,
+𝒖
+i
+,
+max
+]
+,
+τ
+∈
+[
+0
+;
+T
+~
+]
+[
+\displaystyle=\max_{{\bm{x}}_{i}\in[{\bm{x}}_{i}{}_{,\mathrm{min}},{\bm{x}}_{i}{}_{,\mathrm{max}}],{\bm{u}}_{i}\left(t\right)\in[{\bm{u}}_{i,\mathrm{min}},{\bm{u}}_{i,\mathrm{max}}],\tau\in\left[0;\tilde{T}\right]}\bigg[
+|
+|
+[
+𝚯
+𝟎
+]
+[
+(
+e
+\displaystyle||\begin{bmatrix}{\bm{\mathrm{\Theta}}}&{\bm{\mathrm{0}}}\end{bmatrix}\big[(e
+−
+𝐀
+i
+​
+τ
+1
+)
+𝒙
+i
++
+∫
+0
+τ
+e
+𝐀
+i
+​
+τ
+~
+𝐁
+𝒖
+i
+(
+τ
+−
+τ
+~
+)
+d
+τ
+~
+]
+|
+|
+2
+]
+\displaystyle{}^{{\bm{\mathrm{A}}}_{i}\tau}-1){\bm{x}}_{i}+\int_{0}^{\tau}e^{{\bm{\mathrm{A}}}_{i}\tilde{\tau}}{\bm{\mathrm{B}}}{\bm{u}}_{i}(\tau-\tilde{\tau})\text{d}\tilde{\tau}\big]||_{2}\bigg]
+as upper bounds of the maximum distance, the position can travel between two sample time points with a sample time
+T
+~
+\tilde{T}
+, then the UAV swarm fulfills (
+2
+).
+Proof.
+Feasible solutions of the trajectory planning exist for every
+k
+≥
+0
+k\geq 0
+(Theorem
+1
+).
+We select
+k
+,
+h
+c
+∈
+ℕ
+k,h_{\mathrm{c}}\in\mathbb{N}
+and
+0
+≤
+δ
+<
+T
+c
+0\leq\delta<T_{\mathrm{c}}
+such that
+h
+c
+​
+T
+c
+<
+T
+h_{\mathrm{c}}T_{\mathrm{c}}<T
+and
+t
+=
+k
+​
+T
++
+𝒯
+t=kT+\mathcal{T}
+with
+𝒯
+=
+h
+c
+​
+T
+c
++
+T
++
+δ
+\mathcal{T}=h_{\mathrm{c}}T_{\mathrm{c}}+T+\delta
+.
+Using Theorem
+1
+we know that
+‖
+𝚯
+−
+1
+​
+[
+𝒑
+i
+​
+(
+t
+)
+−
+𝒑
+j
+​
+(
+t
+)
+]
+‖
+2
+=
+|
+|
+𝚯
+−
+1
+​
+[
+𝒑
+i
+​
+(
+𝒯
+|
+k
+​
+T
+)
+−
+𝒑
+j
+​
+(
+𝒯
+|
+k
+​
+T
+)
+]
+|
+|
+2
+≥
+|
+|
+𝚯
+−
+1
+​
+[
+𝒑
+i
+​
+(
+h
+c
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+−
+𝒑
+j
+​
+(
+h
+c
+​
+T
+c
++
+T
+|
+k
+​
+T
+)
+]
+|
+|
+2
+−
+Δ
+𝒑
+i
+,
+max
+(
+T
+c
+)
+−
+Δ
+𝒑
+j
+,
+max
+(
+T
+c
+)
+≥
+r
+^
+min
+−
+Δ
+𝒑
+i
+,
+max
+(
+T
+c
+)
+−
+Δ
+𝒑
+j
+,
+max
+(
+T
+c
+)
+.
+\begin{split}&||{\bm{\mathrm{\Theta}}}^{-1}[{\bm{p}}_{i}\left(t\right)-{\bm{p}}_{j}\left(t\right)]||_{\mathrm{2}}=||{\bm{\mathrm{\Theta}}}^{-1}[{\bm{p}}_{i}\left(\mathcal{T}|kT\right)-{\bm{p}}_{j}\left(\mathcal{T}|kT\right)]||_{\mathrm{2}}\\
+&\geq||{\bm{\mathrm{\Theta}}}^{-1}[{\bm{p}}_{i}\left(h_{\mathrm{c}}T_{\mathrm{c}}+T|kT\right)-{\bm{p}}_{j}\left(h_{\mathrm{c}}T_{\mathrm{c}}+T|kT\right)]||_{\mathrm{2}}\\
+&\qquad-\Delta{\bm{p}}_{i}{}_{\mathrm{,max}}\left(T_{\mathrm{c}}\right)-\Delta{\bm{p}}_{j}{}_{\mathrm{,max}}\left(T_{\mathrm{c}}\right)\\
+&\geq\hat{r}_{\mathrm{min}}-\Delta{\bm{p}}_{i}{}_{\mathrm{,max}}\left(T_{\mathrm{c}}\right)-\Delta{\bm{p}}_{j}{}_{\mathrm{,max}}\left(T_{\mathrm{c}}\right).\end{split}
+∎
+Theorem
+2
+is independent of the chosen ET.
+There are two reasons for this independence. First, the swarm must have collision-free initial trajectories for Theorem
+2
+to hold. Second, each UAV can recursively generate collision-free trajectories with (
+6
+) without triggering. However, when a UAV’s replanning is not triggered for
+H
+H
+consecutive times, it will stop and stay at a position which might not be its target position. The choice of the ET is thus important to quickly steer the UAVs into their targets.
+Priority based trigger rule.
+As a possible trigger rule, we chose PBT (
+Mager et al. (2021)
+). With PBT, every UAV gets assigned a priority
+g
+i
+​
+(
+k
+​
+T
+)
+g_{i}\left(kT\right)
+. Because all CUs have the same information due to the many-to-all communication architecture, they can calculate the priorities of all UAVs locally without any additional communication. CU
+q
+q
+then replans the trajectory of the UAV with
+q
+q
+-th highest priority. The choice of the priority and its parameters allow us to tune the selection of UAVs and thus the performance of the overall system. We chose the following priority:
+g
+i
+​
+(
+k
+​
+T
+)
+=
+α
+1
+​
+‖
+𝒅
+i
+,
+target
+‖
+2
++
+α
+2
+​
+Δ
+​
+t
+i
+​
+(
+k
+​
+T
+)
+−
+α
+3
+max
+⁡
+(
+cos
+⁡
+(
+β
+)
+,
+∑
+j
+≠
+i
+ξ
+​
+𝒅
+i
+,
+target
+T
+​
+𝒅
+i
+​
+j
+‖
+𝒅
+i
+,
+target
+‖
+2
+​
+‖
+𝒅
+i
+​
+j
+‖
+2
+)
+,
+\begin{split}g_{i}\left(kT\right)=&\alpha_{1}||{\bm{d}}_{i,\text{target}}||_{\mathrm{2}}+\alpha_{2}\Delta t_{i}\left(kT\right)\\
+-\alpha_{3}&\max\Big(\cos\left(\beta\right),\sum_{j\neq i}\xi\frac{{\bm{d}}_{i,\text{target}}^{\mathrm{T}}{\bm{d}}_{ij}}{||{\bm{d}}_{i,\text{target}}||_{2}||{\bm{d}}_{ij}||_{2}}\Big),\end{split}
+(9)
+where
+𝒅
+i
+​
+j
+=
+𝒑
+j
+​
+(
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+−
+𝒑
+i
+​
+(
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+{\bm{d}}_{ij}={\bm{p}}_{j}\left(2T|(k-1)T\right)-{\bm{p}}_{i}\left(2T|(k-1)T\right)
+,
+𝒅
+i
+,
+target
+=
+𝒑
+i
+,
+target
+−
+𝒑
+i
+​
+(
+2
+​
+T
+|
+(
+k
+−
+1
+)
+​
+T
+)
+{\bm{d}}_{i,\text{target}}={\bm{p}}_{i,\text{target}}-{\bm{p}}_{i}\left(2T|(k-1)T\right)
+and
+ξ
+=
+max
+⁡
+(
+0
+,
+‖
+𝒅
+i
+,
+target
+‖
+2
+CLOSE
+\xi=\max\left(0,||{\bm{d}}_{i,\text{target}}||_{2}\right.
+OPEN
+−
+‖
+𝒅
+i
+​
+j
+‖
+2
+)
+-||\left.{\bm{d}}_{ij}||_{2}\right)
+.
+Δ
+​
+t
+i
+​
+(
+k
+​
+T
+)
+\Delta t_{i}\left(kT\right)
+describes how long the trajectory of UAV
+i
+i
+was not replanned.
+α
+1
+,
+α
+2
+,
+α
+3
+≥
+0
+\alpha_{1},\alpha_{2},\alpha_{3}\geq 0
+are weights of the summands. The last term measures how many UAVs lie in a cone with angle
+±
+β
+\pm\beta
+between the UAV
+i
+i
+and its target and how close they are (factor
+ξ
+\xi
+). The more UAVs, the more likely
+i
+i
+will get blocked by others and thus replanning is ineffective.
+5
+Experiments and Discussion
+Figure 3
+:
+Mean distance to target.
+Dashed lines show the results of ET-DMPC with PBT, while the solid lines represent the results of ET-DMPC with round-robin scheduler. Blue:
+N
+=
+15
+,
+M
+=
+10
+N=15,M=10
+, Red:
+N
+=
+20
+,
+M
+=
+10
+N=20,M=10
+, Green:
+N
+=
+25
+,
+M
+=
+10
+N=25,M=10
+, Cyan:
+N
+=
+25
+,
+M
+=
+25
+N=25,M=25
+. In the mean, PBT is faster and more UAVs reach their target (magnification).
+Figure 4
+:
+Changing positions.
+The left plot shows which UAV has to fly to which position. The algorithm is able to lead all UAVs to their target position (right plot). Dotted lines are planned, solid lines real trajectories.
+Simulation environment.
+To evaluate the proposed methods, we have built a simulation of the system
+2
+2
+2
+The code with all parameters can be found in
+https://github.com/Data-Science-in-Mechanical-Engineering/ET-distributed-UAV-path-planner
+.
+. It simulates a swarm of Crazyflies using gym-pybullet-drones
+(
+Panerati et al. (2021)
+). We approximate the quadcopter dynamics as a triple integrator for the DMPC (
+Wang et al. (2021)
+). Because it does not represent the real quadcopter dynamics accurately, the predicted positions using the linear model are set as setpoints of local position controllers of the UAVs (
+Luis and Schoellig (2019)
+). We chose a sampling time of
+T
+=
+333.33
+ms
+T=$333.33\text{\,}\mathrm{ms}$
+(
+T
+calc
+=
+233.33
+ms
+T_{\mathrm{calc}}=$233.33\text{\,}\mathrm{ms}$
+,
+T
+com
+=
+100
+ms
+T_{\mathrm{com}}=$100\text{\,}\mathrm{ms}$
+). We set the minimal distance
+r
+^
+min
+=
+0.7
+m
+\hat{r}_{\mathrm{min}}=$0.7\text{\,}\mathrm{m}$
+and
+θ
+=
+diag
+​
+[
+1
+,
+1
+,
+2
+]
+\theta=\text{diag}[1,1,2]
+. The space where the UAVs can fly is limited to a cuboid of
+5
+m
+×
+5
+m
+×
+5
+m
+$5\text{\,}\mathrm{m}$\times$5\text{\,}\mathrm{m}$\times$5\text{\,}\mathrm{m}$
+.
+Initial and target positions are generated randomly using a truncated uniform random distribution such that initial/target positions scaled with
+𝜽
+{\bm{\mathrm{\theta}}}
+are not closer to each other than
+r
+^
+min
+\hat{r}_{\mathrm{min}}
+. We call one realization of initial and target positions scenario in the following. We could fit up to 25 UAVs in the space.
+Influence of ET.
+To determine the influence of ET, we compare PBT to a round-robin trigger. Figure
+3
+shows experiments with 15, 20 and 25 UAVs for
+M
+=
+10
+M=10
+CUs and TV-BVC with 1000 scenarios for each setup. In all setups, PBT steered the UAVs faster to their targets than round-robin. Additionally, the number of UAVs reaching their target is higher for PBT (
+98.5
+%
+98.5\text{\,}\mathrm{\%}
+) than round-robin (
+92.7
+%
+92.7\text{\,}\mathrm{\%}
+). But PBT cannot avoid completely that some UAVs are not able to reach their target.
+This phenomenon is called deadlock
+and caused by the absence of a centralized coordinator (
+Luis and Schoellig (2019)
+;
+Park et al. (2021)
+). Every UAV’s trajectory is just optimal regarding the corresponding UAV. It thus would not make room for another UAV if this trajectory moved away from the target position. We noticed that some deadlocks lead to infeasibility due to numerical issues of the solver, which also hinders to dissolve them. Soft constraints could help to avoid this issue (
+Luis and Schoellig (2019)
+). To avoid deadlocks completely, the targets
+𝒑
+i
+,
+target
+{\bm{p}}_{i,\mathrm{target}}
+itself can be changed using a cooperative planner (
+Park et al. (2021)
+).
+Furthermore, we compared the performance of a swarm with an equal number of UAVs and CUs (
+N
+=
+M
+=
+25
+N=M=25
+) to one with less CUs than UAVs (
+M
+=
+10
+<
+N
+=
+25
+M=10<N=25
+). We noticed that although some UAVs reached their target faster, there were a lot of deadlocks for
+M
+=
+25
+M=25
+. This leads to the shape of the mean distance to target in Figure
+3
+.
+Thus, in this scenario, ET not only saves
+60
+%
+60\text{\,}\mathrm{\%}
+of bandwidth and computing hardware, it also improves the performance in the mean.
+Hardware-in-the-loop experiments.
+To validate the sufficiency of the choice of a linear model for quadcopter trajectory generation, we tested our method using a hardware-in-the-loop (HiL) simulation with six real Crazyflies flying indoor. We simulated the wireless network and one CU on a local PC, which runs Crazyswarm (
+Preiss et al. (2017)
+) and is connected to a motion capture system to obtain the positions of the crazyflies.
+Figure
+4
+shows an example trajectory of our HiL-simulation, where UAVs swap positions. We observed no dangerous flight maneuver and unstable behavior of the quadcopters when following the trajectory as can be seen in
+https://youtu.be/2UzqOnUJQCA
+. The choice of a linear model in our ET-DMPC seems to be sufficient for real quadcopters.
+6
+Conclusions
+This paper presented an event-triggered path-planning algorithm for UAV swarms. The developed computation scheme selects a subset of UAVs and replans the trajectories of only these on stationary computation units. The DMPC based path planner guarantees recursive feasibility and collision free trajectories for linear UAV dynamics. Our approach has been demonstrated to reliably steer UAVs without any collisions.
+This shows that event-triggering can be used to lower the communications and computational resources needed for path planning while guaranteeing collision free trajectories.
+In future work, we will add static obstacle avoidance to ET-DMPC using a safe flight corridor (
+Park and Kim (2020)
+;
+Park et al. (2021)
+). Additionally, we will investigate distributed cooperative planners to avoid deadlocks.
+Acknowledgements
+We thank Sebastian Giedyk for his help with the development and implementation of the quadcopter testbed, Alexander von Rohr and Kurt Capellmann for their help with the execution of the simulations, and Christian Fiedler and Henrik Hose for feedback on the manuscript.
+References
+AlZain et al. (2012)
+AlZain, M.A., Pardede, E., Soh, B., and Thom, J.A. (2012).
+Cloud computing security: from single to multi-clouds.
+In
+45th Hawaii International Conference on System Sciences
+.
+Augugliaro et al. (2012)
+Augugliaro, F., Schoellig, A.P., and D’Andrea, R. (2012).
+Generation of collision-free trajectories for a quadrocopter fleet: A
+sequential convex programming approach.
+In
+IEEE/RSJ International Conference on Intelligent Robots and
+Systems
+.
+Cai et al. (2018)
+Cai, Z., Zhou, H., Zhao, J., Wu, K., and Wang, Y. (2018).
+Formation control of multiple unmanned aerial vehicles by
+event-triggered distributed model predictive control.
+IEEE Access
+.
+Chen et al. (2022)
+Chen, Y., Guo, M., and Li, Z. (2022).
+Recursive feasibility and deadlock resolution in mpc-based
+multi-robot trajectory generation.
+10.48550/ARXIV.2202.06071
+.
+URL
+https://arxiv.org/abs/2202.06071
+.
+Ferrari (2011)
+Ferrari, F. (2011).
+Efficient network flooding and time synchronization with glossy.
+In
+Proceedings of the 10th ACM/IEEE International Conference on
+Information Processing in Sensor Networks
+.
+Herrmann et al. (2018)
+Herrmann, C., Mager, F., and Zimmerling, M. (2018).
+Mixer: Efficient many-to-all broadcast in dynamic wireless mesh
+networks.
+In
+16th ACM Conference on Embedded Networked Sensor Systems
+.
+Luis and Schoellig (2019)
+Luis, C.E. and Schoellig, A.P. (2019).
+Trajectory generation for multiagent point-to-point transitions via
+distributed model predictive control.
+IEEE Robotics and Automation Letters
+.
+Luis et al. (2020)
+Luis, C.E., Vukosavljev, M., and Schoellig, A.P. (2020).
+Online trajectory generation with distributed model predictive
+control for multi-robot motion planning.
+IEEE Robotics and Automation Letters
+.
+Mager et al. (2021)
+Mager, F., Baumann, D., Herrmann, C., Trimpe, S., and Zimmerling, M.
+(2021).
+Scaling Beyond Bandwidth Limitations: Wireless Control With
+Stability Guarantees Under Overload.
+ACM Trans. Cyber-Phys. Syst.
+Mager et al. (2019)
+Mager, F., Baumann, D., Jacob, R., Thiele, L., Trimpe, S., and Zimmerling, M.
+(2019).
+Feedback control goes wireless: Guaranteed stability over low-power
+multi-hop networks.
+In
+10th ACM/IEEE International Conference on Cyber-Physical
+Systems
+.
+Panerati et al. (2021)
+Panerati, J., Zheng, H., Zhou, S., Xu, J., Prorok, A., and Schoellig, A.P.
+(2021).
+Learning to fly—a gym environment with pybullet physics for
+reinforcement learning of multi-agent quadcopter control.
+In
+IEEE/RSJ International Conference on Intelligent Robots and
+Systems
+.
+Park et al. (2021)
+Park, J., Kim, D., Kim, G.C., Oh, D., and Kim, H.J. (2021).
+Online Distributed Trajectory Planning for Quadrotor Swarm with
+Feasibility Guarantee using Linear Safe Corridor.
+arXiv e-prints
+, arXiv:2109.09041.
+Park and Kim (2020)
+Park, J. and Kim, H.J. (2020).
+Online trajectory planning for multiple quadrotors in dynamic
+environments using relative safe flight corridor.
+IEEE Robotics and Automation Letters
+.
+Preiss et al. (2017)
+Preiss, J., Hoenig, W., Sukhatme, G., and Ayanian, N. (2017).
+Crazyswarm: A large nano-quadcopter swarm.
+In
+IEEE International Conference on Robotics and Automation
+.
+Van Parys and Pipeleers (2017)
+Van Parys, R. and Pipeleers, G. (2017).
+Distributed model predictive formation control with inter-vehicle
+collision avoidance.
+In
+11th Asian Control Conference
+.
+Wang et al. (2021)
+Wang, X., Xi, L., Chen, Y., Lai, S., Lin, F., and Chen, B.M. (2021).
+Decentralized mpc-based trajectory generation for multiple quadrotors
+in cluttered environments.
+Guidance, Navigation and Control
+.
+Zhou et al. (2017)
+Zhou, D., Wang, Z., Bandyopadhyay, S., and Schwager, M. (2017).
+Fast, on-line collision avoidance for dynamic vehicles using buffered
+voronoi cells.
+IEEE Robotics and Automation Letters
+.
+Experimental support, please
+view the build logs
+for errors. Generated by
+L
+A
+T
+E
+xml
+.
+Instructions for reporting errors
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+      support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+      methods listed below:
+Click the "Report Issue"
+(
+)
+button, located in the page header.
+Tip:
+You can select the relevant text first, to include it in your report.
+Our team has already identified
+the following issues
+. We appreciate your time reviewing and reporting rendering errors we
+      may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+      should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+      all.
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a
+list of packages that need conversion
+, and welcome
+developer contributions
+.
+We gratefully acknowledge support from our
+major funders
+,
+member institutions
+,
+,
+        and all contributors.
+About
+·
+Help
+·
+Contact
+·
+Subscribe
+·
+Copyright
+·
+Privacy
+·
+Accessibility
+·
+Operational Status
+(opens in new tab)

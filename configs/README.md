@@ -1,7 +1,5 @@
 # 当前配置
 
-只维护`local_power.json`：已知2.5D城市建筑、隐藏时变源、有限一次反射、机载当前位置功率点测、局部时空GP。单位为米、秒、Hz、dBm、dB和Wh，参数含义见`docs/first_version.md`和`docs/local_power_environment.md`。
+仅local_power.json作为参考配置。它指定已知2.5D建筑、仿真隐藏源、点功率传感和GP参数。fields只供仿真器使用，不可直接发给LLM。
 
-静态建筑可以手工给定；`tools/run_local_power_demo.py --random-city`使用`uav_em/scenarios.py`随机生成建筑和源。原始配置中的发射源脚本只供仿真器，不进入LLM。实际任务配置保存在新研究的`scenarios/`，只能供研究者查看。
-
-旧编码训练、测向演示、稀疏初始测量和外部引擎配置已退出当前项目，不作为默认备用路线。
+ProjectConfig保留部分旧字段以读取冻结快照；当前链不启用测向、A*、主动补测或旧源定位控制。参考飞行仍用scenario_loop的固定合同和事件时刻，不能靠改simulation旧触发字段声称实现了新异步调度。新合同另行明确，见[路线](../docs/current_roadmap.md)。

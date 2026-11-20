@@ -1,0 +1,70 @@
+{
+  "completed_at_utc": "2026-11-19T06:30:02.394422+00:00",
+  "status": "minimal_async_public_state_interface_synthetic_checks_passed",
+  "contract_sha256": "d45996f3934ed7a310b21d838703ef7c01d5b6b5e1b59ae3be9f415991e3261e",
+  "implementation_freeze_sha256": "a362584ac579737b348c3ea6b90b8fc2f82c7aaad5b1df92150706c6a55b95da",
+  "tests": {
+    "current_full_passed": 196,
+    "new_checks": 43,
+    "third_party_warnings": 1,
+    "elapsed_seconds": 3.71,
+    "command": "temp/uav_cloud_env/bin/python -m pytest -q -p no:cacheprovider"
+  },
+  "synthetic_cache_audit": {
+    "passed": true,
+    "checks": {
+      "ticks": 13,
+      "scores": 33,
+      "scenario_integrals": 33,
+      "candidate_edges": 46,
+      "commits": 1,
+      "dispatches": 5
+    },
+    "scope": "Independent scalar cached time/motion/energy, budget and route-score arithmetic. Does not independently reproduce field kernels, GP, geometry collision algorithms, planning or actual LLM.",
+    "trace_sha256": "3342e7a1bc8f16ad42f3ca6cb2c50758cd38f0bbfe353e840ee7217e2112dfca"
+  },
+  "research_activity": {
+    "actual_llm_calls": 0,
+    "new_research_flights": 0,
+    "new_source_fitting": 0,
+    "new_gp_or_field_truth_queries": 0,
+    "training": 0,
+    "rl": 0,
+    "scope_note": "Synthetic unit checks include declared public forecasts, numerical RRT geometry search and regression tests of existing physics/GP/fitting. No new research scene or sealed city was read."
+  },
+  "limitations": [
+    "Host supplied physical time; not yet integrated into an actual flight driver.",
+    "Synchronous numerical wall time recorded but not mapped into physical flight time.",
+    "No real model dispatch receipts or real LLM latency/task benefit validation.",
+    "Rule gate only; learned consultation/attention models untrained.",
+    "Path intent revalidation implemented; asynchronous source-inference job reconstruction remains future work."
+  ],
+  "source_sha256": {
+    "src/uav_em/async_replanning.py": "e5780f1630cefce79da069975f62d4327bed058894a7a4ddd7109dbab1e5caae",
+    "src/uav_em/async_transport.py": "8f45e8f9ff2ceaebf2f7b16141dcf18119ccf25e679734d2b75dfba71ed5421b",
+    "tests/test_async_replanning.py": "6348f55c6b2d5a3b434c208722d6acbd0339b72e4561d96e1b4404626d84ed92",
+    "tests/test_async_transport.py": "800927549101d5e093c21b9d509a57af41413652feac8a01e3710da3408bbc92",
+    "src/run_experiment.py": "926b7d21b86a8ca1f09020073ebc817fc597e9eddcdf15b79731d9fcaf3ed4c6"
+  },
+  "artifact_sha256": {
+    "docs/maintenance/async_replanning_v1/synthetic_traces.json": "3342e7a1bc8f16ad42f3ca6cb2c50758cd38f0bbfe353e840ee7217e2112dfca",
+    "docs/maintenance/async_replanning_v1/full_tests.log": "bbd3d89f236b71b7050f91aad95fc439171c4408eac617acae7effa37c1497b3",
+    "docs/maintenance/async_replanning_v1/implementation_freeze.json": "a362584ac579737b348c3ea6b90b8fc2f82c7aaad5b1df92150706c6a55b95da",
+    "docs/maintenance/async_replanning_v1/results.md": "be4c6ded547e196ad0aabe875fb767a04119f7f7c63b3c9d8b6c47d83d5de268",
+    "docs/maintenance/async_replanning_v1/contract_freeze.json": "1131ec0eb02102edb999694a40d9273feddb87c7d276d9111440c3e851e2493f",
+    "docs/maintenance/async_replanning_v1/workspace_check.json": "f84f087f62f69dff86f483046ef47fbd4b8229b460792cd87fca195f1229577f",
+    "docs/maintenance/async_replanning_v1/cache_audit.json": "93eb1deda2c5bba8354570260c46c512f565a34c65eef403938066a61cf4474b"
+  },
+  "navigation_sha256": {
+    "AGENTS.md": "442ccdfa47145532960b75a1cd812c7eae776ecb5a1547ee45c4d8206c52f6c0",
+    "README.md": "089694b01915d095e855a262582d3a9c37058fa446912e9e2c43f4b7d74c4b23",
+    "docs/AGENT_HANDOFF.md": "fa24687a54b92dd0416162c2ab20ad5e6bb826403d2c4391e351bc277c38b573",
+    "docs/current_roadmap.md": "4fefebf8334c56876abc4c44c3fb2fb304a24859243dcb4709076db18a8456dc",
+    "docs/method.md": "f7175352e0588b72d6938cf7686f3f964d997f8f570d17f9846899aa7e8da091",
+    "docs/workspace_layout.md": "7be6f44da033786257e7a83d862411c850ffc9eb07d0a610c7391f1d9045dcfd",
+    "docs/README.md": "89de6523ea8e9c5a92f4460e31d7c8fdbc1c49b4489ee5b42d0ff55dff3547ea",
+    "docs/llm_information_contract.md": "4ee2393aae51524ae4c86d5f5a2ceb4be24b71991c431578acfdece60af09540",
+    "tools/check_workspace.py": "9f0a0eeca4c5d2c023acfb7536c5502e95750b82c15ded47137e8c37a6e9c714",
+    "outputs/index.html": "106c8ed6d8441e0cbef1aad08ebf71da5c13cbb00119f824601f693e37ed902f"
+  }
+}

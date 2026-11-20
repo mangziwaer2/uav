@@ -1,0 +1,719 @@
+{
+  "date_utc": "2026-11-19T09:18:37.543282+00:00",
+  "scope": "handoff/docs/navigation, obsolete stub and disposable caches; no research run",
+  "moved": [
+    {
+      "old": "docs/hypothesis_refinement_plan.md",
+      "new": "docs/history/hypothesis_refinement_plan.md",
+      "original_sha256": "abb9778594646f5e0aba8ac0a668430dfb0ce4cb46650a4560bbce5cc9965d85",
+      "final_sha256": "4339e919190f131d10945b3d466cecfefe2f16a2b9eb36de0a84b95e5b899092"
+    },
+    {
+      "old": "docs/source_gp_case_memory_faq.md",
+      "new": "docs/history/source_gp_case_memory_faq.md",
+      "original_sha256": "b0969e7fe2cf9a5057b158b91ce1ec8ae591b395c1940b2d62f2be72e39d73f0",
+      "final_sha256": "1f3c779734dd93d8a7c9f2f1ba7d75672fb301d7ed8deb41e19c106bb01639cc"
+    }
+  ],
+  "removed": {
+    "docs/first_version.md": {
+      "bytes": 234,
+      "sha256": "5da6c537e7d67a25d6044e13341beefc69ea9b35a53959987c45dbe6e1a54a73"
+    },
+    "src/uav_em/__pycache__/__init__.cpython-310.pyc": {
+      "bytes": 255,
+      "sha256": "f50aeb4578a45247ed3201edab486c262ab6ec3228cf75512d864a8066ba7c70"
+    },
+    "src/uav_em/__pycache__/async_replanning.cpython-310.pyc": {
+      "bytes": 15238,
+      "sha256": "6c890dad54eaa0eeffaf47f95debb01ea378efa30284c5cec00ca69918e44349"
+    },
+    "src/uav_em/__pycache__/async_transport.cpython-310.pyc": {
+      "bytes": 3249,
+      "sha256": "9bb0f6608450854ab1e641fbf20f3814f374277e6f498616aa5e84ec445062b1"
+    },
+    "src/uav_em/__pycache__/buildings.cpython-310.pyc": {
+      "bytes": 7596,
+      "sha256": "9a5ee96bfbd2781aca678d089057fe84ea340c96567243c9ee41463788795a96"
+    },
+    "src/uav_em/__pycache__/config.cpython-310.pyc": {
+      "bytes": 15387,
+      "sha256": "8d01f445bbbb44880d6326ff18487983ab0d56253e3a62052b607bd81d0fda3c"
+    },
+    "src/uav_em/__pycache__/decision_timing.cpython-310.pyc": {
+      "bytes": 9224,
+      "sha256": "b07821eacf7fa0e32372648845ae09476285794206bf51480911c351ecb200c7"
+    },
+    "src/uav_em/__pycache__/environment.cpython-310.pyc": {
+      "bytes": 7873,
+      "sha256": "9cb17f136b9019e0930db52cf2128036be312c9296e6f7294d79c3edcf17a1d5"
+    },
+    "src/uav_em/__pycache__/equivalent_field.cpython-310.pyc": {
+      "bytes": 2526,
+      "sha256": "77638d50a620d47c77916fa56aa8a583a3e7fa50c43316ffadcee7c48115ca66"
+    },
+    "src/uav_em/__pycache__/event_demo.cpython-310.pyc": {
+      "bytes": 26332,
+      "sha256": "769037a63cffc5dd7c7e755ff5622aa8df800c5b805bfd785fbfc09d20db0878"
+    },
+    "src/uav_em/__pycache__/event_inference.cpython-310.pyc": {
+      "bytes": 16928,
+      "sha256": "a74a464b49e5db7f9484e5ee0c1e4e3b3dca2475ebd8c40203394853d56a2d28"
+    },
+    "src/uav_em/__pycache__/event_llm_inference.cpython-310.pyc": {
+      "bytes": 11459,
+      "sha256": "ee7221cad88952bcaca20c73582cefc244e4eb504f6d33fdf30ee97ee1fcab20"
+    },
+    "src/uav_em/__pycache__/feasible_scenario.cpython-310.pyc": {
+      "bytes": 6227,
+      "sha256": "059d48c8c77b2cf973f21678d27ee79cacd2ea4dcc9cd6cf7ebf30071b7c414c"
+    },
+    "src/uav_em/__pycache__/motion.cpython-310.pyc": {
+      "bytes": 1119,
+      "sha256": "1509dfe62333eade97e39d8206f4f2831971de1201012732e7095727ed1f7267"
+    },
+    "src/uav_em/__pycache__/planning.cpython-310.pyc": {
+      "bytes": 1149,
+      "sha256": "eed7a46e05530cafad842753e8adddfd49d1481966ec37c6536740dcfd90eb5f"
+    },
+    "src/uav_em/__pycache__/point_gp.cpython-310.pyc": {
+      "bytes": 7141,
+      "sha256": "a3d6ecfd281414a1bf93b5a496dee09b1a129d3ad4eda67677490fda0fe1ecca"
+    },
+    "src/uav_em/__pycache__/probability.cpython-310.pyc": {
+      "bytes": 1124,
+      "sha256": "166ce1972788bfb67f104acfd0737a05e31c85bcbf627711c1a9db0e78ec3e82"
+    },
+    "src/uav_em/__pycache__/propagation.cpython-310.pyc": {
+      "bytes": 9876,
+      "sha256": "d14f85173c4531af2e20b2e5509d3fb93c43ff0bf5e3ad97ee0ff760d0888eed"
+    },
+    "src/uav_em/__pycache__/repair_search.cpython-310.pyc": {
+      "bytes": 7068,
+      "sha256": "cf9c297e0c0196b38cdf6e76751f7d0668c95ed08cb772df21b2a66842675017"
+    },
+    "src/uav_em/__pycache__/replay_overview.cpython-310.pyc": {
+      "bytes": 22725,
+      "sha256": "5eb10b05ae5d41f1d61768ed07ed26276c1b57e0bc18fb7a01ca21fe83e68f69"
+    },
+    "src/uav_em/__pycache__/scenario_loop.cpython-310.pyc": {
+      "bytes": 11516,
+      "sha256": "e16cb3c82d157c3a5d698c1e16806dbf477cf16a67a3696a3c0f4dfeb19f740e"
+    },
+    "src/uav_em/__pycache__/scenario_planning.cpython-310.pyc": {
+      "bytes": 16880,
+      "sha256": "e712dde80aecb2b0ca04a11d920d4f0298b9c21445da86436afc3558097e9872"
+    },
+    "src/uav_em/__pycache__/scenarios.cpython-310.pyc": {
+      "bytes": 9524,
+      "sha256": "1ca99a970bc9808da2fde4bcffdcd25ab9635971fb042cd85c115209d009e4ba"
+    },
+    "tests/__pycache__/conftest.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 452,
+      "sha256": "ef1d8a7bcccc12ab8678629623876cd76aa82f390b0f4a1858d046f89637a44f"
+    },
+    "tests/__pycache__/test_async_replanning.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 44565,
+      "sha256": "d113ddbfe822f2cda6e888f367b0e838b22c90b1ea855d77cb643175a78dfcb4"
+    },
+    "tests/__pycache__/test_async_replanning.cpython-310.pyc": {
+      "bytes": 23191,
+      "sha256": "162c64d94e698248094ae32cc2a0092568c906be7d2e1f3065a9db082f193273"
+    },
+    "tests/__pycache__/test_async_transport.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 6455,
+      "sha256": "f4bc668b9d8f9a21ab2ae97fa7d316d33d020466a5d6bfa59e8946891015d413"
+    },
+    "tests/__pycache__/test_decision_timing.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 13872,
+      "sha256": "7ba56d5b1a8bce341ee569a0c3919409b618efed64baab1063c77bd1288edfd3"
+    },
+    "tests/__pycache__/test_demo_scenario.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 5165,
+      "sha256": "00a865ccb291187f889f6af3e68de88cab821d64e072a7df7b8e56dd47a6813e"
+    },
+    "tests/__pycache__/test_environment.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 8939,
+      "sha256": "8e638e007577566b4f5ab4d6fa371374f805d8d00b2d427ec85dea1539cbadc6"
+    },
+    "tests/__pycache__/test_environment_25d.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 12539,
+      "sha256": "d37552f0489cabfe20f95291ebbe73ded5f2a4922c3226f5afbedc9286fc3912"
+    },
+    "tests/__pycache__/test_event_demo.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 10076,
+      "sha256": "336952bf4c7a82b337cea2b7f1c73dee3c4d6260158b98413a94c9f55654481d"
+    },
+    "tests/__pycache__/test_event_inference.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 17962,
+      "sha256": "f2b4719a27c59d1d26b9da9d1da9c9d51baf1dfab1551e35ecc670343ccff9af"
+    },
+    "tests/__pycache__/test_event_llm_inference.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 15973,
+      "sha256": "3a784356e740b4589c5f91ba327fb247691aa9f5af09d1ff06fa07f531560b9a"
+    },
+    "tests/__pycache__/test_feasible_scenario.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 7897,
+      "sha256": "91584600233c6c6dca82b3934dc5327b6b167f3b1261730667e95904f1366f98"
+    },
+    "tests/__pycache__/test_local_power.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 2387,
+      "sha256": "cd54d46e8a8972eed96c230a3243d7abbe4c2343ca746fd1618b15ab2b619529"
+    },
+    "tests/__pycache__/test_point_gp.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 4769,
+      "sha256": "99764e63190a3c7f33dd50c7f92971dac6000f6480b40744d2e54b989e2d2007"
+    },
+    "tests/__pycache__/test_reflection_propagation.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 14941,
+      "sha256": "f5f542ffa5f3e0cbec16b21a5dd50345b6c51fb14d797edb260ff2dc5a653c61"
+    },
+    "tests/__pycache__/test_replay_overview.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 3936,
+      "sha256": "435c629d50f717821f34105b140093eaf5fdeaa9e1686497175da6be2549df0e"
+    },
+    "tests/__pycache__/test_scenario_loop.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 12257,
+      "sha256": "110babade26ecabf543f859138ec9b671a1f3e544a3ddd017c3d87dfbe9be5ac"
+    },
+    "tests/__pycache__/test_scenario_planning.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 23081,
+      "sha256": "5540023ea2278dbe90bb71e6d0d56b2de6c27838fca80a7547a557bb1521f1d2"
+    },
+    "tests/__pycache__/test_scenarios.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 7439,
+      "sha256": "d95d2532f18e68a0caeb9918eaa384bccb47a2f48733869f4cb3871612f4014b"
+    },
+    "tests/__pycache__/test_source_propagation.cpython-310-pytest-9.2.0.pyc": {
+      "bytes": 2798,
+      "sha256": "3be67eeb259b47ef083765e143a8986c6589f38812e85e577657d67af25f2838"
+    },
+    "tools/__pycache__/check_workspace.cpython-310.pyc": {
+      "bytes": 3723,
+      "sha256": "305971f1751a22763de862bd85fb4bbcfce69ad197c549efd3a8fe8515aa4777"
+    },
+    "tools/__pycache__/check_workspace.cpython-38.pyc": {
+      "bytes": 3735,
+      "sha256": "f8939dc5d58242ace1aca9d1e5f028468c9f206eef8f5d4c94dfdda5388a6194"
+    },
+    "docs/.ipynb_checkpoints/equivalent_source_walkthrough-checkpoint.md": {
+      "bytes": 43990,
+      "sha256": "f59893812c86f3770067d140b1fb419783f5f129248446bdbe9d89b75d39f0a2"
+    },
+    "outputs/.ipynb_checkpoints/index-checkpoint.html": {
+      "bytes": 1231,
+      "sha256": "31baee62cec176ff1ae7b83bedcf7a2ccb361b0da227cc94cea52daf6f741b3b"
+    }
+  },
+  "changed_documents": {
+    "docs/AGENT_HANDOFF.md": {
+      "before_sha256": "ba0cca513180990459fbd7eeceeac33d351949a2d9da0a6c3859ce1499a456b8",
+      "after_sha256": "197ea0fe5f5d07bdc40d20c3ee8510802fb06c76fc3b81c69449632178bc26bc"
+    },
+    "docs/current_roadmap.md": {
+      "before_sha256": "31f3353766fea84b1dc026998f3004529fabb8cf5f05b5be107519071963cc99",
+      "after_sha256": "1fc5245f04e6189feea60e2df316ad98f267c57eed6de169504456898ef7f687"
+    },
+    "docs/README.md": {
+      "before_sha256": "e7df1d551a8b9ac7aab8785a138b20eee21640152687ec810b75c20d25b8607b",
+      "after_sha256": "8e1a9f88c45dfcc2f8e10f8547c759d390af4c4d49c865cc2df83dcfa122c860"
+    },
+    "docs/history/source_gp_case_memory_faq.md": {
+      "before_sha256": "b0969e7fe2cf9a5057b158b91ce1ec8ae591b395c1940b2d62f2be72e39d73f0",
+      "after_sha256": "1f3c779734dd93d8a7c9f2f1ba7d75672fb301d7ed8deb41e19c106bb01639cc"
+    },
+    "docs/history/hypothesis_refinement_plan.md": {
+      "before_sha256": "abb9778594646f5e0aba8ac0a668430dfb0ce4cb46650a4560bbce5cc9965d85",
+      "after_sha256": "4339e919190f131d10945b3d466cecfefe2f16a2b9eb36de0a84b95e5b899092"
+    },
+    "docs/references/case_memory_20261119/reviewed_method_notes.md": {
+      "before_sha256": "96037b0bd9bc2d8ed9daa193791e3fa3a78918a2ed9e9e7069f8df6b3d437593",
+      "after_sha256": "41cacbe5cfd450815447ba4cf11c1c3f931f1668efbaf24811afec7c66b7a782"
+    },
+    "AGENTS.md": {
+      "before_sha256": "a72b11d99aeabec9d20ff4914fcd48d842939764d0226ff4c6a9c1d093e6d54c",
+      "after_sha256": "cb24acf2d6abf1341ae90a7dde525619bc134018d6b4cc5a2c3afcecc524dbf9"
+    },
+    "README.md": {
+      "before_sha256": "604e060860e033243aa509c1e574dc41fb6a32631054c78c21afdf108de47f7f",
+      "after_sha256": "752049493fc9a07bbb2283abf73c8f2a36b9b7acae2fa72bfb52ae1f0f50959b"
+    },
+    "docs/method.md": {
+      "before_sha256": "9edfd8fb783bc0520bad0a011000e3ef3051a796d5ee8599232d6ed226587660",
+      "after_sha256": "db1a21d4b3d56801eabff11bff4d391388c86e123a9c14c5d1113bc0bf61bb18"
+    },
+    "docs/gp_equivalent_trigger_design.md": {
+      "before_sha256": "dad9d6c1673625e97e742b70a1618fe6d8de5a5b88f25447430cfb199f30ed94",
+      "after_sha256": "a2d1769ce710bb63a105c1e7580788cc7f12e34415cabc1d7d57d3b028594527"
+    },
+    "docs/workspace_layout.md": {
+      "before_sha256": "2972c065661468e0ee09a0ef4bff859d848e9ee7ddb570110f422deeea641f08",
+      "after_sha256": "621f99ec8b9014dde9dd15ca88eb9368d04946afa379c6513aa7b0528546d7c7"
+    },
+    "docs/history/README.md": {
+      "before_sha256": null,
+      "after_sha256": "0c84a739647d6443c2e311d795b5cd74621d48b5dd432b70521f018243036dcb"
+    },
+    "docs/joint_inference_planning_v1.md": {
+      "before_sha256": "d52254de930386fc1e482165ab4ada047461450bf6892f88568dbc00d41ae7a5",
+      "after_sha256": "54dbf1967a90d162610db8bb66c6fecca855bf1af829e918c7023f49c2f69dfb"
+    },
+    "outputs/README.md": {
+      "before_sha256": "e6cf8bcb158a9900113027374065b97559def5112b5f9ea4892f0b291bfc36f2",
+      "after_sha256": "57f7d300b616c99df5701f98d487700eead266c40c9ec2d0df3999b3691e3517"
+    },
+    "docs/local_power_environment.md": {
+      "before_sha256": "9d7e560166f25690608a0ce6c6912d157015e98af834888fa2f012c8bc202d66",
+      "after_sha256": "bb9c414056324c540547effad42f13ca263d09c6419c221d021aae5c0868960b"
+    },
+    "docs/references/hypothesis_refinement_20261119/reviewed_method_notes.md": {
+      "before_sha256": "57fa76c492d80e2ed4590f28f8633bb4d60f01b97df45b9d6497eea88cdfdaf2",
+      "after_sha256": "0a5d0ae6d063dd72082dd474a1da3efb6398116109c10291f8362bffffc37a8f"
+    }
+  },
+  "c1_files_checked": 171,
+  "c1_before_sha256": {
+    "outputs/interference_scenario_loop_20261118/.ipynb_checkpoints/index-checkpoint.html": "14146964d215b6cfd3057a5dc06b53cf2c0fb8d3b231e483a5283889fc37bb1f",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_dynamic.json": "d1968f02d5d4fddc4f9a689092fca66bd4cae2b13a57de2e0271339560514de9",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_dynamic_grids.npz": "113fc66cc0a82bf24c5f0dc0c7e4cda2d9e15c02ad1e9bd87b1bccba0ecade41",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_static.json": "e47351704ca7768b12fb6c8802cf9dd6d16c329aced89fbf1f18551904b58ce6",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_static_grids.npz": "4ac7f07b947a6307a2193aac366aa75199a6832ccaa84f6c120158bd57bb3271",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_dynamic.json": "a2b2d7890e6b220b29c3ee24e89f36f1ced61ebce62fb8cbc8a0edd77c8652e8",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_static.json": "0bc5a04687bee1afe4e97d5002f276590a7ab497a6998a5d91f1fc55f95c3a45",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_static_grids.npz": "1aae5816869ddd7568e9dae8072b3842503c581b778ae26ee248be399b2e5ac3",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_dynamic.json": "1818b0caf21cdc25b463005f4971b442e3cb9ebbd92f3a16ed8a707d61c6413d",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_static.json": "35962fe3b8eafd864f103e8f56bc66456f574e9ac29d084f358668502dd2c53b",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_static_grids.npz": "1aae5816869ddd7568e9dae8072b3842503c581b778ae26ee248be399b2e5ac3",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_dynamic.json": "f0bcd4b638151e8e57a83915ce6f8b1f6d8a9c19a2970c48d6eae96c2dcba392",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_static.json": "009c591028fbe94a69ee6c804817d1b806083e7b195d54a89bcf82ae01a50970",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_static_grids.npz": "1aae5816869ddd7568e9dae8072b3842503c581b778ae26ee248be399b2e5ac3",
+    "outputs/interference_scenario_loop_20261118/index.html": "14146964d215b6cfd3057a5dc06b53cf2c0fb8d3b231e483a5283889fc37bb1f",
+    "outputs/interference_scenario_loop_20261118/protocol.json": "2c9ffff7556e49aba3750b2aae8613bef6c4c0ee6cf8c015d7e1b2d0798dc03c",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/contract.md": "7a4882a8dc65754be85f57293642718d897800ae42de2176261275e0ef393cd0",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/control.json": "55a1c4cc9dfbcbbc6a19b1aeee228c0a2e290888e200311901fd6f51723d539e",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/00.json": "db0e2ac0992e9b2f19d14a8b4efc3fff7152835d7ae2f4cacbfa978b3d98fa57",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/01.json": "a25cc58a86bece51b078f8c9e53bc2df3b56326f2ed0da9d7ee8c324895a4ee9",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/02.json": "73b0a0ba64a9e4c723cc1fb05e91332572a37523fde01745327cc4a5a15e48ce",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/03.json": "e447ae2b042e729e346a495dc6a9dc9e8620fb7e9b7878bd19578ffac27cd7ec",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/00.raw.txt": "ddb7fc3f828b32ae81b81b96b6c676fbd2b427c9cca0be3d4629933f394a5dbd",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/00.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/00.started.json": "2c69b6d3d2dbbc3bcd641ca4cd1c01f0a8db1aa8ee312b3d0347d8e442014600",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/01.raw.txt": "9e167a1816dbca354fe1cb9d3492bd1afc7a25988f0a4bad45c27bab0bc4fee5",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/01.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/01.started.json": "0c91d67d1a5bb41e0f2a48febb41f92ec78548643d364d4066635b7607bf4954",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/02.raw.txt": "e261ac51164695742ea412102d271ffe02431306f7aee8ea4e5a0e491c7b6035",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/02.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/02.started.json": "48d5834ac150d1ae2ae8ac8441a22a5d1f7cca2fd314b97daf4ca3d597b7a3e3",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/03.raw.txt": "b0c9aac4f53d1baaa5dd0d5f4fc3c9ee5ce97bf67dcb34d5fd79467061898b86",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/03.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/03.started.json": "ac3d56ab4a815359caec578a6cf561ecf90dd6e379700e26447d52ef02fcd996",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/session_ready.json": "a6b0fe73ff04b3b8be5bd18ae607755c8b51742305b5480475390b19092a2be4",
+    "outputs/interference_scenario_loop_20261118/public/static/contract.md": "7a4882a8dc65754be85f57293642718d897800ae42de2176261275e0ef393cd0",
+    "outputs/interference_scenario_loop_20261118/public/static/control.json": "4b303679b730f4a5787d58b7c881233d35cafce609a97c5b8dd3e1609193eaad",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/00.json": "73904e7cefd0cab007babd941efc6920b3f34a3eb0d8b683e2a941b5ebfd1e88",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/01.json": "5f2f7bc4134d40f44208693832ace20672b6f2379f2fefb50999ea1761b9d789",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/02.json": "049b752f1755d639bb6501d57d9bdd77ba324b1c5714309f9394ae7f88a5e01c",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/03.json": "cd2bdb296130fea71c7a33afc79cf1a3dfd8000773e50a65b0a6ecc8a251d4a9",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/00.raw.txt": "123f14105c6abfcd4e60b8e392c565dd5ea917d383a52c99052178caf0168d85",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/00.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/00.started.json": "dc6813817000a2924e0c5b1483b8d1f0177c56e0ec3dcfdc113c7d94e5bef680",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/01.raw.txt": "5e2a1d155c8da66cf2c337d824080d8d4697e1cfb091899e8bbb017eb910e256",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/01.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/01.started.json": "d58bec235435c6ce663ed4848fa8c3019be38b8210f023231b7f121d285b555b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/02.raw.txt": "c31bf1e796f16be2a0fd84d4bad706d04294086e1ea37a7a8f2f3b4a030b2284",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/02.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/02.started.json": "99f2aae049e659048fa0860f4eee93a960314799e96238294a471de9e14dd4c2",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/03.raw.txt": "f7b3ffa8140f11dbbff50bc1991b142f0774b96c51513e09480a4b72c0ba3a33",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/03.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/03.started.json": "68b1facdca2dc6a32a3409929865bb16abe0e1bd44678760bd432d238bd4bcd1",
+    "outputs/interference_scenario_loop_20261118/public/static/session_ready.json": "8a988dcff8157ff147bedc02329c2990735e605259ab60b48f8eb0d735caa98d",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/gp_numeric_dynamic-checkpoint.gif": "b959f895d7b5489b545442eb8ae4013bef5979afb36e6d9c661cf3bb4c46093a",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/gp_numeric_static-checkpoint.gif": "46cd6244afa4cf036c27c1401bebd54cd49d9a8a26dbb151f913b21986520fb2",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/index-checkpoint.html": "e452257a12fb06fb293475a9323a0ababcfc3c477795227f5834c3cf924c9094",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_llm_dynamic-checkpoint.gif": "0cbd3fd77793b2c88d729914b435a8350caca275eff7b374847647236bb9717c",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_llm_static-checkpoint.gif": "cce0ae3948b04c6b578862988d033b25c39688bd3319ba1168d6beaf7f8057ce",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_numeric_dynamic-checkpoint.gif": "477382f4d80693a879c869ccde75e7f53492342f8e8b6a9a60ff7e3a7ae5d3ae",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_numeric_static-checkpoint.gif": "3905c6c470e1761c130259fde838d5087754daf78578ccebea334c90e2f3965d",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/persistence_numeric_dynamic-checkpoint.gif": "bffbc4616d4a2c5dbf392f8b9e069c2fbca87da8f96f48d5cbc6b58852e48fd1",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/persistence_numeric_static-checkpoint.gif": "e7e51308b22e1e36247925ec6992e9f05b5c91af5467601c726dc76aa3d20e0c",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/.ipynb_checkpoints/mixture_llm_full_mixture-checkpoint.gif": "2de04d338af4aaaa6a6f1beebb58bc1b8523074f526ae901560ee1149890966d",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/.ipynb_checkpoints/mixture_numeric_full_mixture-checkpoint.gif": "50b912b2886bfb7440f6cd48b3704d9a7142d059cb660e36e49850a5432c5c4d",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/display_provenance.json": "0125078c76609c3ca81d92ac0a6af717510a230abf9d74323d72da4ae3f340b5",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/index.html": "38d241599e5fd33c816feaa6006c9e5abf68fd3b513b18a1c0ddaa3afcad6e7f",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/mixture_llm_full_mixture.gif": "2de04d338af4aaaa6a6f1beebb58bc1b8523074f526ae901560ee1149890966d",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/mixture_numeric_full_mixture.gif": "50b912b2886bfb7440f6cd48b3704d9a7142d059cb660e36e49850a5432c5c4d",
+    "outputs/interference_scenario_loop_20261118/replay/gp_numeric_dynamic.gif": "b959f895d7b5489b545442eb8ae4013bef5979afb36e6d9c661cf3bb4c46093a",
+    "outputs/interference_scenario_loop_20261118/replay/gp_numeric_static.gif": "46cd6244afa4cf036c27c1401bebd54cd49d9a8a26dbb151f913b21986520fb2",
+    "outputs/interference_scenario_loop_20261118/replay/index.html": "e452257a12fb06fb293475a9323a0ababcfc3c477795227f5834c3cf924c9094",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_llm_dynamic.gif": "0cbd3fd77793b2c88d729914b435a8350caca275eff7b374847647236bb9717c",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_llm_static.gif": "cce0ae3948b04c6b578862988d033b25c39688bd3319ba1168d6beaf7f8057ce",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_numeric_dynamic.gif": "477382f4d80693a879c869ccde75e7f53492342f8e8b6a9a60ff7e3a7ae5d3ae",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_numeric_static.gif": "3905c6c470e1761c130259fde838d5087754daf78578ccebea334c90e2f3965d",
+    "outputs/interference_scenario_loop_20261118/replay/overview/.ipynb_checkpoints/mixture_llm_overview-checkpoint.gif": "23bc83e8523db6b9e6b0197c44cd48fff5ebd52dc2caddca2e02777a84d89020",
+    "outputs/interference_scenario_loop_20261118/replay/overview/display_provenance.json": "a3339906134ce65f9b70484c0f217e58cd6d9a572d104dbc607af668d30c4ccc",
+    "outputs/interference_scenario_loop_20261118/replay/overview/gp_numeric_overview.gif": "e4479dcd8de3bb4d28190cf5679ba304bab40d8df1e71619ca49ac2796a15d32",
+    "outputs/interference_scenario_loop_20261118/replay/overview/index.html": "5458268a0ab2216664f7329ed214c9ff6f425dc0839b77bc98cbfb3c6b0feb58",
+    "outputs/interference_scenario_loop_20261118/replay/overview/mixture_llm_overview.gif": "23bc83e8523db6b9e6b0197c44cd48fff5ebd52dc2caddca2e02777a84d89020",
+    "outputs/interference_scenario_loop_20261118/replay/overview/mixture_numeric_overview.gif": "c692ba99b62ef99b050a5b0f7ea92584ed93915b406bdd5a8318bb65139ec69d",
+    "outputs/interference_scenario_loop_20261118/replay/persistence_numeric_dynamic.gif": "bffbc4616d4a2c5dbf392f8b9e069c2fbca87da8f96f48d5cbc6b58852e48fd1",
+    "outputs/interference_scenario_loop_20261118/replay/persistence_numeric_static.gif": "e7e51308b22e1e36247925ec6992e9f05b5c91af5467601c726dc76aa3d20e0c",
+    "outputs/interference_scenario_loop_20261118/reports/agent_sessions.json": "76cf6825a494acba5a7653b85bca1a937fe85a1aa90f0453742c640e56270ec0",
+    "outputs/interference_scenario_loop_20261118/reports/findings.md": "c1c0e63227703355410ff27b73665032e1f9aad83c911808c523ce5c73e838b6",
+    "outputs/interference_scenario_loop_20261118/reports/flight_freeze.json": "b33b2f49c5d06d67211d100a78b175fc56438cc17179f137254ba0368a63817f",
+    "outputs/interference_scenario_loop_20261118/reports/full_tests.log": "f8c09f16dd22705fc942b951ca894c2701eadf045244b9a6acbc7573e446c609",
+    "outputs/interference_scenario_loop_20261118/reports/llm_dynamic.log": "f167daadf5ed6b51834375e89e7be9ad9a26914b7c9dc20a202f9e15c578a09d",
+    "outputs/interference_scenario_loop_20261118/reports/llm_static.log": "8ffa64bdf052154bec0870c3e5193fba6f5617797ba8ed37dbc79eb0c5bfea66",
+    "outputs/interference_scenario_loop_20261118/reports/navigation_check.json": "5ace152e18283cb2e8641f0f0d457b660249af9e5cf627ad688bcb1a5282c8f8",
+    "outputs/interference_scenario_loop_20261118/reports/numerical.log": "c73f1c801c2b2238593ce7f1affcaf1245df90bd3e43edaf4a88f7d20ffa8671",
+    "outputs/interference_scenario_loop_20261118/reports/publication.json": "6db9c11ddc0b4881b135b286ae1342ddaee57fc901d8c95b7f9cbfe8da0e5040",
+    "outputs/interference_scenario_loop_20261118/reports/publication_audit.json": "19d7c270e23d158332e1541cbc8a42dabb9aa65b2ca168a3609aad4a16333610",
+    "outputs/interference_scenario_loop_20261118/reports/results.json": "41b8ff89c5034e226424ee815420adf9125ca50db3ac6b757e34a7f80f03c578",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/README.json": "5927877b57ea930a482ad39c7b421a29a5d63d6bc5b9c5ae3fe67eb5dcdc4f4e",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/__init__.py": "41b8fb97c0589372dfa7c20ed1ddc5ecd1e041cbcdef23001ba33b7589613f43",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/advisor.py": "f09f795fa7d4375ac8191190e92f5cb0d8566729802ba36cae8e9af453356b18",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/agent_navigation.py": "53f275e546ea166d478bf143601c7c81d1efa2701bf5b594af418d4259d7b885",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/balanced_objective.py": "72e94cca702f5f794919dbfdf4e8daa869bdfc82c8fde94d40bd1bd2a9625805",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/belief.py": "6e839eb670913d6e84a197703a413235336ec379e08344f2b675756e8208c46e",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/branch_belief.py": "25241a1eb921e83572db33ade43ba23a2c51ee46c491e0e6daa2c6d4a4bf744a",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/buildings.py": "76d0f0bf022dffeeee5025ba7787f1035fe780633a738307acec0c3af57fb588",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/config.py": "e2bedae243cc12d2c6caacadbeae1517d555d947ac5a793180cd8fe40dc1ba68",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/context.py": "06d08b47956e26d67acf1fbfbeacd6b3a10b93a174c832c9175accf22a4657b4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/decision_objective.py": "00b1082af83c98e3e6728955a83dbea9c22377aa6c67e1fb9c21524b02491c2d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/decision_state.py": "e64e197052c065751f7aa304bf3ebc86e83fcce4ad34c3d6c89d074f8e32670d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/environment.py": "ad7aaac168a4f57d2eebd0dc5f80753cd0361fc49da585ed5edf2ac23958f00b",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/equivalent_capacity.py": "889043d4540f55f4215301b9871df01027f7b37437efd404000a911f2f095bb4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/equivalent_sources.py": "33ae9b827930891f5c77f48c449ec5348deef6c7362d8ffa74660ea960d5343c",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/event_inference.py": "3ee00db60fef2c82f1fbebde93c4b177cabf76cb00e5059e78533d57210fcf06",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/event_llm_inference.py": "0375ee133054523e917cfefc6b4f5f58114724d451085bd5d8c946cf36760e23",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/extrapolation.py": "ea3435a5a9f628272194f18db610bbf86b588c85550feb927255543e83fd8791",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/feasible_scenario.py": "4211b20b946b67cbec5c972e1371104999a0a4a4181e94c6d44a7acfe5dea267",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/local_estimation.py": "989c9d1140f4d4cb9fe1579d7a1e5c5336ec26a9468b53b467938bf5d95a9140",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/observation_monitor.py": "730a7fae485e9c631ddf07e0c30c6df4a23ea650cce05dc26fc7029bb7d40e25",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/offline_process.py": "898a77a08e1355bc24662ae9355aec3bec8ebcba7b462f117b79947c6933daf3",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/planning.py": "c9ca2858075c76fb6256077d85d408093685c9a398e6f9258c2e4ab1394ff7a6",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/prediction_data.py": "ef541c95461a0356f0f3f292c727e7395ffe15e7a4ca5e28c9b732a76d0cce52",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/propagation.py": "be6083e4e19f07a99d4df9c073842de1ac7c76a44d919f3bb81fa74b136df2df",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/repair_process.py": "c89ac8e269d624b63e426f34246895b869168860d93775602490c9608b3d92d5",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/repair_program.py": "48e4f22dd0f113db7981f86a661fc4771e878645a732860c70a6bb49e4d518a9",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/repair_search.py": "a6a7fb0d19c780a9592dc79e83f5f51ba11ddaf1adfde348188efc518a6df6d0",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/route_repair.py": "3c2ff61d069cd34da4974caeb1c0c1be4e8ac4def22d8b9983a1eac8f765cec4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/scenario_loop.py": "7401e300f89e6522809b95f401dd3d1d933bfc5ed34d773296404c8bfd41060c",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/scenario_planning.py": "93f3ea251fb0fcf7a29bc0853509cbd46c417f938706675199e6ae0d45b2a1e9",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/scenarios.py": "9d03af8fed21a94407b048cf0a05d57ce3bea277805803c4592c931e6b3b12f7",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/sensing.py": "64a97d0dab38f09abaa13a1bc98c128e08ce5fa7962166542fe83afb1facd499",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/short_loop.py": "86e7368169b5c8a3a3ee7b4a88831cd3cf618504ff44dd2b72842e11170812ba",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/simulation.py": "3e6856f5af6b06d2bde31c5c937e0e1d6937283304c59fbad61b4cc54bbc0b7f",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/source_model.py": "9d939a5465da2684664ab7c7654959e31d57281be7f51530ad7e21ad27bd991d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/task_readiness.py": "4de7d11f0028d67672185dada4f1142f8c9b0eff2960ea013de762aadd6dc34d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/docs/scenario_closed_loop_v1.md": "77f0389e167d9dec30cbe313d7f4416b768067664d706a7e4e50aebe01d162d2",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/docs/scenario_loop_public_contract.md": "7a4882a8dc65754be85f57293642718d897800ae42de2176261275e0ef393cd0",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/src/uav_em/feasible_scenario.py": "4211b20b946b67cbec5c972e1371104999a0a4a4181e94c6d44a7acfe5dea267",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/src/uav_em/scenario_loop.py": "7401e300f89e6522809b95f401dd3d1d933bfc5ed34d773296404c8bfd41060c",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tests/test_feasible_scenario.py": "224f0333646e84ca17778e4e1226c3dff6ca38da522436fa81437d1aa093386d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tests/test_scenario_loop.py": "2099bb5aa26f94b1fa871472c87f3017761d4330e1a86e41900f7c870e7b6ed4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tools/render_scenario_loop.py": "411dacf924ad90060d4681beb0bd3cad44d36540e2754d65bd0339b466d19a0f",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tools/run_scenario_loop.py": "83aea536f5d5cf88902b9cd547b5a30645ba217c6d21bc83ac8b18d7c7362694",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tools/verify_scenario_loop.py": "a55dc97edcd88d98572cb2339eb091a39457904477e432b0949ee92f73f8455f",
+    "outputs/interference_scenario_loop_20261118/reports/verification.json": "62e02e900234723b81d91418dec9f2741da5a8581e4f311e4b833dd430f8413f",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_dynamic/decisions.jsonl": "d5dd8dab728d90cb67ba003775027efee9174dee8621c2294eb1c3266f447b61",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_dynamic/episode.json": "1016f9ddfadd30e86ffd3ac0ac995b73e20a08ba005287fe46c24fd76c49ed08",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_dynamic/status.json": "c9b13e9c9f4dffaaaf8ec798429162dbfc649d1403522b5721fd83c6b431009b",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_static/decisions.jsonl": "1ef9397f194effb01d9a745ecb2fdd000d6dc163af931166fead3f8392c3e8b0",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_static/episode.json": "4c19a65b16493c7e96e3f3ad802b5eaaccbc4233ba6f7af0eaee54de7cdeffba",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_static/status.json": "e8c068fa5f1e282b3028929a5607766770ef06b7efdc62fe1c32e02845f0856f",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/decisions.jsonl": "1a2a1c5cdabd3cd0cc69fb37fe889d86ead894522a4d0f14ea831ef2e6320f10",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/episode.json": "728766a76cc779669ed17e7fa5e5c56242bacfde37a3e52c6b7373d34ca3f405",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/status.json": "8aac74dbf82552594cd56b715ddcbf52811ab6438e3fc38b85e25a1591a0bfaf",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_static/decisions.jsonl": "99ce35846e2863a03665df2f95b4bf05037c06e61cff2ce44b2583d41af60ab4",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_static/episode.json": "17e0d00dfebf5a9199a7d0c50f2d6b28f92521174a7bc99b1d4cf3cdbcbc7f7c",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_static/status.json": "a551eeccc2708245b28cde614b064ce3526b7d382ba4d5d12265cce178c063fa",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_dynamic/decisions.jsonl": "0f166f7bcd403a4ab1202ab88a695a28fafbb6e947674177c36e912d78e66819",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_dynamic/episode.json": "c4ea366c4663f6f71ded562fb02311e59b3b6e7666dec8e2709ff70062680c93",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_dynamic/status.json": "9ae37df2d66e38e782b35d6c571f60b449863f01307876f74a6e06decb0633ed",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_static/decisions.jsonl": "e5650e72a8cd1aed8a926df07a267f39e96b962aaa1213a26ab0ba4586c65be1",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_static/episode.json": "e92464b1ff1ea7c64344089eb6db5294c726b94c6cb0c82436e1674b8d9c78ff",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_static/status.json": "0ddf295e369d1740297910074fc96387b52c5ff1af5424528e1d5f78353086fa",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_dynamic/decisions.jsonl": "b7cf94f0097da6c0b65b528447e2490504d6cade3a97e35f3ff7160288a94759",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_dynamic/episode.json": "cc833e3bf8f8b4174027deb80876a1f30630259dda3d9db3fb879c224cfa93d9",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_dynamic/status.json": "1c2f8b64393a899a10dae71d89a5c9b44e9390131e1275469bf7d4529e8dc711",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_static/decisions.jsonl": "5579dbc176bf3187f7ecaf5a8746468ebcfc5792ecf8f7cf918c49768cdf9a31",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_static/episode.json": "7e9be6f851eae785ae032318493cc040eea27287c42dac2d0176efde3b3d5053",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_static/status.json": "d708fa1d51b5b6eb7a2a14d8ad6a64fdbc40fe978edd54c844bde8383bcf95d9",
+    "outputs/interference_scenario_loop_20261118/scenarios/dynamic.json": "71cbcf8cd46f1b313ce375958368c690f37a5da2842688b0343a5112401c34e3",
+    "outputs/interference_scenario_loop_20261118/scenarios/static.json": "b066e99a0216f59f8efbfd15971c5ec7809ed9976c1d01db96ecf4fc1ac5c192"
+  },
+  "c1_after_sha256": {
+    "outputs/interference_scenario_loop_20261118/.ipynb_checkpoints/index-checkpoint.html": "14146964d215b6cfd3057a5dc06b53cf2c0fb8d3b231e483a5283889fc37bb1f",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_dynamic.json": "d1968f02d5d4fddc4f9a689092fca66bd4cae2b13a57de2e0271339560514de9",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_dynamic_grids.npz": "113fc66cc0a82bf24c5f0dc0c7e4cda2d9e15c02ad1e9bd87b1bccba0ecade41",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_static.json": "e47351704ca7768b12fb6c8802cf9dd6d16c329aced89fbf1f18551904b58ce6",
+    "outputs/interference_scenario_loop_20261118/evaluation/gp_numeric_static_grids.npz": "4ac7f07b947a6307a2193aac366aa75199a6832ccaa84f6c120158bd57bb3271",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_dynamic.json": "a2b2d7890e6b220b29c3ee24e89f36f1ced61ebce62fb8cbc8a0edd77c8652e8",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_static.json": "0bc5a04687bee1afe4e97d5002f276590a7ab497a6998a5d91f1fc55f95c3a45",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_llm_static_grids.npz": "1aae5816869ddd7568e9dae8072b3842503c581b778ae26ee248be399b2e5ac3",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_dynamic.json": "1818b0caf21cdc25b463005f4971b442e3cb9ebbd92f3a16ed8a707d61c6413d",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_static.json": "35962fe3b8eafd864f103e8f56bc66456f574e9ac29d084f358668502dd2c53b",
+    "outputs/interference_scenario_loop_20261118/evaluation/mixture_numeric_static_grids.npz": "1aae5816869ddd7568e9dae8072b3842503c581b778ae26ee248be399b2e5ac3",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_dynamic.json": "f0bcd4b638151e8e57a83915ce6f8b1f6d8a9c19a2970c48d6eae96c2dcba392",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_dynamic_grids.npz": "df48beac8f3ef87b0c6c7c95cf8382b903d88411efabe4240c465e28eba44b81",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_static.json": "009c591028fbe94a69ee6c804817d1b806083e7b195d54a89bcf82ae01a50970",
+    "outputs/interference_scenario_loop_20261118/evaluation/persistence_numeric_static_grids.npz": "1aae5816869ddd7568e9dae8072b3842503c581b778ae26ee248be399b2e5ac3",
+    "outputs/interference_scenario_loop_20261118/index.html": "14146964d215b6cfd3057a5dc06b53cf2c0fb8d3b231e483a5283889fc37bb1f",
+    "outputs/interference_scenario_loop_20261118/protocol.json": "2c9ffff7556e49aba3750b2aae8613bef6c4c0ee6cf8c015d7e1b2d0798dc03c",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/contract.md": "7a4882a8dc65754be85f57293642718d897800ae42de2176261275e0ef393cd0",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/control.json": "55a1c4cc9dfbcbbc6a19b1aeee228c0a2e290888e200311901fd6f51723d539e",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/00.json": "db0e2ac0992e9b2f19d14a8b4efc3fff7152835d7ae2f4cacbfa978b3d98fa57",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/01.json": "a25cc58a86bece51b078f8c9e53bc2df3b56326f2ed0da9d7ee8c324895a4ee9",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/02.json": "73b0a0ba64a9e4c723cc1fb05e91332572a37523fde01745327cc4a5a15e48ce",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/requests/03.json": "e447ae2b042e729e346a495dc6a9dc9e8620fb7e9b7878bd19578ffac27cd7ec",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/00.raw.txt": "ddb7fc3f828b32ae81b81b96b6c676fbd2b427c9cca0be3d4629933f394a5dbd",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/00.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/00.started.json": "2c69b6d3d2dbbc3bcd641ca4cd1c01f0a8db1aa8ee312b3d0347d8e442014600",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/01.raw.txt": "9e167a1816dbca354fe1cb9d3492bd1afc7a25988f0a4bad45c27bab0bc4fee5",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/01.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/01.started.json": "0c91d67d1a5bb41e0f2a48febb41f92ec78548643d364d4066635b7607bf4954",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/02.raw.txt": "e261ac51164695742ea412102d271ffe02431306f7aee8ea4e5a0e491c7b6035",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/02.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/02.started.json": "48d5834ac150d1ae2ae8ac8441a22a5d1f7cca2fd314b97daf4ca3d597b7a3e3",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/03.raw.txt": "b0c9aac4f53d1baaa5dd0d5f4fc3c9ee5ce97bf67dcb34d5fd79467061898b86",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/03.ready": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/responses/03.started.json": "ac3d56ab4a815359caec578a6cf561ecf90dd6e379700e26447d52ef02fcd996",
+    "outputs/interference_scenario_loop_20261118/public/dynamic/session_ready.json": "a6b0fe73ff04b3b8be5bd18ae607755c8b51742305b5480475390b19092a2be4",
+    "outputs/interference_scenario_loop_20261118/public/static/contract.md": "7a4882a8dc65754be85f57293642718d897800ae42de2176261275e0ef393cd0",
+    "outputs/interference_scenario_loop_20261118/public/static/control.json": "4b303679b730f4a5787d58b7c881233d35cafce609a97c5b8dd3e1609193eaad",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/00.json": "73904e7cefd0cab007babd941efc6920b3f34a3eb0d8b683e2a941b5ebfd1e88",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/01.json": "5f2f7bc4134d40f44208693832ace20672b6f2379f2fefb50999ea1761b9d789",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/02.json": "049b752f1755d639bb6501d57d9bdd77ba324b1c5714309f9394ae7f88a5e01c",
+    "outputs/interference_scenario_loop_20261118/public/static/requests/03.json": "cd2bdb296130fea71c7a33afc79cf1a3dfd8000773e50a65b0a6ecc8a251d4a9",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/00.raw.txt": "123f14105c6abfcd4e60b8e392c565dd5ea917d383a52c99052178caf0168d85",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/00.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/00.started.json": "dc6813817000a2924e0c5b1483b8d1f0177c56e0ec3dcfdc113c7d94e5bef680",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/01.raw.txt": "5e2a1d155c8da66cf2c337d824080d8d4697e1cfb091899e8bbb017eb910e256",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/01.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/01.started.json": "d58bec235435c6ce663ed4848fa8c3019be38b8210f023231b7f121d285b555b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/02.raw.txt": "c31bf1e796f16be2a0fd84d4bad706d04294086e1ea37a7a8f2f3b4a030b2284",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/02.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/02.started.json": "99f2aae049e659048fa0860f4eee93a960314799e96238294a471de9e14dd4c2",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/03.raw.txt": "f7b3ffa8140f11dbbff50bc1991b142f0774b96c51513e09480a4b72c0ba3a33",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/03.ready": "ed1a545bb85e55816bbf9566b028b2a0bc456b88f49f6f266c0401048824194b",
+    "outputs/interference_scenario_loop_20261118/public/static/responses/03.started.json": "68b1facdca2dc6a32a3409929865bb16abe0e1bd44678760bd432d238bd4bcd1",
+    "outputs/interference_scenario_loop_20261118/public/static/session_ready.json": "8a988dcff8157ff147bedc02329c2990735e605259ab60b48f8eb0d735caa98d",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/gp_numeric_dynamic-checkpoint.gif": "b959f895d7b5489b545442eb8ae4013bef5979afb36e6d9c661cf3bb4c46093a",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/gp_numeric_static-checkpoint.gif": "46cd6244afa4cf036c27c1401bebd54cd49d9a8a26dbb151f913b21986520fb2",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/index-checkpoint.html": "e452257a12fb06fb293475a9323a0ababcfc3c477795227f5834c3cf924c9094",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_llm_dynamic-checkpoint.gif": "0cbd3fd77793b2c88d729914b435a8350caca275eff7b374847647236bb9717c",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_llm_static-checkpoint.gif": "cce0ae3948b04c6b578862988d033b25c39688bd3319ba1168d6beaf7f8057ce",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_numeric_dynamic-checkpoint.gif": "477382f4d80693a879c869ccde75e7f53492342f8e8b6a9a60ff7e3a7ae5d3ae",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/mixture_numeric_static-checkpoint.gif": "3905c6c470e1761c130259fde838d5087754daf78578ccebea334c90e2f3965d",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/persistence_numeric_dynamic-checkpoint.gif": "bffbc4616d4a2c5dbf392f8b9e069c2fbca87da8f96f48d5cbc6b58852e48fd1",
+    "outputs/interference_scenario_loop_20261118/replay/.ipynb_checkpoints/persistence_numeric_static-checkpoint.gif": "e7e51308b22e1e36247925ec6992e9f05b5c91af5467601c726dc76aa3d20e0c",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/.ipynb_checkpoints/mixture_llm_full_mixture-checkpoint.gif": "2de04d338af4aaaa6a6f1beebb58bc1b8523074f526ae901560ee1149890966d",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/.ipynb_checkpoints/mixture_numeric_full_mixture-checkpoint.gif": "50b912b2886bfb7440f6cd48b3704d9a7142d059cb660e36e49850a5432c5c4d",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/display_provenance.json": "0125078c76609c3ca81d92ac0a6af717510a230abf9d74323d72da4ae3f340b5",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/index.html": "38d241599e5fd33c816feaa6006c9e5abf68fd3b513b18a1c0ddaa3afcad6e7f",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/mixture_llm_full_mixture.gif": "2de04d338af4aaaa6a6f1beebb58bc1b8523074f526ae901560ee1149890966d",
+    "outputs/interference_scenario_loop_20261118/replay/full_mixture/mixture_numeric_full_mixture.gif": "50b912b2886bfb7440f6cd48b3704d9a7142d059cb660e36e49850a5432c5c4d",
+    "outputs/interference_scenario_loop_20261118/replay/gp_numeric_dynamic.gif": "b959f895d7b5489b545442eb8ae4013bef5979afb36e6d9c661cf3bb4c46093a",
+    "outputs/interference_scenario_loop_20261118/replay/gp_numeric_static.gif": "46cd6244afa4cf036c27c1401bebd54cd49d9a8a26dbb151f913b21986520fb2",
+    "outputs/interference_scenario_loop_20261118/replay/index.html": "e452257a12fb06fb293475a9323a0ababcfc3c477795227f5834c3cf924c9094",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_llm_dynamic.gif": "0cbd3fd77793b2c88d729914b435a8350caca275eff7b374847647236bb9717c",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_llm_static.gif": "cce0ae3948b04c6b578862988d033b25c39688bd3319ba1168d6beaf7f8057ce",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_numeric_dynamic.gif": "477382f4d80693a879c869ccde75e7f53492342f8e8b6a9a60ff7e3a7ae5d3ae",
+    "outputs/interference_scenario_loop_20261118/replay/mixture_numeric_static.gif": "3905c6c470e1761c130259fde838d5087754daf78578ccebea334c90e2f3965d",
+    "outputs/interference_scenario_loop_20261118/replay/overview/.ipynb_checkpoints/mixture_llm_overview-checkpoint.gif": "23bc83e8523db6b9e6b0197c44cd48fff5ebd52dc2caddca2e02777a84d89020",
+    "outputs/interference_scenario_loop_20261118/replay/overview/display_provenance.json": "a3339906134ce65f9b70484c0f217e58cd6d9a572d104dbc607af668d30c4ccc",
+    "outputs/interference_scenario_loop_20261118/replay/overview/gp_numeric_overview.gif": "e4479dcd8de3bb4d28190cf5679ba304bab40d8df1e71619ca49ac2796a15d32",
+    "outputs/interference_scenario_loop_20261118/replay/overview/index.html": "5458268a0ab2216664f7329ed214c9ff6f425dc0839b77bc98cbfb3c6b0feb58",
+    "outputs/interference_scenario_loop_20261118/replay/overview/mixture_llm_overview.gif": "23bc83e8523db6b9e6b0197c44cd48fff5ebd52dc2caddca2e02777a84d89020",
+    "outputs/interference_scenario_loop_20261118/replay/overview/mixture_numeric_overview.gif": "c692ba99b62ef99b050a5b0f7ea92584ed93915b406bdd5a8318bb65139ec69d",
+    "outputs/interference_scenario_loop_20261118/replay/persistence_numeric_dynamic.gif": "bffbc4616d4a2c5dbf392f8b9e069c2fbca87da8f96f48d5cbc6b58852e48fd1",
+    "outputs/interference_scenario_loop_20261118/replay/persistence_numeric_static.gif": "e7e51308b22e1e36247925ec6992e9f05b5c91af5467601c726dc76aa3d20e0c",
+    "outputs/interference_scenario_loop_20261118/reports/agent_sessions.json": "76cf6825a494acba5a7653b85bca1a937fe85a1aa90f0453742c640e56270ec0",
+    "outputs/interference_scenario_loop_20261118/reports/findings.md": "c1c0e63227703355410ff27b73665032e1f9aad83c911808c523ce5c73e838b6",
+    "outputs/interference_scenario_loop_20261118/reports/flight_freeze.json": "b33b2f49c5d06d67211d100a78b175fc56438cc17179f137254ba0368a63817f",
+    "outputs/interference_scenario_loop_20261118/reports/full_tests.log": "f8c09f16dd22705fc942b951ca894c2701eadf045244b9a6acbc7573e446c609",
+    "outputs/interference_scenario_loop_20261118/reports/llm_dynamic.log": "f167daadf5ed6b51834375e89e7be9ad9a26914b7c9dc20a202f9e15c578a09d",
+    "outputs/interference_scenario_loop_20261118/reports/llm_static.log": "8ffa64bdf052154bec0870c3e5193fba6f5617797ba8ed37dbc79eb0c5bfea66",
+    "outputs/interference_scenario_loop_20261118/reports/navigation_check.json": "5ace152e18283cb2e8641f0f0d457b660249af9e5cf627ad688bcb1a5282c8f8",
+    "outputs/interference_scenario_loop_20261118/reports/numerical.log": "c73f1c801c2b2238593ce7f1affcaf1245df90bd3e43edaf4a88f7d20ffa8671",
+    "outputs/interference_scenario_loop_20261118/reports/publication.json": "6db9c11ddc0b4881b135b286ae1342ddaee57fc901d8c95b7f9cbfe8da0e5040",
+    "outputs/interference_scenario_loop_20261118/reports/publication_audit.json": "19d7c270e23d158332e1541cbc8a42dabb9aa65b2ca168a3609aad4a16333610",
+    "outputs/interference_scenario_loop_20261118/reports/results.json": "41b8ff89c5034e226424ee815420adf9125ca50db3ac6b757e34a7f80f03c578",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/README.json": "5927877b57ea930a482ad39c7b421a29a5d63d6bc5b9c5ae3fe67eb5dcdc4f4e",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/__init__.py": "41b8fb97c0589372dfa7c20ed1ddc5ecd1e041cbcdef23001ba33b7589613f43",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/advisor.py": "f09f795fa7d4375ac8191190e92f5cb0d8566729802ba36cae8e9af453356b18",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/agent_navigation.py": "53f275e546ea166d478bf143601c7c81d1efa2701bf5b594af418d4259d7b885",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/balanced_objective.py": "72e94cca702f5f794919dbfdf4e8daa869bdfc82c8fde94d40bd1bd2a9625805",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/belief.py": "6e839eb670913d6e84a197703a413235336ec379e08344f2b675756e8208c46e",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/branch_belief.py": "25241a1eb921e83572db33ade43ba23a2c51ee46c491e0e6daa2c6d4a4bf744a",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/buildings.py": "76d0f0bf022dffeeee5025ba7787f1035fe780633a738307acec0c3af57fb588",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/config.py": "e2bedae243cc12d2c6caacadbeae1517d555d947ac5a793180cd8fe40dc1ba68",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/context.py": "06d08b47956e26d67acf1fbfbeacd6b3a10b93a174c832c9175accf22a4657b4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/decision_objective.py": "00b1082af83c98e3e6728955a83dbea9c22377aa6c67e1fb9c21524b02491c2d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/decision_state.py": "e64e197052c065751f7aa304bf3ebc86e83fcce4ad34c3d6c89d074f8e32670d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/environment.py": "ad7aaac168a4f57d2eebd0dc5f80753cd0361fc49da585ed5edf2ac23958f00b",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/equivalent_capacity.py": "889043d4540f55f4215301b9871df01027f7b37437efd404000a911f2f095bb4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/equivalent_sources.py": "33ae9b827930891f5c77f48c449ec5348deef6c7362d8ffa74660ea960d5343c",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/event_inference.py": "3ee00db60fef2c82f1fbebde93c4b177cabf76cb00e5059e78533d57210fcf06",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/event_llm_inference.py": "0375ee133054523e917cfefc6b4f5f58114724d451085bd5d8c946cf36760e23",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/extrapolation.py": "ea3435a5a9f628272194f18db610bbf86b588c85550feb927255543e83fd8791",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/feasible_scenario.py": "4211b20b946b67cbec5c972e1371104999a0a4a4181e94c6d44a7acfe5dea267",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/local_estimation.py": "989c9d1140f4d4cb9fe1579d7a1e5c5336ec26a9468b53b467938bf5d95a9140",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/observation_monitor.py": "730a7fae485e9c631ddf07e0c30c6df4a23ea650cce05dc26fc7029bb7d40e25",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/offline_process.py": "898a77a08e1355bc24662ae9355aec3bec8ebcba7b462f117b79947c6933daf3",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/planning.py": "c9ca2858075c76fb6256077d85d408093685c9a398e6f9258c2e4ab1394ff7a6",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/prediction_data.py": "ef541c95461a0356f0f3f292c727e7395ffe15e7a4ca5e28c9b732a76d0cce52",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/propagation.py": "be6083e4e19f07a99d4df9c073842de1ac7c76a44d919f3bb81fa74b136df2df",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/repair_process.py": "c89ac8e269d624b63e426f34246895b869168860d93775602490c9608b3d92d5",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/repair_program.py": "48e4f22dd0f113db7981f86a661fc4771e878645a732860c70a6bb49e4d518a9",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/repair_search.py": "a6a7fb0d19c780a9592dc79e83f5f51ba11ddaf1adfde348188efc518a6df6d0",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/route_repair.py": "3c2ff61d069cd34da4974caeb1c0c1be4e8ac4def22d8b9983a1eac8f765cec4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/scenario_loop.py": "7401e300f89e6522809b95f401dd3d1d933bfc5ed34d773296404c8bfd41060c",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/scenario_planning.py": "93f3ea251fb0fcf7a29bc0853509cbd46c417f938706675199e6ae0d45b2a1e9",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/scenarios.py": "9d03af8fed21a94407b048cf0a05d57ce3bea277805803c4592c931e6b3b12f7",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/sensing.py": "64a97d0dab38f09abaa13a1bc98c128e08ce5fa7962166542fe83afb1facd499",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/short_loop.py": "86e7368169b5c8a3a3ee7b4a88831cd3cf618504ff44dd2b72842e11170812ba",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/simulation.py": "3e6856f5af6b06d2bde31c5c937e0e1d6937283304c59fbad61b4cc54bbc0b7f",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/source_model.py": "9d939a5465da2684664ab7c7654959e31d57281be7f51530ad7e21ad27bd991d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_dependencies/task_readiness.py": "4de7d11f0028d67672185dada4f1142f8c9b0eff2960ea013de762aadd6dc34d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/docs/scenario_closed_loop_v1.md": "77f0389e167d9dec30cbe313d7f4416b768067664d706a7e4e50aebe01d162d2",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/docs/scenario_loop_public_contract.md": "7a4882a8dc65754be85f57293642718d897800ae42de2176261275e0ef393cd0",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/src/uav_em/feasible_scenario.py": "4211b20b946b67cbec5c972e1371104999a0a4a4181e94c6d44a7acfe5dea267",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/src/uav_em/scenario_loop.py": "7401e300f89e6522809b95f401dd3d1d933bfc5ed34d773296404c8bfd41060c",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tests/test_feasible_scenario.py": "224f0333646e84ca17778e4e1226c3dff6ca38da522436fa81437d1aa093386d",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tests/test_scenario_loop.py": "2099bb5aa26f94b1fa871472c87f3017761d4330e1a86e41900f7c870e7b6ed4",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tools/render_scenario_loop.py": "411dacf924ad90060d4681beb0bd3cad44d36540e2754d65bd0339b466d19a0f",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tools/run_scenario_loop.py": "83aea536f5d5cf88902b9cd547b5a30645ba217c6d21bc83ac8b18d7c7362694",
+    "outputs/interference_scenario_loop_20261118/reports/runtime_source/tools/verify_scenario_loop.py": "a55dc97edcd88d98572cb2339eb091a39457904477e432b0949ee92f73f8455f",
+    "outputs/interference_scenario_loop_20261118/reports/verification.json": "62e02e900234723b81d91418dec9f2741da5a8581e4f311e4b833dd430f8413f",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_dynamic/decisions.jsonl": "d5dd8dab728d90cb67ba003775027efee9174dee8621c2294eb1c3266f447b61",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_dynamic/episode.json": "1016f9ddfadd30e86ffd3ac0ac995b73e20a08ba005287fe46c24fd76c49ed08",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_dynamic/status.json": "c9b13e9c9f4dffaaaf8ec798429162dbfc649d1403522b5721fd83c6b431009b",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_static/decisions.jsonl": "1ef9397f194effb01d9a745ecb2fdd000d6dc163af931166fead3f8392c3e8b0",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_static/episode.json": "4c19a65b16493c7e96e3f3ad802b5eaaccbc4233ba6f7af0eaee54de7cdeffba",
+    "outputs/interference_scenario_loop_20261118/runs/gp_numeric_static/status.json": "e8c068fa5f1e282b3028929a5607766770ef06b7efdc62fe1c32e02845f0856f",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/decisions.jsonl": "1a2a1c5cdabd3cd0cc69fb37fe889d86ead894522a4d0f14ea831ef2e6320f10",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/episode.json": "728766a76cc779669ed17e7fa5e5c56242bacfde37a3e52c6b7373d34ca3f405",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/status.json": "8aac74dbf82552594cd56b715ddcbf52811ab6438e3fc38b85e25a1591a0bfaf",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_static/decisions.jsonl": "99ce35846e2863a03665df2f95b4bf05037c06e61cff2ce44b2583d41af60ab4",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_static/episode.json": "17e0d00dfebf5a9199a7d0c50f2d6b28f92521174a7bc99b1d4cf3cdbcbc7f7c",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_llm_static/status.json": "a551eeccc2708245b28cde614b064ce3526b7d382ba4d5d12265cce178c063fa",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_dynamic/decisions.jsonl": "0f166f7bcd403a4ab1202ab88a695a28fafbb6e947674177c36e912d78e66819",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_dynamic/episode.json": "c4ea366c4663f6f71ded562fb02311e59b3b6e7666dec8e2709ff70062680c93",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_dynamic/status.json": "9ae37df2d66e38e782b35d6c571f60b449863f01307876f74a6e06decb0633ed",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_static/decisions.jsonl": "e5650e72a8cd1aed8a926df07a267f39e96b962aaa1213a26ab0ba4586c65be1",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_static/episode.json": "e92464b1ff1ea7c64344089eb6db5294c726b94c6cb0c82436e1674b8d9c78ff",
+    "outputs/interference_scenario_loop_20261118/runs/mixture_numeric_static/status.json": "0ddf295e369d1740297910074fc96387b52c5ff1af5424528e1d5f78353086fa",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_dynamic/decisions.jsonl": "b7cf94f0097da6c0b65b528447e2490504d6cade3a97e35f3ff7160288a94759",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_dynamic/episode.json": "cc833e3bf8f8b4174027deb80876a1f30630259dda3d9db3fb879c224cfa93d9",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_dynamic/status.json": "1c2f8b64393a899a10dae71d89a5c9b44e9390131e1275469bf7d4529e8dc711",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_static/decisions.jsonl": "5579dbc176bf3187f7ecaf5a8746468ebcfc5792ecf8f7cf918c49768cdf9a31",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_static/episode.json": "7e9be6f851eae785ae032318493cc040eea27287c42dac2d0176efde3b3d5053",
+    "outputs/interference_scenario_loop_20261118/runs/persistence_numeric_static/status.json": "d708fa1d51b5b6eb7a2a14d8ad6a64fdbc40fe978edd54c844bde8383bcf95d9",
+    "outputs/interference_scenario_loop_20261118/scenarios/dynamic.json": "71cbcf8cd46f1b313ce375958368c690f37a5da2842688b0343a5112401c34e3",
+    "outputs/interference_scenario_loop_20261118/scenarios/static.json": "b066e99a0216f59f8efbfd15971c5ec7809ed9976c1d01db96ecf4fc1ac5c192"
+  },
+  "c1_unchanged": true,
+  "baseline_workspace_check": {
+    "passed": false,
+    "retained_hashes_checked": 146,
+    "active_modules": 22,
+    "local_imports_checked": 45,
+    "active_navigation_links_checked": 133,
+    "failures": [
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/index.html",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/protocol.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/full_tests.log",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/navigation_check.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/findings.md",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/publication.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/verification.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/results.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/gp_numeric_static.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_numeric_dynamic.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_llm_static.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_numeric_static.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/gp_numeric_dynamic.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/persistence_numeric_dynamic.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_llm_dynamic.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/persistence_numeric_static.json",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tools/run_timing_diagnostic.py",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tools/verify_timing_diagnostic.py",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/src/uav_em/decision_timing.py",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/docs/decision_timing_diagnostic_v1.md",
+      "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tests/test_decision_timing.py"
+    ],
+    "scope": "byte integrity/imports/navigation only; no independent scientific rerun"
+  },
+  "preserved": "models, datasets, records, submissions, virtualenv and all existing C1 bytes; no full-project archive",
+  "research_operations": {
+    "new_flights": 0,
+    "decision_llm_calls": 0,
+    "new_gp_fits": 0,
+    "new_source_fits": 0,
+    "new_truth_queries": 0,
+    "training_runs": 0
+  },
+  "validation": {
+    "tests": {
+      "exit_code": 0,
+      "passed": 211,
+      "log": "docs/maintenance/handoff_tests_20261119.log"
+    },
+    "describe": {
+      "exit_code": 0,
+      "log": "docs/maintenance/handoff_describe_20261119.log",
+      "no_flight": true
+    },
+    "workspace": {
+      "passed": false,
+      "failures": [
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/index.html",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/protocol.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/full_tests.log",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/navigation_check.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/findings.md",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/publication.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/verification.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/results.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/gp_numeric_static.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_numeric_dynamic.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_llm_static.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_numeric_static.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/gp_numeric_dynamic.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/persistence_numeric_dynamic.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_llm_dynamic.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/persistence_numeric_static.json",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tools/run_timing_diagnostic.py",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tools/verify_timing_diagnostic.py",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/src/uav_em/decision_timing.py",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/docs/decision_timing_diagnostic_v1.md",
+        "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tests/test_decision_timing.py"
+      ],
+      "same_failures_as_before": true,
+      "report": "docs/maintenance/handoff_workspace_check_20261119.json"
+    },
+    "extended_markdown_links": {
+      "checked": 103,
+      "failures": []
+    },
+    "original_c1_unchanged": true,
+    "test_scope": "CPU synthetic/component/regression checks; not a new scientific flight or performance experiment"
+  },
+  "cleanup_stage_source_unchanged_excluding_caches": true,
+  "entry_status_edit": {
+    "path": "src/run_experiment.py",
+    "scope": "describe output text only; no simulation/planning/inference behavior change",
+    "after_sha256": "7b4352c731663f2d8e5758de3a491098a8d9c8d67b6cc0d84a819de739eb2e7a"
+  },
+  "post_cleanup_doc_note": {
+    "path": "docs/equivalent_field_walkthrough.md",
+    "scope": "explicit historical priority label",
+    "after_sha256": "b012f9d6ee4412743ae2307163d8d6bc74cc65dda3d2906ac91593b671631010"
+  }
+}

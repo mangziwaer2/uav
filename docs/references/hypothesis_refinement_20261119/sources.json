@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-19",
+  "sources": [
+    {
+      "name": "hypothesis_literature_data",
+      "url": "https://arxiv.org/html/2410.17309v3",
+      "resolved_url": "https://arxiv.org/html/2410.17309v3",
+      "status": 200,
+      "title": "Literature Meets Data: A Synergistic Approach to Hypothesis Generation",
+      "sha256": "bac398c358a4b7a475348712af1ada6c4218d59a7e58825b2d935f9abb2bae1a",
+      "text_sha256": "10560930ef33219be6ad17625df5e917a91db8bf057a017e9a4af406a72530ca",
+      "characters": 139107,
+      "retrieved_utc": "2026-11-19T08:16:55.550964+00:00",
+      "reading_scope": "Abstract; sections 2.2 and 2.3: wrongly predicted example pool, UCB-inspired reward, literature/data refinement. Selected full-text passages, not complete review."
+    },
+    {
+      "name": "radio_local_pathloss",
+      "url": "https://arxiv.org/html/1611.03725",
+      "resolved_url": "https://arxiv.org/html/1611.03725",
+      "status": 200,
+      "title": "Practical Interpolation for Spectrum Cartography through Local Path Loss Modeling",
+      "sha256": "2f28f739278e13233e4c1a2a002be451cd50c896f11429f4a458ff72f16a2dbd",
+      "text_sha256": "9ba30a0fe56808156aeef6ca3ff8da2304e843e9824726dfc83c6e1dc396c8f4",
+      "characters": 55496,
+      "retrieved_utc": "2026-11-19T08:16:28.129810+00:00",
+      "reading_scope": "Abstract; sections III and V-A on local least-squares trend and residual interpolation; VI-A known-emitter experimental assumptions."
+    },
+    {
+      "name": "dynamic_average",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2895940/",
+      "resolved_url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC2895940/",
+      "status": 200,
+      "title": "\n            Online Prediction Under Model Uncertainty via Dynamic Model Averaging: Application to a Cold Rolling Mill - PMC\n        ",
+      "sha256": "7100e7dc54fb03cdeca42a64fc11017b8b025ba725c1e4b2db1d32b1a51159e5",
+      "text_sha256": "e2ab8e3b57e3c54b92322ca2ebd9724133eec8103677d8740bade571cc0055d7",
+      "characters": 66535,
+      "retrieved_utc": "2026-11-19T08:16:27.605806+00:00",
+      "reading_scope": "Abstract; sections 3.1 to 3.3 selected passages on parameter forgetting, model averaging and connection to static BMA."
+    },
+    {
+      "name": "online_changepoint",
+      "url": "https://arxiv.org/html/0710.3742",
+      "title": "Bayesian Online Changepoint Detection",
+      "status": 200,
+      "sha256": "f2e2d7e7613ad18f22c1c9f1330b8af105065783cb192c964282305756ee7ef6",
+      "text_sha256": "3493a12a61846433779c302e55b0e359fe3e1265ec7ca54e553791d85726de39",
+      "reading_scope": "Abstract; sections 1, 2, 2.1: run length, predictive recursion, hazard prior and piecewise i.i.d. assumption. Selected full-text passages."
+    }
+  ],
+  "search_files": [
+    "search_results.json",
+    "search_results_2.json"
+  ],
+  "retrieval_note": "Initial Google request had a connection failure; urllib arXiv API and publisher/full-text access subsequently succeeded. Bing returned HTML with no parsed result entries. Initial guessed Raftery PDF URL returned 404; actual journal full text was subsequently found at PMC2895940. Crossref first result was a technical report, not the journal article; journal DOI verified from full text: 10.1198/TECH.2009.08104. An unrelated guessed arXiv ID was excluded after title verification.",
+  "existing_cache_read": {
+    "path": "outputs/interference_scenario_loop_20261118/runs/mixture_llm_dynamic/episode.json",
+    "sha256": "728766a76cc779669ed17e7fa5e5c56242bacfde37a3e52c6b7373d34ca3f405",
+    "scope": "Existing issued predictions, observations and posterior snapshots at 20 to 25.5 seconds. No model recomputation or new scoring."
+  },
+  "new_scientific_operations": {
+    "fits": 0,
+    "forecasts": 0,
+    "scoring_runs": 0,
+    "physical_truth_queries": 0,
+    "gp_queries": 0,
+    "llm_decision_calls": 0,
+    "flights": 0,
+    "training": 0
+  }
+}

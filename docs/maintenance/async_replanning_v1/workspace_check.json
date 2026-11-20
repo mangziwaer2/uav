@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "retained_hashes_checked": 146,
+  "active_modules": 20,
+  "local_imports_checked": 38,
+  "active_navigation_links_checked": 67,
+  "failures": [],
+  "scope": "byte integrity/imports/navigation only; no independent scientific rerun"
+}

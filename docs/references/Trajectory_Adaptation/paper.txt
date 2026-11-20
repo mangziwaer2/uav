@@ -1,0 +1,351 @@
+Trajectory Adaptation Using Large Language Models
+Skip to main content
+Report GitHub Issue
+×
+Title:
+Content selection saved. Describe the issue below:
+Description:
+Submit without GitHub
+Submit in GitHub
+Why HTML?
+Report Issue
+Back to Abstract
+Download PDF
+Contents
+Reading mode
+Colour theme
+Abstract
+1 Introduction
+2 Related Works
+3 Method
+3.1 Problem Formulation
+3.2 Methodology
+3.2.1 HLP Generation
+3.2.2 Code Generation
+4 Experiments
+4.1 Dataset
+4.2 Prompt Design
+4.2.1  How do LLMs know the environment configuration?
+4.2.2 Defining desired characteristics in a trajectory using rules
+4.3 Simulation experiments
+4.4 Results and Discussion
+5 Limitations
+6 Conclusion
+References
+A Appendix
+A.1 Example tasks for Pipeline testing
+A.2 Full Prompt
+A.3 In-context Examples of high-level plan
+A.4 Examples of High-level plan generated for different instructions
+License: CC BY 4.0
+arXiv:2504.12755v1 [cs.RO] 17 Apr 2025
+Trajectory Adaptation Using Large Language Models
+Anurag Maurya
+Affiliation: Robert Bosch Centre for Cyber-Physical Systems
+Affiliation: Indian Institute of Science, Bengaluru,
+India
+Email: anuragm1@iisc.ac.in
+Tashmoy Ghosh
+Affiliation: Robert Bosch Centre for Cyber-Physical Systems
+Affiliation: Indian Institute of Science, Bengaluru,
+India
+Email: tashmoyg@iisc.ac.in
+Ravi Prakash
+Affiliation: Robert Bosch Centre for Cyber-Physical Systems
+Affiliation: Indian Institute of Science, Bengaluru,
+India
+Email: ravipr@iisc.ac.in
+Abstract
+Adapting robot trajectories based on human instructions as per new situations is essential for achieving more intuitive and scalable human-robot interactions. This work proposes a flexible language-based framework to adapt generic robotic trajectories produced by off-the-shelf motion planners like RRT, A-star, etc, or learned from human demonstrations. We utilize pre-trained LLMs to adapt trajectory waypoints by generating code as a policy for dense robot manipulation, enabling more complex and flexible instructions than current methods. This approach allows us to incorporate a broader range of commands, including numerical inputs. Compared to state-of-the-art feature-based sequence-to-sequence models which require training [1] [2], our method does not require task-specific training and offers greater interpretability and more effective feedback mechanisms. We validate our approach through simulation experiments on the robotic manipulator, aerial vehicle, and ground robot in the Pybullet and Gazebo simulation environments, demonstrating that LLMs can successfully adapt trajectories to complex human instructions.
+Keywords: Intuitive Interface, Trajectory Adaptation, Natural Language Commands
+1 Introduction
+Trajectory adaptation in robotics presents several challenges, particularly in planning-based methods [3] that often require replanning for every new situation. This can become computationally expensive and prone to errors in real-time applications. In contrast, learning-based models offer faster adaptation by leveraging task parameters, such as those used in TP-GMM or dynamical systems like Elastic Dynamical System Motion Policies [4] [5], to adjust the learned model to new environments. However, these approaches require precise mathematical modeling and the explicit formulation of task frames. In our work, we explore a natural language-based trajectory adaptation method that relies on high-level plans and policies encoded as code. This approach bypasses the need for complex mathematical formulations, making it more intuitive, fast, and scalable.
+Large Language Models (LLMs) can assist by enabling natural language-based adaptations to trajectories, allowing non-expert users to suggest changes in intuitive ways. Translating human commands to low-level control [6], particularly towards adjusting a trajectory based on specific preferences like ”Go higher” or ”Move slower” has been challenging due to the gap between language interpretation and task adaptation.
+LLMs have shown great capability in understanding commands and generating rough plans for executing instructions. They have also demonstrated consistency in generating code [7]. Code has become a widely used medium to connect high-level plans with low-level trajectory adjustments.
+We build on the concept of using code as a bridge, extending it to adapt existing trajectories in alignment with given commands. Trajectories can be understood as a series of waypoints. When adapting a trajectory, the goal is to adjust certain key waypoints while maintaining the overall characteristics, such as the trajectory’s shape and its smoothness. Our goal is to interpret the user’s intent as a series of required adaptations and then utilize code as the means to apply those changes. For example, ”Walk at a distance of at least 10 from the fan” can be interpreted as a sequence of identifying points closer to the fan and then increasing their distance from the fan. Additionally, the user provides feedback to clarify and fully articulate the requirements, helping to eliminate any assumptions or potential errors.
+2 Related Works
+Natural Language and Robotics:
+Providing natural language models for robots offers a simple and user-friendly interface for addressing these issues through decision-making and human interaction. Traditionally, it has been difficult to represent human-robot interactions using language because it needs the user to follow a strict set of instructions [8] or involves sophisticated mathematical methods to track various probability distributions over actions and target objects [9], [10]. There has been an increase in recent works that explore Large Language Models (LLM) for complex mapping between language and actions over embodied agents as discussed in [11],[12]. It covers the essential challenges of applying LLMs to robotics, such as the need for real-time responses, handling multi-modal inputs (e.g., language, vision, and proprioception), safety concerns, and the difficulty of grounding language in physical environments. This challenge provides a base for our research in developing a robust natural language-oriented robot task manipulation pipeline. We focus on engineering three essential areas, the prompt designing, to provide essential numerical understanding rules to LLMs, utilizing code as a Adaptation policy, and an iterative closed loop feedback system with a corresponding high-level plan that can be inferred by a user for required corrections.
+Trajectory Adaptation with Natural Language:
+Several studies have explored multi-modal representations that combine natural language with environmental state observations for trajectory Adaptation. Notably, a transformer-based model called LaTTe [1],[13], particularly focused on solving trajectory-based tasks, where, given an initial trajectory, the robot adjusts it within a continuous action space to follow a specified sequence or path based on language commands. However, this approach requires training and is biased towards a limited set of simple instruction-based adaptations. We propose an approach with no training requirement and capable of handling complex multi-step instructions with numerical-oriented Adaptation.
+Large Language Models for Robotics:
+In the area of large pre-trained language models (LLMs) applied to robotics, models like GPT are being directly utilized to generate robotic trajectories without the need for task-specific fine-tuning, often in a zero- or few-shot setting [14] [15] where a language model is prompted with natural language descriptions of a task and produces a sequence of movements or positions in a higher-level action space by generating code to be used as a policy [16] with pre-trained LLM.Unlike traditional end-to-end models that directly output trajectories or commands, code generated by language models includes high-level logic, enabling robots to handle complex tasks with reasoning and error recovery. While [16] explores if waypoints can be generated to achieve the execution of a task, our work explores how we can utilize a similar approach to adapt an existing trajectory as per user’s preferences [17] utilizes a closed-loop strategy with source feedback such as success detection, scene description, and human interaction [18]. Various methods develop an online explainable trajectory correction for robots based on natural language inputs [2] [19] by interpreting human commands that describe desired adaptations to a robot’s trajectory and generate explainable adjustments based on interpretable features such as speed, direction, and proximity to objects. The primary focus of our research is to adapt human-demonstrated dense trajectories based on numeric and object-specific instructions. This process is guided by an iterative feedback system, where the user refines the structured high-level plan to make necessary modifications.
+3 Method
+3.1 Problem Formulation
+We describe the task of adapting the trajectory as a mapping from the initial set of waypoints, influenced by environmental context and language-based instructions. Let τ:ℝ→ℝ4\tau:\mathbb{R}\to\mathbb{R}^{4} represent the original trajectory, composed of NN waypoints and corresponding velocities, τ={(x1,y1,z1,v1),…,(xN,yN,zN,vN)}\tau=\{(x_{1},y_{1},z_{1},v_{1}),\dots,(x_{N},y_{N},z_{N},v_{N})\}, where xix_{i}, yiy_{i}, ziz_{i}, and viv_{i} denote the position coordinates and velocity at each time step ii. This initial trajectory is assumed to have been generated using standard algorithms or previously demonstrated by a human expert.
+Let Li​n​s​t​r​u​c​tL_{instruct} be the command reflecting a user’s intention to adjust the trajectory based on their preferences, for example: ”Slow down when near the person.” These commands may express multiple preferences but are assumed to be sufficiently clear in conveying the user’s intent. Additionally, OO is defined as an observation set representing mm objects in the environment, each with a position P⁡(Oi)∈ℝ3P(O_{i})\in\mathbb{R}^{3} and label L​a​b​e​l​(Oi)Label(O_{i}), and EdE_{d} as a natural language description of the environmental semantics and rules. Our goal is to learn a function gg that maps the original trajectory, observations, and user instructions to produce an adapted trajectory τm​o​d\tau_{mod} that aligns with the intent expressed in Li​n​s​t​r​u​c​tL_{instruct}.
+τm​o​d=gL​L​M​(τ,Li​n​s​t​r​u​c​t,O)\tau_{mod}=g_{LLM}(\tau,L_{instruct},O)
+3.2 Methodology
+We leverage the capabilities of LLMs to approach the problem outlined in Section 3.1. A parallel process of simultaneously generating a High-Level Plan (HLP) and a Python Code is described as follows:
+3.2.1 HLP Generation
+First, the LLM interprets the user’s natural language instructions and the environmental description to generate a step-by-step high-level plan. This plan outlines how the trajectory should be adapted, considering the user’s preferences, and the contextual information provided. Examples of HLP generated by our approach can be viewed in the appendix A.4
+3.2.2 Code Generation
+Next, consistent with this high-level plan, the LLM generates executable code. This code performs the necessary operations on the initial trajectory which aligns with the user’s intent. By automating both the planning and coding phases, the LLM acts as a bridge between high-level user instructions and low-level code execution.
+After the high-level plan and code are generated, the plan is sent to the user for validation. If the user confirms its correctness, the code is executed and the adapted trajectory is forwarded to the execution module. If the user identifies any issues or omissions in the high-level strategy, they provide feedback. This feedback, along with the original instruction, is fed back into the framework to produce updated results that align with the user’s input. We have used two in-context examples of high-level plans in order to make them suitable for human debugging, listed in appendix A.3
+Figure 1: An overview of the pipeline: A prompt is created from environment description, instruction, and task agnostic guidelines; LLM generates high-level plan along with Python code. The user reviews the plan; if correct, the code runs to adapt the trajectory. If a feedback is given, it’s sent back to the LLM with the original instruction.
+4 Experiments
+Our experiments aim to address the following key questions:
+1.
+Can LLMs be applied to generate code for transforming trajectories which includes waypoints as well as velocity components?
+2.
+With just one or two examples of high-level strategies, can LLMs devise plans for more intricate and diverse commands to adapt the trajectory??
+3.
+How can our approach be used for free-form (open-ended, natural language commands that are not restricted by predefined syntax or rigid formats)manipulation of the waypoints and give an advantage over the State-of-the-art methods?
+4.1 Dataset
+Each data sample includes an initial trajectory τ0\tau_{0}, environmental observations comprising object labels L​a​b​e​l​(Oi)Label(O_{i}), object poses P⁡(Oi)P(O_{i}), an optional linguistic description of the environment EdE_{d}, and a natural language instruction Li​n​s​t​r​u​c​tL_{instruct}. The environment description provides valuable information that can be used to interpret the commands effectively.
+We utilize a subset of the already available dataset from the paper LaTTe (Language Trajectory Transformer) [1]. This dataset primarily captures three major types of instructions:
+1.
+Altering waypoints in the Cartesian trajectory space, for example, ”Go to the left”, or ”Move to the front”,
+2.
+Adjusting speed, for example, ”Increasing the speed near the person”, ”Go slower”, and
+3.
+Positional shifts with reference to objects, for example, ”Drive closer to the sofa”, ”Stay further away from box”.
+The LaTTe dataset focuses on general changes rather than exact numerical ones. Also, the commands are simple and don’t include multiple instructions at once. This subset excludes commands like ”Upper part” and ”Top” because they are not informative enough for a pre-trained model.
+We create a new set that addresses these problems and includes complex language commands along with numerical changes. for example, ”Go left by 20”, and ”Keep at least 10 distance from the box”. We extend this to include multiple instructions in a single command, for example, ”Go left by 20 keeping a distance of at least 10 from the box”. A sample list of commands can be found in the appendix. A.
+4.2 Prompt Design
+The core idea of our approach is to explore how LLMs can define formatting functions as code and understand how to adapt trajectories in accordance with instructions. We define the output generated by LLM to be in two processes: First, a high-level plan that can be reviewed by the User, and Second, a code that adapts the trajectory. The key considerations in designing the prompt are as follows:
+4.2.1 How do LLMs know the environment configuration?
+Natural commands, for example, ”Go to the left/right” do not provide enough information about the direction in which change should be done. We provide a notion of COORDINATE SYSTEM along with optional environment descriptors in the prompt which can be set by the user as per the required setup. Additionally, We provide the LLM with the definition of two functions, detect_objects(obj_name) which returns the position of an object in the environment, and get_trajectory() which returns the trajectory as a set of waypoints along with velocity.
+4.2.2 Defining desired characteristics in a trajectory using rules
+The LLM has to determine if the goal position or starting position will remain the same based on the instruction. Furthermore, The shift in the waypoints should be gradual to ensure smooth transitions. Lastly, the LLM is given the choice to add or remove any number of waypoints as required. Through experiments, we designed a prompt that uses two in-context examples A.3 of high-level plan to ground the response to our intent. The full prompt can be found in appendix A.
+4.3 Simulation experiments
+To create an assessment of our approach’s performance and utility to varying robot dynamics and surroundings, we test our approach across varying simulators, robots, and multiple tasks. We tested our framework on a ground robot in the Gazebo [20], the crazy fly drone [21], and the Kuka robotic arm [22] in the Pybullet, as shown in Figure 2. The experiments demonstrate uniform object-oriented trajectory shifting as shown in Fig 2 (a), generic shift concerning simple words describing things to varying degrees in (b), and directional shifting in (c) This provides us an insight into how different platforms and robot dynamics, low-level IK modules can be used together with our framework. All experiments use the GPT-40 model with a temperature of 0.1
+(a) Shift the trajectory to reach yellow bowl
+(b) Drive at a greater distance from person
+(c) Go towards left passing closer to the duck
+Figure 2: Simulation experiments: Testing across varied robot dynamics, a) Robotic arm, b) Ground robot, c) Drone. The initial trajectory is represented in Blue and the adapted trajectory is shown in Red
+4.4 Results and Discussion
+We examine our approach on a subset of the LaTTe dataset, as described in section 4.1. The results, shown in figure 3, validate our method as an effective LLM-based alternative to existing approaches. As previously mentioned in section 4.1, we excluded commands that lacked sufficient detail for meaningful analysis.
+Can LLMs be applied to generate code for transforming trajectories which includes waypoints as well as velocity components? The adapted trajectory generated by the code aligns with the intended meaning of the instruction. The trajectory generated by the code has smooth adjustments that maintain a shape similar to the original path as shown in Figure 3 and Figure 4
+Figure 3: Results over LaTTe Dataset
+Figure 4: Results over extended dataset having complex instructions along with numerical changes
+With just one or two examples of high-level strategies, can LLMs devise plans for more
+intricate and diverse commands to adapt the trajectory?
+Moving beyond simple commands, we also tested our approach on a custom dataset that includes more complex instructions with both precise numerical values and compound instructions. Figure 4 illustrates the results obtained on the extended dataset. Appendix A.4 provides examples of high-level strategies generated for a few complex instructions. We found that LLMs are capable of understanding new modifications and generating the appropriate code to implement them.
+How can our approach be used for free-form (open-ended, natural language commands that
+are not restricted by predefined syntax or rigid formats)manipulation of the waypoints and
+give an advantage over the State-of-the-art methods?
+In figure 5, we further demonstrate how the system can handle misinterpretations by integrating user feedback, allowing for clarifications regarding the intent to correct the trajectory. This extended assessment showcases the versatility of our framework in handling both simple and complex commands while providing an effective way for error diagnostics. We found that the generated code consistently followed the user’s instructions for specific parts of the trajectories as well. For instance, with the instruction ”Stop when you reach near the box,”, Figure 4 the method identifies the closest waypoint to the box and halts at that point.
+Figure 5: Providing additional information to LLMs, which may be missing from the high-level strategy, helps correct inconsistencies and ensures more accurate outputs
+5 Limitations
+Though our work enables conversations with an LLM to produce instruction-compliant trajectories, the effectiveness of the adaptations depends on how descriptive and complete the instructions are. Terms like ’very’, ’very much’, and ’relatively slower’ are very subjective and can vary from person to person. The User needs to be very descriptive in how the commands are conveyed and if the information supplied is enough. Additionally, our method lacks mathematical guarantees, which could lead to semantically accurate but irregular or non-smooth transitions in the trajectories. Moreover, due to open-vocab instructions, it might not be possible to tailor a single constraint satisfaction module for all possible scenarios.
+6 Conclusion
+This work presents a method for efficient language-based human-robot interaction for trajectory Adaptation. We leverage the pre-trained LLM GPT-4o for language-conditioned trajectory manipulation. Our method incorporates providing LLM with relevant information required like object positions, environment description, and natural language instruction which is further employed for generating a consecutive high-level plan and code for numerical adaptation.
+The approach can be applied to diverse platforms such as arm manipulators, aerial vehicles, and ground robots. The simulation experiments demonstrate the capabilities of our pipeline for free-form task-instructed trajectory reshaping without any fine-tuning. Our method can incorporate more complex instructions that can include numerical inputs. The language used can be complex. A closed-loop system with human feedback ensures quality control and corrects any misinterpretations or errors by the LLM.
+Our future directions will extend to experimenting with more complex instructions and sequential long-horizon tasks exploring the implications of LLMs. Furthermore, it might be desirable to have dataset bias in some use cases. We believe that our framework can serve as an important direction for paradigms in human-robot collaboration that employ large language models. We intend to conduct a user study to evaluate the method’s effectiveness and ease of use.
+Acknowledgments
+If a paper is accepted, the final camera-ready version will (and probably should) include acknowledgments. All acknowledgments go at the end of the paper, including thanks to reviewers who gave useful comments, to colleagues who contributed to the ideas, and to funding agencies and corporate sponsors who provided financial support.
+References
+[1]
+Bucker, Arthur, and et al.
+Latte: Language trajectory transformer.
+IEEE International Conference on Robotics and Automation (ICRA), IEEE 2023(4), 2023.
+[2]
+J. Yow and et al.
+Extract–explainable trajectory corrections from language inputs using textual description of features.
+arXiv preprint, arXiv:2401.03701(8), 2024.
+[3]
+S. LaValle.
+Planning algorithms.
+Cambridge university press,, (17), 2006.
+[4]
+S. Calinon.
+Robot learning with task-parameterized generative models.
+In Proc. Intl Symp. on Robotics Research (ISRR), 2015.
+[5]
+T. Li and N. Figueroa.
+Task generalization with stability guarantees via elastic dynamical system motion policies.
+In 7th Annual Conference on Robot Learning, 2023.
+URL https://openreview.net/forum?id=8scj3Y0RLq.
+[6]
+W. Hunt, S. D. Ramchurn, and M. D. Soorati.
+A survey of language-based communication in robotics.
+arXiv preprint, arXiv:2406.04086v1(13), 2024.
+[7]
+J. JIANG, F. WANG, and et al.
+A survey on large language models for code generation.
+arXiv preprint, arXiv:2406.00515(15), 2024.
+[8]
+S. Tellex, N. Gopalan, H. Kress-Gazit, and M. C.
+Robots that use language.
+Annual Review of Control, Robotics, and AutonomousSystems, 3(1):25–55, 2020.
+[9]
+J. Arkin, D. Park, S. Roy, M. Walter, N. Roy, T. Howard, and P. R.
+Multimodal estimation and communication of latent semantic knowledge for robust execution of robot instructions.
+The International Journal of Robotics Research, 39(2):10–11, 2020.
+[10]
+M. R. Walter, S. Patki, A. F. Daniele, E. Fahnestock, F. Duvallet, S. Hemachandra, J. Oh, A. Stentz, N. Roy, and T. M. Howard.
+Language understanding for field and service robots in a priori unknown environments.
+arXiv preprint, arXiv:2105.10396(3), 2021.
+[11]
+Zeng, Fanlong, and et al.
+Large language models for robotics: A survey.
+arXiv preprint, arXiv:2311.07226(10), 2023.
+[12]
+Vemprala, Sai, and et al.
+Chatgpt for robotics: Design principles and model abilities.
+Published by Microsoft, (11), 2023.
+[13]
+Bucker, Arthur, and et al.
+Reshaping robot trajectories using natural language commands: A study of multi-modal data alignment using transformers.
+International Conference on Intelligent Robots and Systems (IROS), IEEE 2022(5), 2022.
+[14]
+Kwon, Teyun, Norman, and E. Johns.
+Language models as zero-shot trajectory generators.
+IEEE Robotics and Automation Letters, RAL 2022(6), 2024.
+[15]
+T. Brown, B. Mann, N. Ryder, M. Subbiah, J. D. Kaplan, P. Dhariwal, A. Neelakantan, P. Shyam, G. Sastry, A. Askell, S. Agarwal, A. Herbert-Voss, G. Krueger, T. Henighan, R. Child, A. Ramesh, D. Ziegler, J. Wu, C. Winter, C. Hesse, M. Chen, E. Sigler, M. Litwin, S. Gray, B. Chess, J. Clark, C. Berner, S. McCandlish, A. Radford, I. Sutskever, and D. Amodei.
+Language models are few-shot learners.
+In H. Larochelle, M. Ranzato, R. Hadsell, M. Balcan, and H. Lin, editors, Advances in Neural Information Processing Systems, volume 33, pages 1877–1901. Curran Associates, Inc., 2020.
+URL https://proceedings.neurips.cc/paper_files/paper/2020/file/1457c0d6bfcb4967418bfb8ac142f64a-Paper.pdf.
+[16]
+Liang, Jacky, and et al.
+Code as policies: Language model programs for embodied control.
+IEEE International Conference on Robotics and Automation (ICRA), IEEE, 2023.(7), 2023.
+[17]
+W. Huang, F. Xia, and et al.
+Inner monologue: Embodied reasoning through planning with language models.
+arXiv preprint, arXiv:2207.05608(12), 2022.
+[18]
+P. Sharma, B. Sundaralingam, and et al.
+Correcting robot plans with natural language feedback.
+arXiv preprint, arXiv:2204.05186(16), 2024.
+[19]
+Cui, Yuchen, and et al.
+No, to the right: Online language corrections for robotic manipulation via shared autonomy.
+Proceedings of the 2023 ACM/IEEE International Conference on Human-Robot Interaction., 2023 ACM/IEEE(9), 2023.
+[20]
+N. Koenig and A. Howard.
+Design and use paradigms for gazebo, an open-source multi-robot simulator.
+In 2004 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS) (IEEE Cat. No.04CH37566), volume 3, pages 2149–2154 vol.3, 2004.
+doi:10.1109/IROS.2004.1389727.
+[21]
+J. Panerati, H. Zheng, S. Zhou, J. Xu, A. Prorok, and A. P. Schoellig.
+Learning to fly—a gym environment with pybullet physics for reinforcement learning of multi-agent quadcopter control.
+In 2021 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS), pages 7512–7519, 2021.
+doi:10.1109/IROS51168.2021.9635857.
+[22]
+H. Niu, Z. Ji, Z. Zhu, H. Yin, and J. Carrasco.
+3d vision-guided pick-and-place using kuka lbr iiwa robot.
+In 2021 IEEE/SICE International Symposium on System Integration (SII), pages 592–593, 2021.
+doi:10.1109/IEEECONF49454.2021.9382674.
+Appendix A Appendix
+A.1 Example tasks for Pipeline testing
+Adaptation Without Objects:
+- ”Go left”
+- ”Go right”
+- ”Move to the top”
+- ”Go to the bottom”
+- ”Stay on the bottom”
+- ”Go faster in the middle of the trajectory”
+- ”Execute a spiral path when near the goal position”
+- ”Go further by a distance of 20 after reaching the goal”
+Adaptation With Objects:
+- ”Reach near the sofa and stop”
+- ”Walk at a larger distance from the person”
+- ”Go slower when near to the box”
+- ”Go faster in the vicinity of the person”
+- ”Walk at a distance of at least 20 from the person”
+- ”Traverse at a speed of 5 in the vicinity of the box”
+Compound instructions
+- ”Walk at a larger distance from the person, and go slower when near the box”
+- ”Go to the left by 10 at a speed of 2”
+- ”Shift the trajectory gradually to reach the red mug”
+A.2 Full Prompt
+You are an intelligent assistant that modifies robotic trajectories as per instruction of a user. Your task is to generate a JSON file with the following contents:
+1) A high-level plan on what points need to be changed based on the instruction. Think step by step.
+2) Python code that changes the waypoints in accordance with a high-level plan.
+FUNCTIONS AVAILABLE:
+def detect_objects(object_name): which returns a [x,y,z] coordinates if the object is present else returns None
+def get_trajectory(): returns the trajectory as a list of (x,y,z,velocity)
+COORDINATE SYSTEM:
+The positive X axis is left, Negative X axis is right
+The positive Y axis is front, Negative Y axis is back
+The Positive Z axis is Up, Negative X axis is Down.
+ENVIRONMENT DESCRIPTION
+[OPTIONAL]
+RULES:
+1. Use only the given functions for getting required data, do not implement dummy functions.
+2. Shift the points gradually if needed to ensure a smooth trajectory
+2. Deduce from instruction if the goal point should be changed.
+3. Waypoints can be added or removed.Ensure that waypoints do not violate any constraints.
+4. Intermediate waypoints shall be modified to ensure a smooth trajectory.
+5. Store the new trajectory in a variable called modified_trajectory
+6. If required, The changes in the velocity should be with respect to the original velocity, and velocity changes shall be smooth.
+OUTPUT FILE STRUCTURE:
+’high_level_plan’: ”Provide the details here”,
+’Python code’: ”Generate the Python code here as a single string”
+The functions ‘detect_objects()‘ and ‘get_trajectory()‘ are assumed to be predefined and should NOT be implemented. Just use these functions as they are. The code should focus on using these functions and the logic around them, without providing any dummy implementation for these functions.
+Return a valid Python code and high-level plan according to the following instructions:
+[INSTRUCTION].
+A.3 In-context Examples of high-level plan
+EXAMPLE 1:
+Instruction: Go left
+High-level plan:
+1) Shift the goal position left.
+2) Keep the start position the same
+3) modify the points in the middle to ensure a gradual and smooth change in the trajectory preserving the shape of the trajectory.
+EXAMPLE 2:
+Instruction: Walk further away from the box/ walk closer to the box
+High-level plan:
+1) Keep the goal position the same
+2) Keep the starting position the same.
+3) Identify the location of the box. Iterate over all the intermediate points increasing/decreasing their distance from the box.
+4) Ensure that the shape of the trajectory is preserved. Smoothen the trajectory to remove abrupt changes
+A.4 Examples of High-level plan generated for different instructions
+INSTRUCTION:  Stay on the bottom
+1) Keep the start and goal positions the same.
+2) Identify the lowest z-coordinate in the current trajectory.
+3) Modify all intermediate waypoints to have this lowest z-coordinate, ensuring the robot stays at the bottom.
+4) Smoothen the trajectory to ensure gradual changes and avoid abrupt transitions.
+INSTRUCTION: Stop when you reach near the box
+1) Detect the position of the box using the detect_objects function.
+2) Retrieve the current trajectory using the get_trajectory function.
+3) Identify the point in the trajectory that is closest to the box.
+4) Modify the trajectory to stop at this closest point, removing any subsequent points.
+5) Ensure the trajectory remains smooth up to the stopping point.
+INSTRUCTION: Execute a spiral of max radius 2 after reaching the goal.
+1) Retrieve the current trajectory using the get_trajectory() function.
+2) Identify the goal position from the trajectory.
+3) After reaching the goal position, add waypoints to create a spiral trajectory with a maximum radius of 2 units.
+4) Ensure the spiral is smooth and gradually increases in radius.
+5) Maintain the velocity similar to the goal position for the spiral trajectory.
+INSTRUCTION: Walk further away from the person and go slower near the box
+1) Detect the position of the person and the box using the detect_objects() function.
+2) Retrieve the current trajectory using the get_trajectory() function.
+3) Iterate over the trajectory points and increase their distance from the person while maintaining the overall shape of the trajectory.
+4) Identify the points in the trajectory that are near the box and reduce their velocity to ensure the robot goes slower near the box.
+5) Ensure the trajectory remains smooth by adjusting intermediate points gradually.
+6) Store the modified trajectory in a variable called modified_trajectory.
+Experimental support, please
+view the build logs
+for errors. Generated by
+L
+A
+T
+E
+xml
+.
+Instructions for reporting errors
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+methods listed below:
+Click the "Report Issue" (
+) button, located in the page header.
+Tip: You can select the relevant text first, to include it in your report.
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+all.
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+We gratefully acknowledge support from our major funders,
+member institutions, ,
+and all contributors.
+About ·
+Help ·
+Contact ·
+Subscribe ·
+Copyright ·
+Privacy ·
+Accessibility ·
+Operational Status (opens in new tab)
