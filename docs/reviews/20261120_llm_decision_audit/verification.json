@@ -1,0 +1,61 @@
+{
+  "status": "review_complete_no_new_failures",
+  "date_utc": "2026-11-20",
+  "checks": {
+    "active_source_and_frozen_contract": {
+      "checked": 64,
+      "failures": []
+    },
+    "previous_c1_d1_m0_through_m6_original_bytes": {
+      "checked": 1162,
+      "failures": []
+    },
+    "m7_publication_artifact_bytes": {
+      "checked": 116,
+      "failures": []
+    },
+    "workspace": {
+      "record": "workspace_check.json",
+      "existing_missing_files": 21,
+      "new_failures": 0,
+      "active_modules": 31,
+      "navigation_links_checked": 378
+    },
+    "audit_and_literature_links": {
+      "checked": 36,
+      "failures": []
+    },
+    "read_originals_and_extracted_text": {
+      "checked": 14,
+      "failures": []
+    }
+  },
+  "production_source_changed": false,
+  "tests_changed": false,
+  "full_test_result": "315 passed, 1 third-party pytest deprecation warning in 11.28s",
+  "full_test_log": "full_tests.log",
+  "root_reproductions": [
+    "inference/parent_reproduction.log",
+    "planning/parent_reproduction.log",
+    "orchestration/evidence.json"
+  ],
+  "scientific_activity": {
+    "new_flights": 0,
+    "new_sensor_points": 0,
+    "new_development_state_fits": 0,
+    "new_truth_queries": 0,
+    "new_experiment_decision_calls": 0,
+    "training_runs": 0,
+    "sealed_data_access": false
+  },
+  "boundaries": "Synthetic components only; historical bytes hashed, not scientific reruns. Existing missing originals remain reported. This audit does not prove historical causation or future LLM task gain.",
+  "navigation_documents_updated": [
+    "AGENTS.md",
+    "README.md",
+    "docs/AGENT_HANDOFF.md",
+    "docs/README.md",
+    "docs/current_roadmap.md",
+    "docs/method.md",
+    "docs/references/README.md"
+  ]
+}

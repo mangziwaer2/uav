@@ -116,20 +116,26 @@ def validate_round(bank, public, request, raw):
 
 
 def run_event(bank, public, event, records, method, advisor=None, emit=None, *, trigger_reason=None,
-              soft_context=None):
+              soft_context=None,geometry_refinement=None):
     if method not in METHODS[1:]:
         raise ValueError('only updating methods have events')
+    if geometry_refinement not in (None,'amplitude','geometry'):raise ValueError('unknown geometry refinement')
     budget, rounds, all_models, feedback = Budget(), [], [], None
+    refinement_work=dict(solver_calls=0,residual_calls=0,jacobian_calls=0,kernel_terms=0,calls=0)
     for phase in ('pilot', 'refine'):
         request = make_request(bank, public, event, phase, records, feedback, budget, trigger_reason)
+        if geometry_refinement is not None:
+            from .source_geometry import GeometrySettings
+            request['geometry_refinement']=dict(mode=geometry_refinement,settings=asdict(GeometrySettings()),
+                spent=deepcopy(refinement_work),maximum_calls=3)
         if soft_context is not None:
             from .joint_prediction import soft_constraints
             source_history = bank.history[:-3] if phase == 'pilot' else bank.history
             soft = soft_constraints(source_history, **soft_context)
             request['gp_soft_constraints'] = deepcopy(soft)
-            request['request_id'] = digest({k:v for k,v in request.items() if k != 'request_id'})
         else:
             soft = None
+        request['request_id'] = digest({k:v for k,v in request.items() if k != 'request_id'})
         if method == 'llm':
             if advisor is None:raise ValueError('LLM method requires an explicit advisor')
             envelope = advisor(deepcopy(request))
@@ -153,6 +159,11 @@ def run_event(bank, public, event, records, method, advisor=None, emit=None, *, 
             before = asdict(budget)
             try:
                 fit = fit_job(source_bank, public, job, budget, f'event{event}_{phase}_job{j}', soft=soft)
+                if geometry_refinement is not None and fit['model']['bases']:
+                    from .source_geometry import refine_fit
+                    fit=refine_fit(fit,public,geometry_refinement)
+                    refinement_work['calls']+=1
+                    for key,value in fit['geometry_refinement']['resources'].items():refinement_work[key]+=value
                 fits.append(fit)
                 if fit['model']['bases']:
                     all_models.append(rebase_model(fit['model'], bank.history[-1]['time_seconds'], len(bank.history)-1))
@@ -166,9 +177,15 @@ def run_event(bank, public, event, records, method, advisor=None, emit=None, *, 
         if emit:emit(phase, result)
     before = bank.snapshot()
     bank.birth(all_models)
+    resources=asdict(budget)
+    if geometry_refinement is not None:
+        resources['base_solver_calls']=resources['solver_calls'];resources['base_residual_calls']=resources['residual_calls']
+        for key in ('solver_calls','residual_calls','jacobian_calls'):resources[key]+=refinement_work[key]
+        resources['refinement']=refinement_work
+        resources['reserved_calls']+=3;resources['reserved_residual_calls']+=120
     return dict(index=event, time_seconds=bank.history[-1]['time_seconds'], rounds=rounds,
                 bank_before_birth=before, bank_after_birth=bank.snapshot(),
-                committed_models=all_models, resources=asdict(budget), new_hypotheses=len(all_models))
+                committed_models=all_models, resources=resources, new_hypotheses=len(all_models))
 
 
 def run_stream(stream, method, advisor=None, emit=None):

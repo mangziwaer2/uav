@@ -1,0 +1,413 @@
+{
+  "support": {
+    "query": [
+      100.0,
+      100.0
+    ],
+    "time_seconds": 36.0,
+    "eligible_point_indices": [
+      1
+    ],
+    "with_old_and_recent": {
+      "gp_mean_dbm": [
+        -100.0
+      ],
+      "gp_std_db": [
+        15.0
+      ],
+      "supported": [
+        false
+      ],
+      "gp_weight": [
+        0.0
+      ]
+    },
+    "with_recent_only": {
+      "gp_mean_dbm": [
+        -75.0
+      ],
+      "gp_std_db": [
+        15.020774572113668
+      ],
+      "supported": [
+        true
+      ],
+      "gp_weight": [
+        0.10740721994672593
+      ]
+    }
+  },
+  "warm_start": {
+    "warm_capacity_1": {
+      "mse_db2": 509.5296135296748,
+      "bases": [
+        {
+          "center_m": [
+            380.0,
+            300.0
+          ],
+          "scale_m": 40.0,
+          "velocity_mps": [
+            0.0,
+            0.0
+          ],
+          "rate_db_per_second": 0.0
+        }
+      ],
+      "peaks_dbm": [
+        -59.54131216067237
+      ],
+      "warm_count": 1,
+      "solver_calls": 1,
+      "reserved_solver_calls": 1,
+      "trace": [
+        {
+          "columns": [
+            0
+          ],
+          "initial_peaks_dbm": [
+            -65.0
+          ],
+          "peaks_dbm": [
+            -59.54131216067237
+          ],
+          "previous_mse": 822.7357534927108,
+          "candidate_mse": 509.5296135296748,
+          "accepted": true,
+          "solver_success": true,
+          "solver_status": 1,
+          "residual_calls": 6,
+          "jacobian_calls": 6,
+          "nfev": 6,
+          "njev": 6,
+          "optimality": 4.313181925657665e-14
+        }
+      ],
+      "replacement_in_dictionary": true
+    },
+    "cold_capacity_1": {
+      "mse_db2": 13.791248210397407,
+      "bases": [
+        {
+          "center_m": [
+            220.0,
+            380.0
+          ],
+          "scale_m": 160.0,
+          "velocity_mps": [
+            0.0,
+            0.0
+          ],
+          "rate_db_per_second": 0.0
+        }
+      ],
+      "peaks_dbm": [
+        -70.14430331030059
+      ],
+      "warm_count": 0,
+      "solver_calls": 1,
+      "reserved_solver_calls": 1,
+      "trace": [
+        {
+          "columns": [
+            29
+          ],
+          "initial_peaks_dbm": [
+            -67.9497811906714
+          ],
+          "peaks_dbm": [
+            -70.14430331030059
+          ],
+          "previous_mse": 822.7357534927108,
+          "candidate_mse": 13.791248210397407,
+          "accepted": true,
+          "solver_success": true,
+          "solver_status": 2,
+          "residual_calls": 4,
+          "jacobian_calls": 4,
+          "nfev": 4,
+          "njev": 4,
+          "optimality": 8.89501889126122e-08
+        }
+      ],
+      "replacement_in_dictionary": true
+    },
+    "warm_capacity_2": {
+      "mse_db2": 325.2662654649767,
+      "bases": [
+        {
+          "center_m": [
+            380.0,
+            300.0
+          ],
+          "scale_m": 40.0,
+          "velocity_mps": [
+            0.0,
+            0.0
+          ],
+          "rate_db_per_second": 0.0
+        },
+        {
+          "center_m": [
+            300.0,
+            380.0
+          ],
+          "scale_m": 40.0,
+          "velocity_mps": [
+            0.0,
+            0.0
+          ],
+          "rate_db_per_second": 0.0
+        }
+      ],
+      "peaks_dbm": [
+        -59.541312161854556,
+        -59.541312160677144
+      ],
+      "warm_count": 2,
+      "solver_calls": 1,
+      "reserved_solver_calls": 2,
+      "trace": [
+        {
+          "columns": [
+            0,
+            1
+          ],
+          "initial_peaks_dbm": [
+            -65.0,
+            -70.0
+          ],
+          "peaks_dbm": [
+            -59.541312161854556,
+            -59.541312160677144
+          ],
+          "previous_mse": 822.7357534927108,
+          "candidate_mse": 325.2662654649767,
+          "accepted": true,
+          "solver_success": true,
+          "solver_status": 1,
+          "residual_calls": 6,
+          "jacobian_calls": 6,
+          "nfev": 6,
+          "njev": 6,
+          "optimality": 1.72939033727231e-09
+        }
+      ],
+      "replacement_in_dictionary": true
+    },
+    "cold_capacity_2": {
+      "mse_db2": 7.4199395353765345,
+      "bases": [
+        {
+          "center_m": [
+            220.0,
+            380.0
+          ],
+          "scale_m": 160.0,
+          "velocity_mps": [
+            0.0,
+            0.0
+          ],
+          "rate_db_per_second": 0.0
+        },
+        {
+          "center_m": [
+            220.0,
+            380.0
+          ],
+          "scale_m": 40.0,
+          "velocity_mps": [
+            0.0,
+            0.0
+          ],
+          "rate_db_per_second": 0.0
+        }
+      ],
+      "peaks_dbm": [
+        -71.8882069767566,
+        -59.54131216067237
+      ],
+      "warm_count": 0,
+      "solver_calls": 2,
+      "reserved_solver_calls": 2,
+      "trace": [
+        {
+          "columns": [
+            29
+          ],
+          "initial_peaks_dbm": [
+            -67.9497811906714
+          ],
+          "peaks_dbm": [
+            -70.14430331030059
+          ],
+          "previous_mse": 822.7357534927108,
+          "candidate_mse": 13.791248210397407,
+          "accepted": true,
+          "solver_success": true,
+          "solver_status": 2,
+          "residual_calls": 4,
+          "jacobian_calls": 4,
+          "nfev": 4,
+          "njev": 4,
+          "optimality": 8.89501889126122e-08
+        },
+        {
+          "columns": [
+            29,
+            27
+          ],
+          "initial_peaks_dbm": [
+            -70.14430331030059,
+            -59.54131217067236
+          ],
+          "peaks_dbm": [
+            -71.8882069767566,
+            -59.54131216067237
+          ],
+          "previous_mse": 13.791248210397407,
+          "candidate_mse": 7.4199395353765345,
+          "accepted": true,
+          "solver_success": true,
+          "solver_status": 2,
+          "residual_calls": 6,
+          "jacobian_calls": 6,
+          "nfev": 6,
+          "njev": 6,
+          "optimality": 4.342333043664545e-05
+        }
+      ],
+      "replacement_in_dictionary": true
+    },
+    "both_centers_legal": true
+  },
+  "convergence_gate": [
+    {
+      "cap": 2,
+      "accepted": false,
+      "error": "refinement objective budget exhausted",
+      "solver_success": null,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 0.9502944891636835,
+      "candidate_objective": null,
+      "seed_retained": true,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 2,
+        "jacobian_calls": 1,
+        "kernel_terms": 24
+      }
+    },
+    {
+      "cap": 4,
+      "accepted": false,
+      "error": "refinement objective budget exhausted",
+      "solver_success": null,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 0.5601172810922083,
+      "candidate_objective": null,
+      "seed_retained": true,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 4,
+        "jacobian_calls": 2,
+        "kernel_terms": 48
+      }
+    },
+    {
+      "cap": 6,
+      "accepted": false,
+      "error": "refinement objective budget exhausted",
+      "solver_success": null,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 0.11274394014047262,
+      "candidate_objective": null,
+      "seed_retained": true,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 6,
+        "jacobian_calls": 4,
+        "kernel_terms": 72
+      }
+    },
+    {
+      "cap": 8,
+      "accepted": false,
+      "error": "refinement objective budget exhausted",
+      "solver_success": null,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 0.04264298383325579,
+      "candidate_objective": null,
+      "seed_retained": true,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 8,
+        "jacobian_calls": 5,
+        "kernel_terms": 96
+      }
+    },
+    {
+      "cap": 10,
+      "accepted": false,
+      "error": "refinement objective budget exhausted",
+      "solver_success": null,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 0.010857806756694944,
+      "candidate_objective": null,
+      "seed_retained": true,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 10,
+        "jacobian_calls": 7,
+        "kernel_terms": 120
+      }
+    },
+    {
+      "cap": 20,
+      "accepted": true,
+      "error": null,
+      "solver_success": true,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 2.229071253719707e-09,
+      "candidate_objective": 2.229071253719707e-09,
+      "seed_retained": false,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 16,
+        "jacobian_calls": 13,
+        "kernel_terms": 192
+      }
+    },
+    {
+      "cap": 40,
+      "accepted": true,
+      "error": null,
+      "solver_success": true,
+      "previous_objective": 0.9502944891636835,
+      "best_evaluated_legal_objective": 2.229071253719707e-09,
+      "candidate_objective": 2.229071253719707e-09,
+      "seed_retained": false,
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 16,
+        "jacobian_calls": 13,
+        "kernel_terms": 192
+      }
+    }
+  ],
+  "default_budget": {
+    "previous_objective": 0.5256797921481255,
+    "best_evaluated_legal_objective": 0.00014406538252869226,
+    "accepted": false,
+    "error": "refinement objective budget exhausted",
+    "solver_success": null,
+    "candidate_objective": null,
+    "seed_retained": true,
+    "resources": {
+      "solver_calls": 1,
+      "residual_calls": 40,
+      "jacobian_calls": 36,
+      "kernel_terms": 960
+    }
+  }
+}

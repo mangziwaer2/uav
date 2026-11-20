@@ -1,0 +1,138 @@
+--- PDF pp2-3 selected introduction; derived fulltext lines 39-109 ---
+=== PDF PAGE 2 ===
+2 Elmachtoub and Grigas: Smart “Predict, then Optimize”
+optimization solver provides near-optimal routes using th e predicted travel times as input.
+W e emphasize that most solution systems for real-world anal ytics problems involve some
+component of both prediction and optimization (see Angalak udati et al. (2014), Chan et al.
+(2012), Deo et al. (2015), Gallien et al. (2015), Cohen et al. (2017), Besbes et al. (2015),
+Mehrotra et al. (2011), Chan et al. (2013), Ferreira et al. (2 015) for recent examples and
+recent expositions by Simchi-Levi (2013), den Hertog and Po stek (2016), Deng et al. (2018),
+Mišić and Perakis (2020)). Except for a few limited options, machine learning tools do not
+eﬀectively account for how the predictions will be used in a d ownstream optimization prob-
+lem. In this paper, we provide a general framework called Sma rt “Predict, then Optimize”
+(SPO) for training prediction models that eﬀectively utili ze the structure of the nominal opti-
+mization problem, i.e., its constraints and objective. Our SPO framework is fundamentally
+designed to generate prediction models that aim to minimize decision error, not prediction
+error.
+One key beneﬁt of our SPO approach is that it maintains the dec ision paradigm of sequen-
+tially predicting and then optimizing. However, when train ing our prediction model, the
+structure of the nominal optimization problem is explicitl y used. The quality of a prediction
+is not measured based on prediction error such as least squares los s or other popular loss
+functions. Instead, in the SPO framework, the quality of a pr ediction is measured by the
+decision error. That is, suppose a prediction model is train ed using historical feature data
+(x1, . . . , xn) and associated parameter data (c1, . . . , cn). Let (ˆc1, . . . , ˆcn) denote the predic-
+tions of the parameters under the trained model. The least sq uares (LS) loss, for example,
+measures error with the squared norm ∥ci −ˆci∥2
+2, completely ignoring the decisions induced
+by the predictions. In contrast, the SPO loss is the true cost of the decision induced by ˆci
+minus the optimal cost under the true parameter ci. In the context of vehicle routing, the
+SPO loss measures the extra travel time incurred due to solvi ng the routing problem on the
+predicted, rather than true, edge cost parameters.
+In this paper, we focus on predicting unknown parameters of a contextual stochastic
+optimization problem, where the parameters appear linearl y in the objective function, i.e.,
+the cost vector of any linear, convex, or integer optimizati on problem. The core of our SPO
+framework is a new loss function for training prediction mod els. Since the SPO loss function
+is diﬃcult to work with, signiﬁcant eﬀort revolves around de riving a surrogate loss function,
+SPO+, that is convex and therefore can be optimized eﬃcientl y . T o show the validity of
+
+=== PDF PAGE 3 ===
+Elmachtoub and Grigas: Smart “Predict, then Optimize” 3
+the surrogate SPO+ loss, we prove a highly desirable statist ical consistency property , and
+show it performs well empirically compared to standard pred ict-then-optimize approaches.
+In essence, we prove that the function that minimizes the Bay es risk associated to the SPO+
+loss is the regression function E[c|x], which also minimizes the Bayes risk of the SPO loss
+(under mild assumptions). Interestingly , E[c|x] also minimizes the Bayes risk associated to
+the LS loss under the same conditions. Thus, SPO+ and LS (or an y convex combination of
+the two) are essentially on “equal footing” – they are both th eoretically valid (consistent) and
+computationally tractable choices for the loss function. H owever, when the ultimate goal is
+to solve a downstream optimization task, the SPO+ loss is the natural choice as it is tailored
+to the optimization problem and works signiﬁcantly better i n practice than LS.
+Empirically , we observe that even when the prediction task i s challenging due to model
+misspeciﬁcation, the SPO framework can still yield near-op timal decisions. W e note that
+a fundamental property of the SPO framework is the requireme nt that the prediction is
+directly “plugged in” to the downstream optimization probl em. An alternative procedure
+may alter the decision making process in some way , such as by a dding robustness or by
+taking into account the entire dataset (instead of just the p rediction). A strong advantage
+of our SPO approach is that it has good performance even when t he naive prediction prob-
+lem is challenging, see the illustrative example in Section 3.1. Another advantage is that
+the downstream optimization problem is typically more comp utationally tractable and more
+attractive to practitioners than a more complex alternativ e procedure. On the other hand,
+alternative decision making procedures may provide other a dvantages, such as improved gen-
+eralization performance via the introduction of bias and/o r robustness. However, designing
+such procedures is more challenging in the presence of conte xtual data and combining them
+with the SPO approach would be worthwhile of future research . Overall, we believe our SPO
+framework provides a clear foundation for designing operat ions-driven machine learning tools
+that can be leveraged in real-world optimization settings.
+Our contributions may be summarized as follows:
+1. W e ﬁrst formally deﬁne a new loss function, which we call th e SPO loss, that measures the
+error in predicting the cost vector of a nominal optimizatio n problem with linear, convex,
+or integer constraints. The loss corresponds to the subopti mality gap – with respect to the
+true/historical cost vector – due to implementing a possibl y incorrect decision induced
+by the predicted cost vector. Unfortunately , the SPO loss fu nction can be nonconvex and
+
+
+--- PDF pp10-12 section 3 motivation, Figure 1, Definitions 1/2 and ties; derived fulltext lines 357-420 ---
+Herein, we introduce several loss functions that fall into t he predict-then-optimize paradigm,
+but that are also smart in that they take the nominal optimization problem P (·) into account
+when measuring errors in predictions. W e refer to these loss functions as Smart “Predict,
+then Optimize” (SPO) loss functions. As a starting point, le t us consider a true SPO loss
+function that exactly measures the excess cost incurred whe n making a suboptimal decision
+due to an imprecise cost vector prediction. Following the PO paradigm, given a cost vector
+prediction ˆc, a decision w∗(ˆc) is implemented based on solving P (ˆc). After the decision w∗(ˆc)
+is implemented, the cost incurred is with respect to the cost vector c that is actually realized .
+The excess cost due to the fact that w∗(ˆc) may be suboptimal with respect to c is then
+cT w∗(ˆc) −z∗(c), which we call the SPO loss.
+In Figure 1, we show how two predicted values
+of c with the same prediction error can result in diﬀerent decisi ons and diﬀerent SPO losses.
+In fact, Figure 1 shows that the SPO loss can be 0 when S is a polyhedron if −ˆc lies in the
+cone corresponding to the extreme point w∗(c), or when S is an ellipse and ˆc is in the same
+
+=== PDF PAGE 11 ===
+Elmachtoub and Grigas: Smart “Predict, then Optimize” 11
+Figure 1 Geometric Illustration of SPO Loss
+(a) Polyhedral feasible region
+ (b) Elliptic feasible region
+Note. In these two ﬁgures, we consider a two-dimensional polyhedr on and ellipse for the feasible region S. We plot
+the (negative) of the true cost vector c, as well as two candidate predictions ˆcA and ˆcB that are equidistant from
+c and thus have equivalent LS loss. One can see that the optimal decision for ˆcA coincides with that of c, since
+w∗ (ˆcA) =w∗ (c). In the polyhedron example, any predicted cost vector whose negative is not in the gray region will
+result in a wrong decision, where as in the ellipse example an y predicted cost vector that is not exactly parallel with
+c results in a wrong decision.
+direction and parallel to c. Deﬁnition 1 formalizes this true SPO loss associated with ma king
+the prediction ˆc when the actual cost vector is c, given a particular oracle w∗(·) for P (·).
+Definition 1 (SPO Loss). Given a cost vector prediction ˆc and a realized cost
+vector c, the true SPO loss ℓw∗
+SPO(ˆc, c) w.r.t. optimization oracle w∗(·) is deﬁned as
+ℓw∗
+SPO(ˆc, c) := cT w∗(ˆc) −z∗(c) .
+Note that there is an unfortunate deﬁciency in Deﬁnition 1, w hich is the dependence on
+the particular oracle w∗(·) used to solve (2). Practically speaking, this deﬁciency is n ot a
+major issue since we should usually expect w∗(ˆc) to be a unique optimal solution, i.e., we
+should expect W ∗(ˆc) to be a singleton. Note that if any solution from W ∗(ˆc) may be used by
+the loss function, then the loss function essentially becom es minw∈W ∗ (ˆc) cT w −z∗(c). Thus, a
+prediction model would then be incentivized to always make t he degenerate prediction ˆc = 0
+since W ∗(0) = S. This would then imply that the SPO loss is 0.
+In any case, if one wishes to address the dependence on the par ticular oracle w∗(·) in
+Deﬁnition 1, then it is most natural to “break ties” by presum ing that the implemented
+decision has worst-case behavior with respect to c. Deﬁnition 2 is an alternative SPO loss
+function that does not depend on the particular choice of the optimization oracle w∗(·).
+
+=== PDF PAGE 12 ===
+12 Elmachtoub and Grigas: Smart “Predict, then Optimize”
+Definition 2 (Unambiguous SPO Loss). Given a cost vector prediction ˆc and a real-
+ized cost vector c, the (unambiguous) true SPO loss ℓSPO(ˆc, c) is deﬁned as ℓSPO(ˆc, c) :=
+maxw∈W ∗ (ˆc)
+{
+cT w
+}
+−z∗(c).
+Note that Deﬁnition 2 presents a version of the true SPO loss t hat upper bounds the version
+from Deﬁnition 1, i.e., it holds that ℓw∗
+SPO(ˆc, c) ≤ℓSPO(ˆc, c) for all ˆc, c ∈Rd. As mentioned
+previously , the distinction between Deﬁnitions 1 and 2 is on ly relevant in degenerate cases.
+In the results and discussion herein, we work with the unambi guous true SPO loss given by
+Deﬁnition 2. Related results may often be inferred for the ve rsion of the true SPO loss given
+by Deﬁnition 1 by recalling that Deﬁnition 2 upper bounds Deﬁ nition 1 and that the two
+loss functions are almost always equal except for degenerat e cases where W ∗(ˆc) has multiple
+optimal solutions.
+Notice that ℓSPO(ˆc, c) is impervious to the scaling of ˆc, in other words it holds that

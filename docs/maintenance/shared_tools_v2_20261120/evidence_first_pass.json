@@ -1,0 +1,162 @@
+{
+  "kind": "synthetic_shared_tool_diagnostics_v2",
+  "warm_replacement": [
+    {
+      "capacity": 1,
+      "fit_mse_db2": 13.791248210397407,
+      "selected_branch": "cold_dictionary",
+      "resources": {
+        "solver_calls": 1,
+        "residual_calls": 5,
+        "solver_call_limit": 1,
+        "residual_call_limit": 40
+      },
+      "dictionary_kernel_terms": 480
+    },
+    {
+      "capacity": 2,
+      "fit_mse_db2": 7.4199395353765345,
+      "selected_branch": "cold_dictionary",
+      "resources": {
+        "solver_calls": 2,
+        "residual_calls": 11,
+        "solver_call_limit": 2,
+        "residual_call_limit": 80
+      },
+      "dictionary_kernel_terms": 492
+    }
+  ],
+  "geometry_retention": {
+    "previous_objective": 0.5256797921481255,
+    "candidate_objective": 0.00014406538252869226,
+    "accepted": true,
+    "solver_success": false,
+    "stop_reason": "refinement objective budget exhausted",
+    "resources": {
+      "solver_calls": 1,
+      "residual_calls": 40,
+      "jacobian_calls": 36,
+      "kernel_terms": 960
+    },
+    "region_eligible": true,
+    "bounds_eligible": true
+  },
+  "two_leg_search": [
+    {
+      "edge_limit": 10000,
+      "quotas": [
+        350,
+        350
+      ],
+      "failure": null,
+      "resources": {
+        "sample_limit": 700,
+        "edge_limit": 10000,
+        "samples": 408,
+        "edges": 9676,
+        "cache_hits": 469,
+        "reserved_edges": 0,
+        "verification_edges": 12,
+        "samples_left": 292,
+        "edges_left": 324,
+        "total_edges_left": 324
+      },
+      "candidates": [
+        {
+          "id": "proposal_raw",
+          "length_m": 192.44503882064512,
+          "feasible": true,
+          "reason": null
+        },
+        {
+          "id": "proposal_shortcut",
+          "length_m": 192.43995896590238,
+          "feasible": true,
+          "reason": null
+        }
+      ]
+    },
+    {
+      "edge_limit": 744,
+      "quotas": [
+        40,
+        40
+      ],
+      "failure": null,
+      "resources": {
+        "sample_limit": 700,
+        "edge_limit": 744,
+        "samples": 79,
+        "edges": 704,
+        "cache_hits": 78,
+        "reserved_edges": 0,
+        "verification_edges": 3,
+        "samples_left": 621,
+        "edges_left": 40,
+        "total_edges_left": 40
+      },
+      "candidates": [
+        {
+          "id": "proposal_raw",
+          "length_m": 218.4974289821202,
+          "feasible": false,
+          "reason": "length_energy_endpoints"
+        },
+        {
+          "id": "proposal_shortcut",
+          "length_m": 183.96074170757328,
+          "feasible": true,
+          "reason": null
+        }
+      ]
+    }
+  ],
+  "partial_shortcut": {
+    "original_length_m": 710.7463837598151,
+    "retained_length_m": 704.9242250247064,
+    "trace": {
+      "checks": 40,
+      "completed": false,
+      "stop_reason": "shortcut_check_limit"
+    },
+    "resources": {
+      "sample_limit": 700,
+      "edge_limit": 10000,
+      "samples": 0,
+      "edges": 40,
+      "cache_hits": 0,
+      "reserved_edges": 0,
+      "verification_edges": 0,
+      "samples_left": 700,
+      "edges_left": 9960,
+      "total_edges_left": 9960
+    }
+  },
+  "gp_support": {
+    "gp_mean_dbm": [
+      -78.01999485601448
+    ],
+    "gp_std_db": [
+      13.806453718420347
+    ],
+    "supported": [
+      true
+    ],
+    "gp_weight": [
+      0.1221738173272456
+    ]
+  },
+  "mailbox": {
+    "simulated_worker_receipt": true,
+    "real_model_calls": 0,
+    "timely": true,
+    "error": null,
+    "receipt_json_retries": 2,
+    "wall_seconds": 0.30000000000001137
+  },
+  "new_scientific_flights": 0,
+  "new_sensor_points": 0,
+  "truth_queries": 0,
+  "real_experiment_model_calls": 0,
+  "limitations": "Component counterexamples only; no historical causation or LLM task benefit established."
+}

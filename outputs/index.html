@@ -2,7 +2,26 @@
 <html lang="zh-CN"><meta charset="utf-8"><title>当前结果</title>
 <style>body{font:17px/1.7 system-ui;max-width:1000px;margin:45px auto;padding:0 20px}a{color:#1766ad}article{padding:18px;border:1px solid #ccd6df;border-radius:9px;margin:18px 0}</style>
 <h1>当前研究结果</h1>
-<article><h2>最新D2-M0：移除全图功率延续后的新飞行</h2>
+<article><h2>最新D2-M7：相容变化率检验未找到排序翻转</h2><p>三个共享固定状态，数值与独立LLM各检验一个世界/基元和竞争路线。3份真实回复全及时、0回退，6项剖面均未找到单世界或冻结权重排序翻转。无新飞行/点测/GP/真值查询，不更新源池或路线。双方遗漏25秒最近竞争路线，不能宣称已解决该排序问题；31模块、315测试，预算关闭。</p><a href="interference_task_contrast_d2_m7_20261120/review/index.html">交互查看路线、等效假设与见证</a> · <a href="interference_task_contrast_d2_m7_20261120/review/intervals.png">参数剖面PNG（非新飞行）</a> · <a href="../docs/task_contrast_results_20261120.md">结果与覆盖缺口</a></article>
+<article><h2>D2-M6：旧工具错失可行修订，修订仍无路线收益</h2>
+<p>固定M5原数值/LLM计划和基础拟合，只重算5项已指定几何作业。显式约束后，原LLM两项均合法、收敛且改善拟合，接受从0/2变为2/2；但6条方法/状态路线和下一短段完全未变。25秒N/I剩余T+Q仍111.70/112.91，其余相同。N一项耗尽40目标预算而保留种子。0新决策LLM/飞行/点测，30模块、293测试，预算结束。</p>
+<a href="interference_constrained_geometry_d2_m6_20261120/replay/index.html">看六图对照与工具回执</a> · <a href="interference_constrained_geometry_d2_m6_20261120/replay/fixed_states.gif">三状态GIF（非新飞行）</a> · <a href="../docs/constrained_geometry_results_20261120.md">结果与路线风险排序诊断</a></article>
+<article><h2>D2-M5：六份回复均及时，机制提议尚无LLM收益</h2>
+<p>1新独立会话连续处理三个固定状态的pilot/refine，共6份真实回复、0回退。LLM选择机制、左右区域、源数和几何对象，最后一状态主动keep。25秒数值/LLM冻结剩余T+Q=111.70/112.91，其余两状态相同；未获LLM优化收益。两次LLM几何细化越出所选半域而拒绝，基础拟合仍参与规划。0新飞行/点测，29模块、277测试，本轮预算结束。</p>
+<a href="interference_task_proposals_d2_m5_20261120/review/index.html">看可切换假设源的四图回放</a> · <a href="interference_task_proposals_d2_m5_20261120/replay/fixed_states.gif">三状态GIF（非新飞行）</a> · <a href="../docs/task_proposals_results_20261120.md">结果、工具拒绝原因与下一步</a></article>
+<article><h2>D2-M4：3份独立回复，仅1份及时执行</h2>
+<p>1个全新独立子agent完成3次单次工具分配回复；第1份及时执行，后2份派发超时，执行端按合同keep回退。三个固定状态的N/I路线和下一短段均未变，冻结整路收益全0。不能据此评价LLM优劣，也不将回退少用计算算LLM节省。0新飞行/点测，265测试通过，3次决策预算结束。</p>
+<a href="interference_task_allocation_d2_m4_20261120/review/index.html">看带回执的固定状态回放</a> · <a href="interference_task_allocation_d2_m4_20261120/review/fixed_states_with_receipts.gif">三状态对照GIF（非新飞行）</a> · <a href="../docs/task_allocation_results_20261120.md">结果、迟到回复与限制</a></article>
+<article><h2>D2-M3：源几何细化改变行动，暴露降低但总代价上升</h2>
+<p>两条数值飞行均到达。同预算幅度/中心尺度细化接受0/12、10/12次，25秒后实际动作分岔；Q从93.33降至86.78，航程从742.35增至865.06米，T+Q从144.82升至146.45（+1.13%）。3个固定历史状态最优路线均未变。细化保持可选，0次新决策LLM调用，253项测试通过，预算结束。</p>
+<a href="interference_source_geometry_d2_m3_20261120/replay/index.html">看两条新replay与指标</a> · <a href="interference_source_geometry_d2_m3_20261120/replay/geometry_bounded.gif">直接看几何细化GIF</a> · <a href="../docs/source_geometry_results_20261120.md">结果与实际动作诊断</a></article>
+<article><h2>D2-M2：替换失配旧源，行动与代价仍相同</h2>
+<p>两条数值飞行均到达。20.5秒暂停3个失配旧源，活动池换为新拟合版本；选中不同中间点却共享实际执行前缀，整次观测和动作相同，T+Q均144.82。源一步RMSE从3.37升至3.88dB，3个同状态最优路线也未变。没有替换收益，该机制仅保留可选消融。源池无全图功率延续，0次新决策LLM调用，243项测试通过。</p>
+<a href="interference_source_renewal_d2_m2_20261120/replay/index.html">看两条新replay与指标</a> · <a href="interference_source_renewal_d2_m2_20261120/replay/renewal_replace.gif">直接看替换版GIF</a> · <a href="../docs/source_renewal_results_20261120.md">结果与执行前缀诊断</a></article>
+<article><h2>D2-M1：侧向搜索改变了路线，但总代价上升</h2>
+<p>两条数值机制飞行均到达。新增搜索4次选中新路线，航程由768.89缩至742.35米，但真实暴露Q由86.70升至93.33，T+Q由139.96升至144.82（+3.48%）。同状态3次诊断中2次预测改善而真值更差、1次真值改善5.50；搜索候选不足和预测排序不稳均需区分。源池继续排除全图功率延续，0次新决策LLM调用，236项测试通过。</p>
+<a href="interference_source_search_d2_m1_20261120/replay/index.html">看两条新replay与指标</a> · <a href="interference_source_search_d2_m1_20261120/replay/search_lattice.gif">直接看侧向搜索GIF</a> · <a href="../docs/source_search_results_20261120.md">结果与同状态诊断</a></article>
+<article><h2>D2-M0：移除全图功率延续后的新飞行</h2>
 <p>两条数值机制飞行都到达：早期源拟合T+Q=134.09；加入失配修订为139.96。右图显示实际源聚合场及源中心；没有全图最近功率延续。修订版在20.5/31/41.5秒重新拟合，预测误差下降，但两条几何航迹相同，没有修订的任务收益。0次新决策LLM调用。</p>
 <a href="interference_source_only_d2_m0_20261120/replay/index.html">看两条新replay与指标</a> · <a href="interference_source_only_d2_m0_20261120/replay/source_revise.gif">直接看失配修订GIF</a> · <a href="../docs/source_only_results_20261120.md">结果与局限</a></article>
 <article><h2>D1：真值源与假设等效源标记</h2>

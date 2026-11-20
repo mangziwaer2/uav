@@ -2,6 +2,7 @@
 
 No simulator, truth, flight or LLM access. Legacy bank behavior is unchanged.
 """
+from copy import deepcopy
 from dataclasses import asdict, dataclass
 import math
 
@@ -32,6 +33,57 @@ class SourceOnlyBank(HypothesisBank):
         if candidates and initial:
             self.models = self.models[-len(candidates):]
             self.log_weights = np.full(len(candidates), -math.log(len(candidates)))
+
+
+class SourceRenewalBank(SourceOnlyBank):
+    """Suspend the failed active cohort only after a valid replacement exists.
+
+    This is a development eligibility rule, not calibrated model rejection.
+    It uses the existing all-source 8dB failure definition, never fit residuals.
+    """
+    def __init__(self, initial, background=-100., unknown_std=15., *, mismatch_db=8.):
+        if not math.isfinite(mismatch_db) or mismatch_db <= 0:
+            raise ValueError('positive finite mismatch threshold required')
+        super().__init__(initial, background, unknown_std)
+        self.mismatch_db = float(mismatch_db)
+        self.latest_record = None
+        self.replacement_events = []
+
+    def observe(self, measurement):
+        result = super().observe(measurement)
+        self.latest_record = deepcopy(result)
+        return result
+
+    def birth(self, candidates):
+        retired_ids={m['id'] for e in self.replacement_events for m in e['retired']}
+        if any(m['id'] in retired_ids for m in candidates):
+            raise ValueError('retired source identifiers cannot be reused as fresh evidence')
+        before = self.snapshot()
+        record = self.latest_record
+        source_ids = {m['id'] for m in self.models if m['bases']}
+        failures = []
+        if record is not None and source_ids:
+            issued = record['issued']
+            if (record['observation'] != self.history[-1]
+                    or issued['history_sha256'] != digest(self.history[:-1])):
+                raise ValueError('renewal requires the latest causal prediction')
+            y = record['observation']['interference_dbm']
+            failures = [dict(id=p['id'], absolute_error_db=abs(y-p['mean_dbm']))
+                        for p in issued['predictions'] if p['id'] in source_ids]
+        replace = bool(source_ids) and {r['id'] for r in failures} == source_ids and all(
+            r['absolute_error_db'] >= self.mismatch_db for r in failures)
+        # Parent validates the entire batch and pending-observation guard first.
+        # An empty/invalid fit cannot discard the existing active cohort.
+        super().birth(candidates)
+        if replace and candidates:
+            self.models = self.models[-len(candidates):]
+            self.log_weights = np.full(len(candidates), -math.log(len(candidates)))
+            self.replacement_events.append(dict(time_seconds=self.history[-1]['time_seconds'],
+                history_sha256=digest(self.history), threshold_db=self.mismatch_db,
+                reason='all_preissued_source_predictions_mismatch_and_new_fit_committed',
+                retired=before, failures=failures, failure_record=deepcopy(record),
+                active_after=self.snapshot(), old_scores_inherited=False,
+                meaning='suspended from active pool; not globally disproved or calibrated rejection'))
 
 
 @dataclass(frozen=True)

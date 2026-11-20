@@ -4,8 +4,10 @@ import hashlib
 import html
 import json
 import math
+import os
 from pathlib import Path
 import shutil
+import tempfile
 import time
 
 import numpy as np
@@ -28,9 +30,21 @@ def sha(path):
 
 
 def save(path, value):
-    with path.open('x') as stream:
-        json.dump(value, stream, ensure_ascii=False, indent=2, allow_nan=False)
-        stream.write('\n')
+    """Atomically publish complete JSON, retaining exclusive-create semantics."""
+    path = Path(path)
+    payload = json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False)+'\n'
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', dir=path.parent,
+                prefix='.'+path.name+'.', suffix='.tmp', delete=False) as stream:
+            temporary = Path(stream.name)
+            stream.write(payload)
+        # A same-filesystem hard link publishes the closed file atomically and
+        # fails if the destination exists; replace/rename would overwrite it.
+        os.link(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink()
 
 
 def control(path, value):
@@ -100,35 +114,42 @@ class FileAdvisor:
             request_id=request_id, request=deepcopy(request), issued_monotonic=issued))
         print('REQUEST', index, kind, 't', request.get('time_seconds', request.get('request',{}).get('time_seconds')), flush=True)
         started = received = raw = error = None
+        receipt_json_retries = 0
         while True:
             now = self.clock()
+            if started is None and now-issued > 60.:
+                error = 'undispatched timeout'; break
+            if started is not None and now-started > 180.:
+                error = 'response timeout'; break
             if started is None and started_path.exists():
                 try:
                     receipt = read(started_path)
                     stamp = receipt['started_monotonic']
                     if (receipt['agent_id'] != self.agent_id or receipt['request_id'] != request_id
-                            or not math.isfinite(stamp) or not issued <= stamp <= now):
+                            or type(stamp) not in (int, float) or not math.isfinite(stamp)
+                            or not issued <= stamp <= now):
                         raise ValueError('invalid start receipt binding/clock')
                     started = stamp
                     if started-issued > 60.:
                         error = 'late dispatch'; break
+                except json.JSONDecodeError:
+                    # A legacy writer may still expose an unfinished receipt.
+                    # Retry only inside the unchanged dispatch deadline.
+                    receipt_json_retries += 1
                 except (KeyError, TypeError, ValueError) as exc:
                     error = str(exc); break
             if started is not None and raw_path.exists() and ready_path.exists():
                 received = now
                 raw = raw_path.read_text()
                 break
-            if started is None and now-issued > 60.:
-                error = 'undispatched timeout'; break
-            if started is not None and now-started > 180.:
-                error = 'response timeout'; break
             self.sleeper(.15)
         timely = bool(received is not None and started is not None and received-started <= 180.)
         envelope = dict(raw=raw, timely=timely, started=started is not None,
             actual_llm_request=started is not None, agent_id=self.agent_id,
             issued_monotonic=issued, started_monotonic=started, received_monotonic=received,
             wall_seconds=self.clock()-issued, error=error, kind=kind, index=index,
-            request_id=request_id, raw_sha256=sha(raw_path) if raw is not None else None)
+            request_id=request_id, raw_sha256=sha(raw_path) if raw is not None else None,
+            receipt_json_retries=receipt_json_retries)
         save(self.public/'responses'/f'{name}.host.json', envelope)
         print('RECEIVED', index, 'timely', timely, 'error', error, flush=True)
         return envelope

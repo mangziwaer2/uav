@@ -1,0 +1,25 @@
+{
+  "case": "partially_written_valid_start_receipt",
+  "counterexample_produced": true,
+  "writer_finished": false,
+  "host_stopped_before_writer_could_complete": true,
+  "envelope": {
+    "raw": null,
+    "timely": false,
+    "started": false,
+    "actual_llm_request": false,
+    "agent_id": "synthetic",
+    "issued_monotonic": 100.0,
+    "started_monotonic": null,
+    "received_monotonic": null,
+    "wall_seconds": 0.15000000000000568,
+    "error": "Expecting value: line 1 column 13 (char 12)",
+    "kind": "inference",
+    "index": 0,
+    "request_id": "bound",
+    "raw_sha256": null
+  },
+  "actual_llm_calls": 0,
+  "synthetic": true,
+  "scope": "possible race, not evidence that a historical request hit it"
+}

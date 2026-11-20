@@ -189,7 +189,7 @@ def state_request(state, forecast, geometry, work):
                 time_seconds=forecast.now,
                 bounds_m=[[0.,0.], geometry.high.tolist()], resources=work.summary(),
                 known_geometry=dict(obstacles_m=geometry.config.obstacles_m,clearance_m=geometry.clearance_m,
-                    blocking_buildings=[dict(id=b.id,footprint_m=b.footprint_m) for b in geometry.blocking_buildings]),
+                    blocking_buildings=[dict(id=b.id,footprint_m=b.footprint_m,holes_m=b.holes_m) for b in geometry.blocking_buildings]),
                 limits=dict(max_samples=min(700, work.sample_limit-work.samples),
                             actions=['keep','direct','via'], samplers=['uniform','corridor']))
     body['request_id'] = digest(body)

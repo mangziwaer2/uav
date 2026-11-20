@@ -1,0 +1,7 @@
+{
+  "status": "not_assembled_due_to_mixed_etags",
+  "url": "https://proceedings.mlr.press/v229/rana23a/rana23a.pdf",
+  "ranges": 58,
+  "all_ranges_individually_received": true,
+  "issue": "Two ETags across range responses; no version-coherent full original claimed; no range-assembled text read. Individual range checks and hashes retained in sayplan_ranges_retrieval.json. Range/partial payloads discarded after audit."
+}

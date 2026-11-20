@@ -1,0 +1,31 @@
+{
+  "passed": false,
+  "retained_hashes_checked": 146,
+  "active_modules": 31,
+  "local_imports_checked": 120,
+  "active_navigation_links_checked": 405,
+  "failures": [
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/index.html",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/protocol.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/full_tests.log",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/navigation_check.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/findings.md",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/publication.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/verification.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/reports/results.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/gp_numeric_static.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_numeric_dynamic.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_llm_static.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_numeric_static.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/gp_numeric_dynamic.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/persistence_numeric_dynamic.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/mixture_llm_dynamic.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/traces/persistence_numeric_static.json",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tools/run_timing_diagnostic.py",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tools/verify_timing_diagnostic.py",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/src/uav_em/decision_timing.py",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/docs/decision_timing_diagnostic_v1.md",
+    "retained original changed/missing: outputs/interference_timing_diagnostic_20261119/frozen_source/tests/test_decision_timing.py"
+  ],
+  "scope": "byte integrity/imports/navigation only; no independent scientific rerun"
+}

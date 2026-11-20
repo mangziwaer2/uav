@@ -1,0 +1,7 @@
+{
+  "status": "partial_after_20s_total_timeout",
+  "bytes": 830388,
+  "sha256": "893901d9e611258cfed9ab774dc8f69db4485f59006f85877060cd67afd0fbc4",
+  "http_status": 206,
+  "payload_discarded": true
+}

@@ -1,0 +1,16 @@
+{
+  "date_utc": "2026-11-20T06:58:08.539598+00:00",
+  "url": "https://docs.scipy.org/doc/scipy/reference/optimize.minimize-slsqp.html",
+  "title": "SciPy minimize(method=SLSQP) reference",
+  "status": "downloaded_original",
+  "original_sha256": "7317a70ff8b4eeeabb09ff167eaae1812d15b5b44116f0de65f8908490d9f9c9",
+  "text_sha256": "0302127de1c5cbb7421b84e7f8df93fc8aa9656761593b34859bee4d2e46a23b",
+  "actual_reading": "Downloaded SciPy reference text lines 115-162 (SLSQP, ftol, maxiter and numerical-Jacobian options), 180-248 (OptimizeResult success/message, KKT and constraint conversion). Selected API reference reading only, not a full numerical-optimization literature review.",
+  "use": "Explicit inequality constraints with supplied analytic objective/constraint Jacobians; cap actual evaluations independently of maxiter; verify physical feasibility after solver success.",
+  "limitations": [
+    "Current website describes newer SciPy features; local SciPy is 1.15.3. Only established fun/jac/bounds/ineq/ftol/maxiter API used; no workers/multipliers dependency.",
+    "SLSQP is a shared classical tool, not LLM innovation and not a global-optimality guarantee.",
+    "1e-6m interior margin, scaling, ftol and budgets are frozen engineering choices, not published UAV guarantees.",
+    "Internal SLSQP trials can violate nonlinear constraints; final acceptance still uses the original hard region check."
+  ]
+}

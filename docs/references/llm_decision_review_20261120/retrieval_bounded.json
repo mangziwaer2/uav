@@ -1,0 +1,24 @@
+[
+  {
+    "id": "sayplan_pmlr_bounded",
+    "requested_url": "https://proceedings.mlr.press/v229/rana23a/rana23a.pdf",
+    "retrieved_utc": "2026-11-20T07:57:03.548050+00:00",
+    "network_total_timeout_s": 20,
+    "exit_code": 28,
+    "response_metadata": "200\nhttps://proceedings.mlr.press/v229/rana23a/rana23a.pdf\napplication/pdf",
+    "stderr": "curl: (28) Operation timed out after 20000 milliseconds with 2199747 out of 15007428 bytes received\n",
+    "status": "failed",
+    "discarded_partial_bytes": 2199747
+  },
+  {
+    "id": "sayplan_arxiv_bounded",
+    "requested_url": "https://arxiv.org/pdf/2307.06135v2",
+    "retrieved_utc": "2026-11-20T07:57:03.548715+00:00",
+    "network_total_timeout_s": 20,
+    "exit_code": 28,
+    "response_metadata": "200\nhttps://arxiv.org/pdf/2307.06135v2\napplication/pdf",
+    "stderr": "curl: (28) Operation timed out after 20000 milliseconds with 2102688 out of 15007428 bytes received\n",
+    "status": "failed",
+    "discarded_partial_bytes": 2102688
+  }
+]

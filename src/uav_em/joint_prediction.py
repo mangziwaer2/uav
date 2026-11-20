@@ -7,7 +7,7 @@ import math
 import numpy as np
 
 from .equivalent_field import normalized_expected_power
-from .point_gp import FrozenGP, training_points
+from .point_gp import FrozenGP, support_reference, training_points
 
 
 @dataclass(frozen=True)
@@ -29,11 +29,7 @@ def local_prediction(gp, xy, times, settings):
     mu, sd, supported = gp.predict(xy, times)
     weight = np.zeros(len(times))
     if gp.model.points and len(times):
-        points = gp.model.points
-        distances = np.linalg.norm(xy[:, None]-np.asarray([p['position_m'] for p in points])[None], axis=2)
-        nearest = np.argmin(distances, axis=1)
-        distance = distances[np.arange(len(times)), nearest]
-        age = times-np.asarray([p['time_seconds'] for p in points])[nearest]
+        _, distance, age, _ = support_reference(gp.model, xy, times)
         weight = (np.exp(-(distance/settings.distance_scale_m)**2)
                   * np.exp(-age/settings.age_scale_seconds)
                   * np.exp(-(times-gp.now)/settings.horizon_scale_seconds)

@@ -1,0 +1,1525 @@
+Theoretical Analysis of the Radio Map Estimation Problem
+Skip to main content
+Report GitHub Issue
+×
+Title:
+Content selection saved. Describe the issue below:
+Description:
+Submit without GitHub
+Submit in GitHub
+Why HTML?
+Report Issue
+Back to Abstract
+Download PDF
+Contents
+Reading mode
+Colour theme
+Abstract
+I Introduction
+II Estimation of Radio Maps
+II-A Power Maps in Free Space
+II-B 1D and 2D Restrictions
+III Spatial Variability of Radio Maps
+III-A High-variability Result
+III-B Low-variability Results
+III-B1 Spatial Change Rate of Power Maps
+III-B2 Spatial Bandwidth of Power Maps
+IV Reconstruction Error Bounds
+IV-A Zeroth-Order Interpolation
+IV-B First-order Interpolation
+IV-C Sinc Interpolation
+V Numerical Experiments
+V-A Tightness of the Reconstruction Error Bounds
+V-B Experiment with Ray-Tracing Data
+VI Conclusions
+References
+A Proof of Theorem
+B Proof of Lemma
+C Proof of Theorem
+D Proof of Theorem
+E Proof of Theorem
+F Proof of Theorem
+G Proof of Theorem
+H Arbitrary Path-loss Exponent
+License: arXiv.org perpetual non-exclusive license
+arXiv:2310.15106v4 [cs.IT] 23 Mar 2024
+Theoretical Analysis of the
+Radio Map Estimation ProblemThanks: This research has been funded in part by the Research Council of Norway under IKTPLUSS grant 311994.
+Daniel Romero, Tien Ngoc Ha, Raju Shrestha
+Affiliation:
+Dept. of ICT,
+University of Agder
+Grimstad, Norway
+{daniel.romero,tien.n.ha,raju.shrestha}@uia.no
+Massimo Franceschetti
+Affiliation: University of California, San Diego
+San Diego, USA
+mfranceschetti@ucsd.edu
+Affiliation:
+Abstract
+Radio maps provide radio frequency metrics, such as the received signal
+strength, at every location of a geographic area. These maps, which are
+estimated using a set of measurements collected at multiple positions, find a
+wide range of applications in wireless communications, including the prediction
+of coverage holes, network planning, resource allocation, and path planning for
+mobile robots. Although a vast number of estimators have been proposed, the
+theoretical understanding of the radio map estimation (RME) problem has not been
+addressed. The present work aims at filling this gap along two directions.
+First, the complexity of the set of radio map functions is quantified by means
+of lower and upper bounds on their spatial variability, which offers valuable
+insight into the required spatial distribution of measurements and the
+estimators that can be used. Second, the reconstruction error for power maps in
+free space is upper bounded for three conventional spatial interpolators. The
+proximity coefficient, which is a decreasing function of the distance from the
+transmitters to the mapped region, is proposed to quantify the complexity of the
+RME problem. Numerical experiments assess the tightness of the obtained bounds
+and the validity of the main takeaways in complex environments.
+Index Terms: Radio map estimation, radio environment maps, spectrum cartography, wireless communications.
+I Introduction
+Radio maps, also known as radio environment maps, provide a radio frequency (RF) metric of interest across a geographical region [1].
+For example, in power maps, which constitute a prominent example of radio maps, the metric of interest is the power that a sensor would measure when placed at each location. An example of a power map constructed with real data is shown in Fig. 1.
+Other examples of RF metrics include the received power spectral density (PSD), outage probability, and channel gain.
+Radio maps are of interest in a large number of applications such as cellular communications, device-to-device communications, network planning, frequency planning, robot path planning, dynamic spectrum access, aerial traffic management in unmanned aerial systems, fingerprinting localization, and so on; see e.g. [2, 3, 4, 5, 1] and references therein.
+A recently popular application of power maps is to determine how the coverage of a cellular or broadcast network can be improved by deploying new base stations or relays, either terrestrial or aerial [6, 7, 8].
+In radio map estimation (RME), a radio map is constructed using measurements collected across the area of interest.
+Many estimators have been proposed in the literature, mostly based on some form of interpolation or regression. By far, power maps are the radio maps that garnered most interest.
+One of the simplest kinds of estimators relies on kernel-based learning (see [9] and references therein), which overcome the limitations of (the simpler) parametric estimators [1, Sec. “Linear Parametric RME”].
+Other popular estimators are based on Kriging [10, 11, 12],
+sparsity-based inference [13, 14, 15],
+matrix completion [16, 17],
+dictionary learning [18], and graphical models [19].
+The most recent trend capitalizes on deep neural networks; see e.g. [20, 21, 22, 23].
+Note that the aforementioned list of works is not exhaustive due to space limitations. For a more comprehensive list of references, see [1].
+Despite the large
+volume of research in this area, the vast majority of works adhere to a
+common profile: they propose an estimator and validate it with synthetic
+data generated using a statistical propagation model or with ray-tracing software. A small number of works utilize also real data [24, 25, 26, 27, 28].
+However, no theoretical analysis on the fundamental aspects of the RME problem as well as on the performance of estimation algorithms has been carried out.
+Indeed, the most related work in this context is two-fold.
+On the one hand, the estimation error of some schemes can be derived if the field of interest adheres to a certain model [12, 20]. However, these models are generic, not necessarily accurate for radio maps.
+On the other hand, the wave theory of information (WTI) studied the problem of reconstructing the electromagnetic field across space and time using arrays of synchronized sensors [29]. Nonetheless, this problem is fundamentally different from RME, where sensors are not typically synchronized, the metrics of interest involve temporal averages of the electromagnetic field, and
+the targeted spatial resolution is much lower.
+Fig. 1: Example of power map where a spatially dense set of measurements was collected using an unmanned aerial vehicle [24].
+This paper11
+1
+A conference version of this paper was submitted to the IEEE Vehicular Technology Conference, Spring 2024. Relative to that paper, the present one considers also 2D maps, contains Theorem 1, Corollary 1, Corollary 2, the analysis of the reconstruction using sinc interpolation, the proofs of all results, and further discussions and numerical experiments.
+takes a step to address this gap by means of a quantitative theoretical analysis of the RME problem.
+In particular, the difficulty of the RME problem is first assessed by analyzing the spatial variability of power maps. An important finding in this context is that the spatial variations of power maps in free space are relatively slow. Most of their energy is concentrated at low spatial frequencies, which motivates estimators based on this property.
+Second, the estimation performance of zeroth-order, first-order, and sinc interpolators is quantified in terms of L1L^{1}, L2L^{2}, and L∞L^{\infty} error metrics. Many of these bounds turn out to be proportional to a quantity referred to as the proximity coefficient, which is directly proportional to the transmitted power and inversely proportional to the cube of the distance from the transmitters to the mapped region. As a result, the analysis reveals that a larger spatial density of measurements is required when the sources are closer to the mapped region. Error analysis of the sinc interpolator yields bounds with a faster decay rate than zeroth- and first-order interpolators, but the latter are seen to be preferable in practice, where the number of samples is finite.
+Finally, although the aforementioned results assume free-space
+propagation, their generalization to more involved propagation
+phenomena is briefly addressed, both theoretically and by means of a
+numerical experiment.
+The rest of the paper is structured as follows. Sec. II formulates the RME problem and introduces useful notation. Sec. III analyzes the spatial variability of power maps. Sec. IV derives error bounds for the considered interpolators. Finally, Sec. V presents numerical experiments and
+Sec. VI concludes the paper. The proofs can be found in the appendices.
+A note on the generalizability of the results here to non-free space environments is given in Appendix H.
+Notation:
+Symbol ≜\triangleq indicates equality by definition.
+If 𝒜\mathcal{A} is a set in a metric space, 𝒜¯\bar{\mathcal{A}} denotes its closure.
+If 𝒜\mathcal{A} is a set in a vector space, span(𝒜)\mathop{\rm span}(\mathcal{A}) denotes the set of all linear combinations of finitely many elements of 𝒜\mathcal{A}.
+ℕ\mathbb{N} is the set of natural numbers, ℤ\mathbb{Z} the set of integers, and ℝ\mathbb{R} is the field of real numbers.
+Boldface lowercase (uppercase) letters denote column vectors (matrices).
+Vertical concatenation is represented with a semicolon, e.g. [𝒂;𝒃][\bm{a};\bm{b}].
+A function ff is represented by a letter, whereas the result of evaluating such a function at a point xx is denoted as f⁡(x)f(x).
+II Estimation of Radio Maps
+This section introduces power maps and formulates the problem of
+estimating them. Subsequently, useful notation is presented for power maps
+in free space.
+Let ℛ⊂ℝ3{\mathcal{R}}\subset\mathbb{R}^{3} comprise the Cartesian coordinates of all points in the geographic area of interest.
+A set22
+2
+There may be other sources in the region so long as the measurement process can separate out their aggregate contribution. This can be achieved e.g. by means of spreading codes or pilot sequences. This allows the construction of a wide variety of maps, including signal maps, interference maps, noise maps, and signal-to-interference-plus-noise-ratio (SINR) maps. This is useful e.g. to determine the coverage of a network; see [1] for a list of applications.
+of S{{S}} sources (also referred to as transmitters) in a region
+𝒱⊂ℝ3{\mathcal{V}}\subset\mathbb{R}^{3} produce an aggregate electric field
+𝒆⁡(𝒓¯,t)∈ℝ3{{\bm{e}}}({{\underline{\bm{r}}}},t)\in\mathbb{R}^{3} at every point 𝒓¯∈ℛ{{\underline{\bm{r}}}}\in{\mathcal{R}}, where
+tt denotes time. The underscore notation 𝒓¯{{\underline{\bm{r}}}} will represent full location vectors in ℝ3\mathbb{R}^{3}, whereas the notation 𝒓{{\bm{r}}} will be used later when introducing restrictions.
+Neglecting for simplicity polarization
+effects and modeling 𝒆⁡(𝒓¯,t){{\bm{e}}}({{\underline{\bm{r}}}},t) as an ergodic wide-sense
+stationary random process over tt for all 𝒓¯{{\underline{\bm{r}}}}, the power
+of the signal received by a sensor with an isotropic antenna at
+𝒓¯∈ℛ{{\underline{\bm{r}}}}\in{\mathcal{R}} does not depend on tt so it can be represented by a function
+γ:ℛ→ℝ+{{\gamma}}:{\mathcal{R}}\rightarrow\mathbb{R}_{+}. Function γ{{\gamma}}, which
+therefore indicates how power spreads across space, is
+a special case of a radio map termed power map and depends on the
+transmitted signals, the transmitter locations, and the propagation environment.
+The problem is to estimate a power map given a set of measurements in ℛ{\mathcal{R}}.
+Specifically, let
+γ1,…,γN{{\gamma}}_{1},\ldots,{{\gamma}}_{{N}} denote the power measured at a set of locations
+ℛ~≜{𝒓¯1,…,{{\tilde{\mathcal{R}}}}\triangleq\{{{\underline{\bm{r}}}}_{1},\ldots, 𝒓¯N}⊂ℛ{{\underline{\bm{r}}}}_{{{N}}}\}\subset{\mathcal{R}}.
+For the ensuing analysis, it is not relevant whether sensors are static, which implies that each one measures at a single spatial location, or mobile, which means that they can measure at multiple spatial locations.33
+3
+Since 𝒆⁡(𝒓¯,t){{\bm{e}}}({{\underline{\bm{r}}}},t) is modeled as an ergodic wide-sense
+stationary random process, the power is a constant, i.e., it does not depend on time. Thus, theoretically there is not a maximum allowed difference between the times at which the measurements must be collected.
+In practice, 𝒆⁡(𝒓¯,t){{\bm{e}}}({{\underline{\bm{r}}}},t) is non-stationary and one can think of power as a function of time. Thus, one needs to specify a time scale under which the power does not significantly change. All the N{{N}} measurements must therefore be collected within this time scale.
+Due to the finite observation time spent by a sensor at 𝒓¯n{{\underline{\bm{r}}}}_{{n}}
+to measure the received power, γn{{\gamma}}_{{n}} does not generally equal
+γ⁡(𝒓¯n){{\gamma}}({{\underline{\bm{r}}}}_{{n}}). Instead, certain measurement error
+must be expected. This is oftentimes expressed as
+γn=γ⁡(𝒓¯n)+ζn{{\gamma}}_{{n}}={{\gamma}}({{\underline{\bm{r}}}}_{{n}})+{{\zeta}}_{{n}}, where
+ζn{{\zeta}}_{{n}} is the measurement error.
+The power map estimation problem can be formulated as,
+given {(𝒓¯n,γn)}n=1N\{({{\underline{\bm{r}}}}_{{n}},{{\gamma}}_{{n}})\}_{{{n}}=1}^{{{N}}},
+estimate the function γ{{\gamma}} or, equivalently, the values
+γ⁡(𝒓¯){{\gamma}}({{\underline{\bm{r}}}}) for all 𝒓¯∈ℛ{{\underline{\bm{r}}}}\in{\mathcal{R}}. The map
+estimate will be denoted as γ^{{\hat{\gamma}}}.
+In this formulation, no information is given about the propagation environment, the positions of the sources, the transmitted power, the radiation pattern of the transmit antennas, and so on.
+This is why most estimators in the
+literature are based on interpolation algorithms rather than on electromagnetic propagation models. A detailed taxonomy of these estimators along with relevant references can be found in [1].
+II-A Power Maps in Free Space
+Since many of the results in this paper focus on free-space propagation, this section introduces useful notation for this class of maps. The case of general propagation effects will be addressed when discussing some general results and it will be
+the focus of Sec. V-B, Appendix H, and future work.
+Recall that Friis’ propagation law
+establishes that the power that a terminal at 𝒓¯{{\underline{\bm{r}}}} receives from a transmitter
+at 𝒓¯´{{\underline{\acute{\bm{r}}}}} when propagation takes place in free space is given by
+γ⁡(𝒓¯)=PTx​GTx​GRx​[λ4​π​‖𝒓¯−𝒓¯´‖]2,\displaystyle{{\gamma}}({{\underline{\bm{r}}}})={{P}_{\text{Tx}}}{{G}_{\text{Tx}}}{{G}_{\text{Rx}}}\left[\frac{{{\lambda}}}{4\pi\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\|}\right]^{2},
+(1)
+where
+λ{{\lambda}} is the wavelength,
+PTx{{P}_{\text{Tx}}} is the transmitted power,
+GTx{{G}_{\text{Tx}}} is the antenna gain of the transmitter, and
+GRx{{G}_{\text{Rx}}} is the antenna gain of the receiver.
+Suppose for simplicity that both terminals use
+isotropic antennas, i.e. GTx=GRx=1{{G}_{\text{Tx}}}={{G}_{\text{Rx}}}=1. Upon letting
+α≜PTx​(λ/4​π)2{{\alpha}}\triangleq{{P}_{\text{Tx}}}({{\lambda}}/4\pi)^{2}, expression (1)
+reduces to
+γ⁡(𝒓¯)=α‖𝒓¯−𝒓¯´‖2.\displaystyle{{\gamma}}({{\underline{\bm{r}}}})=\frac{{{\alpha}}}{\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\|^{2}}.
+(2)
+Observe that, as per (2), γ⁡(𝒓¯)→+∞{{\gamma}}({{\underline{\bm{r}}}})\rightarrow+\infty as 𝒓¯→𝒓¯´{{\underline{\bm{r}}}}\rightarrow{{\underline{\acute{\bm{r}}}}}, which is
+not physically possible. The reason for this disagreement between
+(2) and the physical reality is that (2) is an
+approximation valid only in the far field, i.e., when ‖𝒓¯−𝒓¯´‖\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\| is significantly larger than λ{{\lambda}}. Thus, it will be
+required throughout that ‖𝒓¯−𝒓¯´‖≥ηmin\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\|\geq{{\eta}}_{\text{min}}, where ηmin{{\eta}}_{\text{min}} is a constant sufficiently
+larger than λ{{\lambda}}.
+In the presence of multiple sources that transmit uncorrelated44
+4
+This assumption excludes setups with coordinated multipoint or with multiantenna transmitters that use space-time coding or beamforming. Recall also
+Footnote 2. signals, the individual contributions of each one to the total received power add up and, therefore, the set of all possible power maps is given by
+𝒢FS={γ:ℛ→ℝ+|γ(𝒓¯)=∑s=1Sαs‖𝒓¯−𝒓¯´s‖2,\displaystyle{{{{\mathcal{G}}}_{\text{FS}}}}=\bigg\{{{\gamma}}:{\mathcal{R}}\rightarrow\mathbb{R}_{+}~|~{{\gamma}}({{\underline{\bm{r}}}})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}_{{{s}}}\|^{2}},
+𝒓¯´s∈𝒱,αs≥0,S∈ℕ},\displaystyle~{{\underline{\acute{\bm{r}}}}}_{{{s}}}\in{\mathcal{V}},~{{\alpha}}_{{{s}}}\geq 0,~{{S}}\in\mathbb{N}\bigg\},
+(3)
+where
+S{{S}} denotes the number of sources, and
+αs{{\alpha}}_{{{s}}}
+and 𝒓¯´s{{\underline{\acute{\bm{r}}}}}_{{{s}}} are respectively the α{{\alpha}} coefficient
+and location of the s{{s}}-th source.
+Due to the minimum distance assumption introduced earlier,
+𝒱{\mathcal{V}} must be such that
+dmin​(𝒓¯)≜inf{‖𝒓¯−𝒓¯´‖|𝒓¯´∈𝒱}≥ηmin​∀𝒓¯∈ℛ.\displaystyle{{d}_{\text{min}}}({{\underline{\bm{r}}}})\triangleq\inf\{\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\|~|~{{\underline{\acute{\bm{r}}}}}\in{\mathcal{V}}\}\geq{{\eta}}_{\text{min}}\forall{{\underline{\bm{r}}}}\in{\mathcal{R}}.
+(4)
+II-B 1D and 2D Restrictions
+The maps in (3) are functions
+of three spatial coordinates. However, most works in the literature consider restrictions of such maps to two or one spatial dimensions. This is because the case of two spatial dimensions is of interest when users are on the ground, whereas the case of one spatial dimension is relevant e.g. when one wishes to construct a map along a road or railway. The case of three spatial dimensions is still rare in the literature, but it has already been successfully applied to deploy aerial base stations and aerial relays [8, 6].
+2D Restriction. To consider the restriction of power maps to two spatial
+dimensions, focus without loss of generality (w.l.o.g.) on the values that γ{{\gamma}} takes on the
+horizontal plane
+ℋ≜{[rx;ry;rz]∈ℝ3|rz=0}{{\mathcal{H}}}\triangleq\{[{{r}}_{x};{{r}}_{y};{{r}}_{z}]\in\mathbb{R}^{3}~|~{{r}}_{z}=0\}. To
+this end, the domain ℛ{\mathcal{R}} where γ{{\gamma}} is defined must be a
+subset of ℋ{{\mathcal{H}}}, i.e., ℛ={[rx;ry;rz]|[rx;ry]∈ℛ(2),rz=0}{\mathcal{R}}=\{[{{r}}_{x};{{r}}_{y};{{r}}_{z}]~|~[{{r}}_{x};{{r}}_{y}]\in{\mathcal{R}}^{(2)},~{{r}}_{z}=0\} for
+some ℛ(2)⊂ℝ2{\mathcal{R}}^{(2)}\subset\mathbb{R}^{2}. Since each point in
+ℛ{\mathcal{R}} can be identified by its x and y coordinates, which are
+collected in ℛ(2){\mathcal{R}}^{(2)}, the sought restriction of
+γ{{\gamma}} will be defined on ℛ(2){\mathcal{R}}^{(2)}.
+Before presenting the expression for this restriction, some notation is introduced. Upon letting
+𝒓¯=[rx;ry;0]{{\underline{\bm{r}}}}=[{{r}}_{x};{{r}}_{y};0] and
+𝒓¯´=[r´x;r´y;r´z]{{\underline{\acute{\bm{r}}}}}=[{{\acute{r}}}_{x};{{\acute{r}}}_{y};{{\acute{r}}}_{z}], equation (2) becomes
+γ⁡(𝒓¯)=α‖𝒓¯−𝒓¯´‖2=α‖𝒓−𝒓´‖2+β2≜γ⁡(𝒓),\displaystyle{{\gamma}}({{\underline{\bm{r}}}})=\frac{{{\alpha}}}{\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\|^{2}}=\frac{{{\alpha}}}{\|{{\bm{r}}}-{{\acute{\bm{r}}}}\|^{2}+{{\beta}}^{2}}\triangleq{{\gamma}}({{\bm{r}}}),
+(5)
+where
+𝒓≜[rx;ry]{{\bm{r}}}\triangleq[{{r}}_{x};{{r}}_{y}] and
+𝒓´≜[r´x;r´y]{{\acute{\bm{r}}}}\triangleq[{{\acute{r}}}_{x};{{\acute{r}}}_{y}] respectively contain the
+horizontal coordinates of the evaluation and source locations with respect
+to ℋ{{\mathcal{H}}}, whereas
+β2≜r´z2{{\beta}}^{2}\triangleq{{\acute{r}}}_{z}^{2} is the squared distance from the source
+location to ℋ{{\mathcal{H}}}.
+Thus, although the points where γ{{\gamma}} will be evaluated are on
+ℋ{{\mathcal{H}}}, the source locations are not required to be on
+ℋ{{\mathcal{H}}}.
+Fig. 2: Visual depiction of the setup for estimating a power map in two spatial dimensions. This is the most common setup in the literature.
+With this notation, restricting the maps in
+(3) to ℋ{{\mathcal{H}}} yields
+𝒢FS(2)\displaystyle{{{{\mathcal{G}}}_{\text{FS}}^{(2)}}}
+={γ:ℛ(2)→ℝ+|γ(𝒓)=∑s=1Sαs‖𝒓−𝒓´s‖2+βs2,\displaystyle=\bigg\{{{\gamma}}:{\mathcal{R}}^{(2)}\rightarrow\mathbb{R}_{+}~|~{{\gamma}}({{\bm{r}}})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{\|{{\bm{r}}}-{{\acute{\bm{r}}}}_{{{s}}}\|^{2}+{{\beta}}^{2}_{{{s}}}},
+𝒓´s∈𝒱(2),βs2∈ℬ(𝒓´s),αs≥0,S∈ℕ},\displaystyle~{{\acute{\bm{r}}}}_{{{s}}}\in{\mathcal{V}}^{(2)},~{{\beta}}^{2}_{{{s}}}\in{{\mathcal{B}}}({{\acute{\bm{r}}}}_{{{s}}}),~{{\alpha}}_{{{s}}}\geq 0,~{{S}}\in\mathbb{N}\bigg\},
+(6)
+where
+𝒱(2){\mathcal{V}}^{(2)} is the set where the horizontal coordinates of
+the sources are allowed to be (which results from the projection of 𝒱{\mathcal{V}} onto
+ℋ{{\mathcal{H}}})
+and ℬ⁡(𝒓´){{\mathcal{B}}}({{\acute{\bm{r}}}}) contains the allowed values of
+β2{{\beta}}^{2} for each vector of source horizontal coordinates 𝒓´{{\acute{\bm{r}}}}, that is,
+ℬ(𝒓´)≜{β2|∃𝒓¯ˇ=[rˇx;rˇy;rˇz]∈𝒱:𝒓´=[rˇx;rˇy]andrˇz2=β2}{{\mathcal{B}}}({{\acute{\bm{r}}}})\triangleq\{{{\beta}}^{2}~|~\exists{{\underline{\check{\bm{r}}}}}=[{{\check{r}}}_{x};{{\check{r}}}_{y};{{\check{r}}}_{z}]\in{\mathcal{V}}~:~{{\acute{\bm{r}}}}=[{{\check{r}}}_{x};{{\check{r}}}_{y}]~\text{and}~{{\check{r}}}_{z}^{2}={{\beta}}^{2}\}.
+Fig. 2 illustrates the main symbols used in the 2D restriction.
+1D Restriction. Since it is the most insightful case, most results in this paper focus on radio maps in a single spatial dimension, i.e., when the functions in (3) are restricted to a line. For the same reason, this approach has also been adopted in the WTI [29, Ch. 8]. RME on a line was considered e.g. in [30].
+Consider w.l.o.g. the line
+ℒ≜{[rx;ry;rz]∈ℝ3|ry,rz=0}{{\mathcal{L}}}\triangleq\{[{{r}}_{x};{{r}}_{y};{{r}}_{z}]\in\mathbb{R}^{3}~|~{{r}}_{y},{{r}}_{z}=0\} and suppose that ℛ{\mathcal{R}} is a subset of ℒ{{\mathcal{L}}}. Thus, one can write
+ℛ={[rx;ry;rz]|[rx]∈ℛ(1),ry,rz=0}{\mathcal{R}}=\{[{{r}}_{x};{{r}}_{y};{{r}}_{z}]~|~[{{r}}_{x}]\in{\mathcal{R}}^{(1)},~{{r}}_{y},{{r}}_{z}=0\} for
+some ℛ(1)⊂ℝ1{\mathcal{R}}^{(1)}\subset\mathbb{R}^{1}, where ℝ1\mathbb{R}^{1} is the set of
+all vectors with one real entry. Vector notation is sometimes used for
+scalars to simplify the statement of some of the upcoming results.
+When 𝒓¯=[rx;0;0]{{\underline{\bm{r}}}}=[{{r}}_{x};0;0] and
+𝒓¯´=[r´x;r´y;r´z]{{\underline{\acute{\bm{r}}}}}=[{{\acute{r}}}_{x};{{\acute{r}}}_{y};{{\acute{r}}}_{z}], (2) becomes
+γ⁡(𝒓¯)=α‖𝒓¯−𝒓¯´‖2=α‖𝒓−𝒓´‖2+β2≜γ⁡(𝒓),\displaystyle{{\gamma}}({{\underline{\bm{r}}}})=\frac{{{\alpha}}}{\|{{\underline{\bm{r}}}}-{{\underline{\acute{\bm{r}}}}}\|^{2}}=\frac{{{\alpha}}}{\|{{\bm{r}}}-{{\acute{\bm{r}}}}\|^{2}+{{\beta}}^{2}}\triangleq{{\gamma}}({{\bm{r}}}),
+(7)
+where
+𝒓≜[rx]{{\bm{r}}}\triangleq[{{r}}_{x}] and
+𝒓´≜[r´x]{{\acute{\bm{r}}}}\triangleq[{{\acute{r}}}_{x}] are the longitudinal
+coordinates of the evaluation and source locations, whereas
+β2≜r´y2+r´z2{{\beta}}^{2}\triangleq{{\acute{r}}}_{y}^{2}+{{\acute{r}}}_{z}^{2} is the squared distance
+from the source location to the mapped line.
+Thus, restricting the maps in (3) to
+ℒ{{\mathcal{L}}} yields
+𝒢FS(1)\displaystyle{{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}
+={γ:ℛ(1)→ℝ+|γ(𝒓)=∑s=1Sαs‖𝒓−𝒓´s‖2+βs2,\displaystyle=\bigg\{{{\gamma}}:~{\mathcal{R}}^{(1)}\rightarrow\mathbb{R}_{+}~|~{{\gamma}}({{\bm{r}}})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{\|{{\bm{r}}}-{{\acute{\bm{r}}}}_{{{s}}}\|^{2}+{{\beta}}^{2}_{{{s}}}},
+𝒓´s∈𝒱(1),βs2∈ℬ(𝒓´s),αs≥0,S∈ℕ},\displaystyle~{{\acute{\bm{r}}}}_{{{s}}}\in{\mathcal{V}}^{(1)},~{{\beta}}^{2}_{{{s}}}\in{{\mathcal{B}}}({{\acute{\bm{r}}}}_{{{s}}}),~{{\alpha}}_{{{s}}}\geq 0,~{{S}}\in\mathbb{N}\bigg\},
+(8)
+where, similarly to the 2D case,
+𝒱(1){\mathcal{V}}^{(1)} results from the orthogonal projection of 𝒱{\mathcal{V}} onto
+ℒ{{\mathcal{L}}}
+and ℬ⁡(𝒓´){{\mathcal{B}}}({{\acute{\bm{r}}}}) is the set of allowed values for β2{{\beta}}^{2} when the x-coordinate of the source location is r´x{{\acute{r}}}_{x}, that is,
+ℬ(𝒓´)≜{β2|∃𝒓¯ˇ=[rˇx;rˇy;rˇz]∈𝒱:𝒓´=[rˇx]andrˇy2+rˇz2=β2}{{\mathcal{B}}}({{\acute{\bm{r}}}})\triangleq\{{{\beta}}^{2}~|~\exists{{\underline{\check{\bm{r}}}}}=[{{\check{r}}}_{x};{{\check{r}}}_{y};{{\check{r}}}_{z}]\in{\mathcal{V}}~:~{{\acute{\bm{r}}}}=[{{\check{r}}}_{x}]~\text{and}~{{\check{r}}}_{y}^{2}+{{\check{r}}}_{z}^{2}={{\beta}}^{2}\}.
+Fig. 3 illustrates the geometric meaning of the main symbols in (8) while Fig. 4 shows an example of a power map in 𝒢FS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}.
+Fig. 3: Visual depiction of the setup for estimating a power map in one spatial dimension. This is of interest e.g. when a map must be estimated along a road.
+Fig. 4: The black curve shows an example of a power map in 𝒢FS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}} where S=3{{S}}=3, [r´x,1,r´x,2,r´x,3]=[1,5,8][{{\acute{r}}}_{x,1},{{\acute{r}}}_{x,2},{{\acute{r}}}_{x,3}]=[1,5,8], [β1,β2,β3]=[1,3,2][{{\beta}}_{1},{{\beta}}_{2},{{\beta}}_{3}]=[1,3,2], and [α1,α2,α3]=[1,3,3][{{\alpha}}_{1},{{\alpha}}_{2},{{\alpha}}_{3}]=[1,3,3]. The blue lines correspond to the contribution of each source. The maximum of each one is at the corresponding value of r´x,s{{\acute{r}}}_{x,{{s}}}.
+Although source s=1{{s}}=1 has the lowest power, it is closer to ℒ{{\mathcal{L}}} than the other sources and this results in the largest contribution to γ{{\gamma}} and its derivative γ′{{\gamma}}^{\prime}.
+III Spatial Variability of Radio Maps
+Having formalized the classes of maps under study,
+the rest of this section will analyze the variability of the functions
+in 𝒢FS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}} and 𝒢FS(2){{{{\mathcal{G}}}_{\text{FS}}^{(2)}}}. Specifically,
+Sec. III-A and Sec. III-B will
+respectively present high- and low-variability results. Subsequently,
+Sec. IV builds upon these results to derive
+performance bounds for three interpolation algorithms.
+III-A High-variability Result
+This section establishes that power maps constitute a
+considerably rich class of functions. It will follow that, under general
+conditions, power maps cannot be estimated exactly with a finite
+number of measurements, even in the absence of noise. In
+other words, a certain error must be expected. Importantly, these
+observations are not confined to free-space propagation: they hold in
+the presence of arbitrary propagation phenomena such as reflection,
+refraction, and diffraction.
+These conclusions follow from the next
+result, which establishes that any continuous function can be
+approximated up to arbitrary accuracy as the difference between two
+power maps in free space.
+Theorem 1.
+Let ℛ(d){\mathcal{R}}^{({{d}})} be a compact subset of
+ℝd\mathbb{R}^{{d}}, where d{{d}} is 1 or 2. Then, there exists
+𝒱⊂ℝ3{\mathcal{V}}\subset\mathbb{R}^{3} such that the following condition holds:
+for every continuous function γ:ℛ(d)→ℝ{{\gamma}}:{\mathcal{R}}^{({{d}})}\rightarrow\mathbb{R}
+and every ϵ>0{{\epsilon}}>0,
+∃γ+,γ−∈𝒢FS(d):sup𝒓∈ℛ(d)|γ⁡(𝒓)−(γ+​(𝒓)−γ−​(𝒓))|<ϵ.\displaystyle\exists{{\gamma}}_{+},{{\gamma}}_{-}\in{{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}}~:~\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}|{{\gamma}}({{\bm{r}}})-({{\gamma}}_{+}({{\bm{r}}})-{{\gamma}}_{-}({{\bm{r}}}))|<{{\epsilon}}.
+(9)
+The set 𝒱{\mathcal{V}} can be chosen to be any set that satisfies
+(C1)
+ℛ(d)⊂𝒱(d){\mathcal{R}}^{({{d}})}\subset{\mathcal{V}}^{({{d}})} and
+(C2)
+there exists
+β2>0:β2∈ℬ⁡(𝒓´)​∀𝒓´∈ℛ(d){{\beta}}^{2}>0~:~{{\beta}}^{2}\in{{\mathcal{B}}}({{\acute{\bm{r}}}})~\forall{{\acute{\bm{r}}}}\in{\mathcal{R}}^{({{d}})}.
+Proof:
+See Appendix A.
+Several
+observations are relevant.
+First, function γ{{\gamma}} need not be a power map – it is an arbitrary
+continuous function which can even take negative values.
+Second, conditions (C1) and (C2) just
+require sufficient flexibility to find suitable source locations. One simple example where both conditions hold is to set 𝒱{\mathcal{V}} so that the sources are allowed to be anywhere above a minimum positive height.
+Third, Theorem 1 establishes that
+span𝒢FS(d)\mathop{\rm span}{{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}} is dense in the space of continuous
+functions defined on any given compact subset of ℝd\mathbb{R}^{{d}}. As a result,
+𝒢FS(d){{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}} is clearly infinite dimensional. Thus, one
+should not expect to be able to reconstruct a power map exactly with a
+finite number of measurements, even if those measurements are noiseless.
+Finally, let 𝒢{{\mathcal{G}}} denote the set of physically possible power maps,
+that is, the set of power maps consistent with Maxwell’s equations. Up
+to the simplifying assumptions in Friis’ transmission equation, it
+holds that 𝒢FS⊂𝒢{{{{\mathcal{G}}}_{\text{FS}}}}\subset{{\mathcal{G}}}. Thus, the family of functions
+𝒢{{\mathcal{G}}} is at least as rich as 𝒢FS{{{{\mathcal{G}}}_{\text{FS}}}} and, consequently, the
+above conclusions carry over to arbitrary power maps, not just
+free-space maps.
+In view of Theorem 1, one may think that
+there is no hope that power maps can be satisfactorily estimated when
+the set of measurement locations is finite or even
+countable. Fortunately, a closer look at Theorem 1
+reveals that the variability of the functions in
+𝒢FS(d){{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}} may not be as large as it may seem.
+First and foremost, Theorem 1 uses the
+difference γ+−γ−{{\gamma}}_{+}-{{\gamma}}_{-} rather than a single map to
+approximate γ{{\gamma}}. This is because of the requirement on
+non-negativity of the αs{{\alpha}}_{{{s}}}’s in
+(3). In other words, if
+𝒢FS(d){{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}} were a subspace rather than just a convex
+cone, it would follow from Theorem 1 that it is possible
+to find two power maps that, given any arbitrary discrete set ℛ~{{\tilde{\mathcal{R}}}}
+of measurement locations, (i) they take the same values at ℛ~{{\tilde{\mathcal{R}}}}
+and (ii) they differ arbitrarily at any given point of ℛ(d)−ℛ~{\mathcal{R}}^{({{d}})}-{{\tilde{\mathcal{R}}}}. This would imply
+that the error of any reconstruction algorithm that relies on measurements at ℛ~{{\tilde{\mathcal{R}}}}, even in the absence of noise, would be unbounded. However, this is fortunately not the case and is extensively discussed in the next section.
+Second, Theorem 1 does not
+constrain the transmitted power or the number of sources in γ+{{\gamma}}_{+}
+and γ−{{\gamma}}_{-}. This means that some of these
+quantities may arbitrarily increase as ϵ→0{{\epsilon}}\rightarrow 0. Thus, in the
+presence of a constraint on the transmitted power or number of
+sources, the variability of power maps may be much more limited than
+it may seem at first glance from Theorem 1.
+III-B Low-variability Results
+This section provides upper bounds on the variability of
+power maps. To facilitate the intuitive understanding of the
+fundamental phenomena to be studied, the focus will be on the case
+d=1{{d}}=1, in which case any γ∈𝒢FS(d){{\gamma}}\in{{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}} can
+be written as
+γ⁡(𝒓)=γ⁡(rx)=∑s=1Sαs(rx−r´x,s)2+βs2,\displaystyle{{\gamma}}({{\bm{r}}})={{\gamma}}({{r}}_{x})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{({{r}}_{x}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}},
+(10)
+where r´x,s{{\acute{r}}}_{x,{{s}}} and βs{{\beta}}_{{{s}}} are such that
+𝒓´s=[r´x,s;r´y,s;r´z,s]∈𝒱{{\acute{\bm{r}}}}_{{{s}}}=[{{\acute{r}}}_{x,{{s}}};{{\acute{r}}}_{y,{{s}}};{{\acute{r}}}_{z,{{s}}}]\in{\mathcal{V}}
+and βs=r´y,s2+r´z,s2{{\beta}}_{{{s}}}=\sqrt{{{\acute{r}}}_{y,{{s}}}^{2}+{{\acute{r}}}_{z,{{s}}}^{2}}.
+III-B1 Spatial Change Rate of Power Maps
+The first result upper bounds the first derivative of power maps.
+Lemma 1.
+Let
+ℛ(1){\mathcal{R}}^{(1)} be open and let
+γ∈𝒢FS(1){{\gamma}}\in{{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}. Then,
+|γ′​(rx)|≤33/28​∑s=1Sαsβs3.\displaystyle|{{\gamma}}^{\prime}({{r}}_{x})|\leq\frac{3^{3/2}}{8}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}^{3}}.
+(11)
+Proof:
+See Appendix B.
+The bound in Lemma 1 is
+tight. It can be seen that equality is attained for a specific arrangement
+where all the sources lie on a plane that is perpendicular to ℒ{{\mathcal{L}}}.
+To facilitate the interpretation of (11), recall that αs{{\alpha}}_{{{s}}} can be expressed as αs≜PTx(s)​(λ/4​π)2{{\alpha}}_{{{s}}}\triangleq{{P}^{({{s}})}_{\text{Tx}}}({{\lambda}}/4\pi)^{2}, where PTx(s){{P}^{({{s}})}_{\text{Tx}}} is the transmitted power of the s{{s}}-th source. Thus, (11) can be written as
+|γ′​(rx)|≤33/2128​π2​λ2​∑s=1SPTx(s)βs3.\displaystyle|{{\gamma}}^{\prime}({{r}}_{x})|\leq\frac{3^{3/2}}{128\pi^{2}}{{\lambda}}^{2}\sum_{{{s}}=1}^{{{S}}}\frac{{{P}^{({{s}})}_{\text{Tx}}}}{{{\beta}}_{{{s}}}^{3}}.
+(12)
+Observe that this
+rate decreases cubically with the distance βs{{\beta}}_{{{s}}} from the sources to
+ℒ{{\mathcal{L}}} while it increases linearly with the transmitted power. Thus, the influence of the distance to the sources is much more significant: reducing βs{{\beta}}_{{{s}}} by a factor of 2 has the same effect as increasing PTx(s){{P}^{({{s}})}_{\text{Tx}}} by a factor of 8.
+Also, the fact that the derivative of γ{{\gamma}} in (10) decreases to zero as rx{{r}}_{x} becomes arbitrarily farther away from r´x{{\acute{r}}}_{x} implies that the largest variability occurs in the vicinity of sources. By the above considerations, this variability is largest near the sources that lie close to ℒ{{\mathcal{L}}}. This suggests that radio map estimators will generally benefit from collecting a larger number of measurements in those parts of ℒ{{\mathcal{L}}} that are near the sources. Interestingly, this is fully consistent with the WTI, which predicts that a larger spatial density of sensors is required near the sources [29, Secs. 8.5.2 and 8.6].
+It is also interesting to express (12) after
+normalization by λ{{\lambda}}. In particular, consider the normalized distances rˇx≜rx/λ{{\check{r}}}_{x}\triangleq{{r}}_{x}/{{\lambda}} and
+βˇs≜βs/λ{{\check{\beta}}}_{{{s}}}\triangleq{{\beta}}_{{{s}}}/{{\lambda}}.
+The radio map expressed in terms of rˇx{{\check{r}}}_{x} becomes γˇ​(rˇx)≜γ⁡(λ​rx){{\check{\gamma}}}({{\check{r}}}_{x})\triangleq{{\gamma}}({{\lambda}}{{r}}_{x}) and its derivative satisfies
+γˇ′​(rˇx)≜d​γˇ​(rˇx)/d​rˇx=(d​γ​(λ​rx)/d​rx)​(d​rx/d​rˇx)=λ​γ′​(λ​rx){{\check{\gamma}}}^{\prime}({{\check{r}}}_{x})\triangleq d{{\check{\gamma}}}({{\check{r}}}_{x})/d{{\check{r}}}_{x}=(d{{\gamma}}({{\lambda}}{{r}}_{x})/d{{r}}_{x})(d{{r}}_{x}/d{{\check{r}}}_{x})={{\lambda}}{{\gamma}}^{\prime}({{\lambda}}{{r}}_{x}). Thus, it follows from (12) that
+|γˇ′​(rˇx)|≤33/2128​π2​∑s=1SPTx(s)βˇs3.\displaystyle|{{\check{\gamma}}}^{\prime}({{\check{r}}}_{x})|\leq\frac{3^{3/2}}{128\pi^{2}}\sum_{{{s}}=1}^{{{S}}}\frac{{{P}^{({{s}})}_{\text{Tx}}}}{{{\check{\beta}}}_{{{s}}}^{3}}.
+(13)
+As expected from electromagnetic theory, this expression no longer depends on λ{{\lambda}}. Thus, the variability of a power map in the scale of the wavelength is just dependent on the distance of the sources to ℒ{{\mathcal{L}}} in units of λ{{\lambda}}. The RME problem is invariant to scaling both λ{{\lambda}} and all distances by the same factor. This means, for instance, that if one decreases λ{{\lambda}} and wishes to attain the same estimation performance, the distance between measurements needs to be decreased by the same factor. Conversely, for a given set of measurement locations, the estimation performance will be worse the shorter λ{{\lambda}} is.
+The next result provides a different view on the variability of radio maps in 𝒢FS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}. Unlike Lemma 1, which depends on the parameters of each source, the next result provides bounds on the values that a radio map can take at one point given the value that it takes at another point:
+Theorem 2.
+Let
+γ∈𝒢FS(1){{\gamma}}\in{{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}. If [rx],[rx+Δ​r]∈ℛ(1)[{{r}}_{x}],[{{r}}_{x}+{{\Delta r}}]\in{\mathcal{R}}^{(1)}, then
+γ⁡(rx)​c⁡(Δ​r)−1c⁡(Δ​r)+1≤γ⁡(rx+Δ​r)≤γ⁡(rx)​c⁡(Δ​r)+1c⁡(Δ​r)−1,\displaystyle{{\gamma}}({{r}}_{x})\frac{{c}({{\Delta r}})-1}{{c}({{\Delta r}})+1}\leq{{\gamma}}({{r}}_{x}+{{\Delta r}})\leq{{\gamma}}({{r}}_{x})\frac{{c}({{\Delta r}})+1}{{c}({{\Delta r}})-1},
+(14)
+where
+c⁡(Δ​r)≜1+4​[ηminΔ​r]2.\displaystyle{c}({{\Delta r}})\triangleq\sqrt{1+4\left[\frac{{{\eta}}_{\text{min}}}{{{\Delta r}}}\right]^{2}}.
+(15)
+Furthermore, if 𝒱(1)=ℝ1{\mathcal{V}}^{(1)}=\mathbb{R}^{1} and
+ηmin2∈ℬ⁡([r´x])​∀r´x{{\eta}}_{\text{min}}^{2}\in{{\mathcal{B}}}([{{\acute{r}}}_{x}])~\forall{{\acute{r}}}_{x},
+the bounds in (14) are tight, which means that, given rx{{r}}_{x}, Δ​r{{\Delta r}}, and γ⁡(rx){{\gamma}}({{r}}_{x}), there exists γ∈𝒢FS(1){{\gamma}}\in{{{{\mathcal{G}}}_{\text{FS}}^{(1)}}} that satisfies either bound in (14) with equality.
+Proof:
+See Appendix C.
+Fig. 5 illustrates the bounds in (14) for an example of power map when rx=0{{r}}_{x}=0. The areas above the upper bound and below the lower bound are forbidden regions.
+When seen as functions of Δ​r{{\Delta r}} for fixed γ⁡(rx){{\gamma}}({{r}}_{x}), the only parameter governing the bounds in (14) is ηmin{{\eta}}_{\text{min}}. Thus, when it comes to the relative change
+γ⁡(rx+Δ​r)/γ⁡(rx){{\gamma}}({{r}}_{x}+{{\Delta r}})/{{\gamma}}({{r}}_{x}), the main factor determining the maximum variability of γ{{\gamma}} is the minimum distance between the sources and the mapped region.
+Furthermore, since the lower bound increases with ηmin{{\eta}}_{\text{min}} whereas the upper bound decreases with ηmin{{\eta}}_{\text{min}},
+the maximum variability of γ{{\gamma}} is largest when ηmin{{\eta}}_{\text{min}} is smallest.
+Fig. 5:
+Illustration of the bounds on the variability of a radio map provided by Theorem 2. Given the value of γ{{\gamma}} at a point rx{{r}}_{x} (rx=0{{r}}_{x}=0 in the figure), the values that γ{{\gamma}} can take at any other point are restricted by (14). Thus, the areas above the upper bound and below the lower bound are forbidden regions.
+Recall that Theorem 1 established that the set of differences of power maps is dense in the space of continuous functions. It was mentioned that it would be highly problematic if this applied also to the set of power maps themselves. Fortunately, the following follows from Theorem 2:
+Corollary 1.
+𝒢FS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}} is not dense in the space of positive continuous functions defined on ℛ(1){\mathcal{R}}^{(1)} and with the uniform metric.
+Proof:
+Trivial.
+In other words, there are continuous functions for which a power map cannot be found that is arbitrarily close to that function.
+A different proof technique can be used to establish a similar result for the case where the map is defined on a circle.
+Corollary 2.
+Let ℛ(2)={[rx,ry]|rx2+ry2=R}{\mathcal{R}}^{(2)}=\{[{{r}}_{x},{{r}}_{y}]~|~{{r}}_{x}^{2}+{{r}}_{y}^{2}={R}\}, where R>0{R}>0. Then 𝒢FS(2){{{{\mathcal{G}}}_{\text{FS}}^{(2)}}} is not dense in the space of positive continuous functions defined on ℛ(2){\mathcal{R}}^{(2)}.
+Proof:
+W.l.o.g. assume that R=1{R}=1.
+It follows from (4) that the series in [31, eq. (0.8)] contains only a finite number of terms, which implies that the resulting series cannot diverge. Hence, it follows from [31, Th. 2] that 𝒢FS(2){{{{\mathcal{G}}}_{\text{FS}}^{(2)}}} is not dense in the space of positive continuous functions defined on ℛ(2){\mathcal{R}}^{(2)}.
+III-B2 Spatial Bandwidth of Power Maps
+The rest of the section establishes that radio
+maps in free space are approximately lowpass in terms of spatial frequency. This is not only relevant for purely theoretical reasons, but it is also important to motivate the usage of estimators that rely on this property. Such estimators would go along the lines of what is discussed in [29, Ch. 8] about the spatial bandwidth of the electromagnetic field itself.
+Consider the Fourier transform of γ{{\gamma}}:
+Γ⁡(kx)≜∫−∞∞γ⁡(rx)​e−j​kx​rx​d​rx,\displaystyle{{\Gamma}}({{k}}_{x})\triangleq\int_{-\infty}^{\infty}{{\gamma}}({{r}}_{x})e^{-j{{k}}_{x}{{r}}_{x}}d{{r}}_{x},
+(16)
+where kx{{k}}_{x} is the spatial frequency.
+The following result55
+5
+It is considerably easier to establish that |Γ⁡(kx)||{{\Gamma}}({{k}}_{x})| decreases at least as
+𝒪⁡(1/|kx|)\mathcal{O}(1/|{{k}}_{x}|) as kx→∞{{k}}_{x}\rightarrow\infty just by relying on the identity j​kx​Γ​(kx)=∫−∞∞γ′​(rx)​e−j​kx​rx​d​rxj{{k}}_{x}{{\Gamma}}({{k}}_{x})=\int_{-\infty}^{\infty}{{\gamma}}^{\prime}({{r}}_{x})e^{-j{{k}}_{x}{{r}}_{x}}d{{r}}_{x}. Theorem 3 is more involved to prove but it yields a much stronger result.
+characterizes the frequency content of γ{{\gamma}}:
+Theorem 3.
+Let βmin≜mins⁡βs{{\beta}}_{\text{min}}\triangleq\min_{{{s}}}{{\beta}}_{{{s}}}, βmax≜maxs⁡βs{{\beta}}_{\text{max}}\triangleq\max_{{{s}}}{{\beta}}_{{{s}}}, and B>0{{B}}>0. The following holds:
+|Γ⁡(kx)|\displaystyle|{{\Gamma}}({{k}}_{x})|
+≤[πβmin​∑s=1Sαs]​e−βmin​|kx|\displaystyle\leq\left[\frac{\pi}{{{\beta}}_{\text{min}}}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}\right]e^{-{{\beta}}_{\text{min}}|{{k}}_{x}|}
+(17a)
+∫B∞|Γ⁡(kx)|2​d​kx\displaystyle\int_{{{B}}}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+≤π2​S​∑s=1Sαs22​βmin3​e−2​βmin​B\displaystyle\leq\frac{\pi^{2}{{S}}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}^{2}}{2{{\beta}}_{\text{min}}^{3}}e^{-2{{\beta}}_{\text{min}}{{B}}}
+(17b)
+∫0∞|Γ⁡(kx)|2​d​kx\displaystyle\int_{0}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+≥π22​∑s=1Sαs2βs3≥π2​∑s=1Sαs22​βmax3.\displaystyle\geq\frac{\pi^{2}}{2}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}^{2}}{{{\beta}}_{{{s}}}^{3}}\geq\frac{\pi^{2}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}^{2}}{2{{\beta}}_{\text{max}}^{3}}.
+(17c)
+Proof:
+See Appendix D.
+Expression (17a) establishes that Γ{{\Gamma}} cannot be high-pass. More precisely, one can combine (17b) and (17c) to quantify the fraction of energy of Γ{{\Gamma}} at high frequencies:
+∫B∞|Γ⁡(kx)|2​d​kx∫0∞|Γ⁡(kx)|2​d​kx\displaystyle\frac{\int_{{{B}}}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}}{\int_{0}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}}
+≤S​[βmaxβmin]3​e−2​βmin​B.\displaystyle\leq{{S}}\left[\frac{{{\beta}}_{\text{max}}}{{{\beta}}_{\text{min}}}\right]^{3}e^{-2{{\beta}}_{\text{min}}{{B}}}.
+(18a)
+This shows that the energy of Γ{{\Gamma}} is concentrated at low frequencies. Furthermore, this concentration becomes exponentially more pronounced as
+B{{B}} increases. Besides, by increasing
+βmin{{\beta}}_{\text{min}}, the concentration of the energy of Γ{{\Gamma}} at low frequencies rapidly grows. Finally, it is also worth pointing out that the WTI also uses the relation between the counterparts of βmin{{\beta}}_{\text{min}} and βmax{{\beta}}_{\text{max}} therein to quantify the complexity of the field through a notion of spatial bandwidth [29, Eq. (8.75)].
+IV Reconstruction Error Bounds
+TABLE I: Upper bounds on the reconstruction error
+Zeroth-order interpolation
+First-order interpolation
+Sinc
+interpolation
+Interpolator
+γ^​(rx)≜γn,{{\hat{\gamma}}}({{r}}_{x})\triangleq{{{{\gamma}}}}_{{{n}}},
+where​n=arg​minn′⁡|rx−rn′|\text{where}~{{n}}=\argmin_{{{n}}^{\prime}}|{{r}}_{x}-{{r}}_{{{n}}^{\prime}}|
+γ^​(rx)≜Δ​γnΔ​rn​(rx−rn)+γn{{\hat{\gamma}}}({{r}}_{x})\triangleq\frac{{{\Delta{{\gamma}}}}_{{{n}}}}{{{\Delta r}}_{{{n}}}}({{r}}_{x}-{{r}}_{{{n}}})+{{{{\gamma}}}}_{{{n}}}
+γ^(ν)​(rx)≜∑n=−∞∞γ⁡(rn(ν))​sinc(rx−rn(ν)Δ​r){{\hat{\gamma}}}^{({{\nu}})}({{r}}_{x})\triangleq\sum_{{{n}}=-\infty}^{\infty}{{\gamma}}\left({{r}}_{{{n}}}^{({{\nu}})}\right)\mathop{\rm sinc}\left(\frac{{{r}}_{x}-{{r}}_{{{n}}}^{({{\nu}})}}{{{{\Delta r}}}}\right)
+L1L^{1}
+3​332​ρ​∑n=1N−1Δ​rn2\frac{3\sqrt{3}}{32}{\rho}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2}
+27​3256​ρ​∑n=1N−1Δ​rn2\frac{27\sqrt{3}}{256}{\rho}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2}
+L2L^{2}
+316​ρ​∑n=1N−1Δ​rn3\frac{3}{16}~{\rho}~\sqrt{\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3}}
+144​2−1172048​ρ​∑n=1N−1Δ​rn3\sqrt{\frac{144\sqrt{2}-117}{2048}}{\rho}\sqrt{\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3}}
+π​S​∑s=1Sαs2βmin3e−2πβmin/Δr\frac{\pi{{S}}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}^{2}}{{{\beta}}_{\text{min}}^{3}}e^{-2\pi{{\beta}}_{\text{min}}/{{{\Delta r}}}}
+L∞L^{\infty}
+33/216​ρ​maxn⁡Δ​rn\frac{3^{3/2}}{16}{\rho}\max_{{{n}}}{{\Delta r}}_{{{n}}}
+33/216​ρ​maxn⁡Δ​rn\frac{3^{3/2}}{16}{\rho}\max_{{{n}}}{{\Delta r}}_{{{n}}}
+This section analyzes the reconstruction performance of three simple radio map estimators.
+The analysis for more sophisticated algorithms will be addressed by future publications. The obtained bounds are summarized in Table I.
+The reconstruction error has multiple components. One is due to the specific variability of radio maps, which was quantified in Sec. III. Another is due to measurement noise and occurs in any interpolation problem. To focus on the first of these components, it will be assumed that ζn=0{{\zeta}}_{{n}}=0 for all n{{n}}.
+Recall that the RME problem formulation from Sec. II is to
+estimate γ{{\gamma}} given {(𝒓¯n,γn)}n=1N\{({{\underline{\bm{r}}}}_{{n}},{{\gamma}}_{{n}})\}_{{{n}}=1}^{{{N}}}, where 𝒓¯n∈ℛ​∀n{{\underline{\bm{r}}}}_{{n}}\in{\mathcal{R}}~\forall{{n}}.
+Focusing on the 1D restriction introduced in Sec. II-B, one can rewrite this formulation as estimating γ{{\gamma}} given {(rn,γn)}n=1N\{({{r}}_{{{n}}},{{\gamma}}_{{n}})\}_{{{n}}=1}^{{{N}}}, where rn∈ℛ(1){{r}}_{{{n}}}\in{\mathcal{R}}^{(1)} is the x-coordinate of the n{{n}}-th measurement location.
+However, to simplify some expressions, it is convenient to also allow a countable set of measurements. Thus, the problem will be reformulated as estimating γ{{\gamma}} given {(rn,γn)}n∈𝒩\{({{r}}_{{{n}}},{{\gamma}}_{{n}})\}_{{{n}}\in{{\mathcal{N}}}}, where rn∈ℛ(1)​∀n{{r}}_{{{n}}}\in{\mathcal{R}}^{(1)}~\forall{{n}} and 𝒩⊂ℤ{{\mathcal{N}}}\subset\mathbb{Z} is a (possibly infinite) countable set of indices. Obviously, the previous formulation is recovered by setting 𝒩={1,…,N}{{\mathcal{N}}}=\{1,\ldots,{{N}}\}.
+Besides, it will be assumed w.l.o.g. that rn<rn+1{{r}}_{{{n}}}<{{r}}_{{{n}}+1} for all n{{n}}.
+The performance metrics to be investigated are the conventional L1L^{1} and L2L^{2} norms used in Lebesgue spaces as well as the L∞L^{\infty} norm used in spaces of continuous bounded functions:
+‖γ−γ^‖1\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{1}
+≜∫ℛ(1)|γ⁡(rx)−γ^​(rx)|​d​rx\displaystyle\triangleq\int_{{\mathcal{R}}^{(1)}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|d{{r}}_{x}
+(19a)
+‖γ−γ^‖22\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}^{2}
+≜∫ℛ(1)|γ⁡(rx)−γ^​(rx)|2​d​rx\displaystyle\triangleq\int_{{\mathcal{R}}^{(1)}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|^{2}d{{r}}_{x}
+(19b)
+‖γ−γ^‖∞\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{\infty}
+≜suprx∈ℛ(1)|γ⁡(rx)−γ^​(rx)|.\displaystyle\triangleq\sup_{{{r}}_{x}\in{{\mathcal{R}}^{(1)}}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|.
+(19c)
+Many of the bounds will be seen to be increasing
+functions of the following quantity, which will be referred to as the
+proximity coefficient:
+ρ≜∑s=1Sαsβs3=(λ4​π)2​∑s=1SPTx(s)βs3.\displaystyle{\rho}\triangleq\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}^{3}}=\left(\frac{{{\lambda}}}{4\pi}\right)^{2}\sum_{{{s}}=1}^{{{S}}}\frac{{{P}^{({{s}})}_{\text{Tx}}}}{{{\beta}}_{{{s}}}^{3}}.
+(20)
+In view of this weighted sum of the terms 1/βs31/{{\beta}}_{{{s}}}^{3}, one will conclude that a poor estimation performance is expected if relatively
+strong sources are near the mapped region. This agrees with the findings in Sec. III.
+IV-A Zeroth-Order Interpolation
+Suppose that 𝒩={1,…,N}{{\mathcal{N}}}=\{1,\ldots,{{N}}\} and66
+6
+Strictly speaking, ℛ(1){\mathcal{R}}^{(1)} does not contain rN{{r}}_{{{N}}}, which violates the assumptions in Sec. II. This has clearly no impact, it just simplifies the exposition.
+ℛ(1)=[r1,rN){\mathcal{R}}^{(1)}=[{{r}}_{1},{{r}}_{{{N}}}).
+The zeroth-order interpolator considered here is the nearest-neighbor estimator. For each rx{{r}}_{x}, this estimator produces
+γ^​(rx)≜γn,where​n=arg​minn′⁡|rx−rn′|.\displaystyle{{\hat{\gamma}}}({{r}}_{x})\triangleq{{{{\gamma}}}}_{{{n}}},~\text{where}~{{n}}=\argmin_{{{n}}^{\prime}}|{{r}}_{x}-{{r}}_{{{n}}^{\prime}}|.
+(21)
+Theorem 4.
+Let γ^{{\hat{\gamma}}} be given by (21) and let Δ​rn≜rn+1−rn{{\Delta r}}_{{{n}}}\triangleq{{r}}_{{{n}}+1}-{{r}}_{{{n}}}. Then:
+‖γ−γ^‖1\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{1}
+≤3​332​ρ​∑n=1N−1Δ​rn2\displaystyle\leq\frac{3\sqrt{3}}{32}{\rho}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2}
+(22a)
+‖γ−γ^‖2\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}
+≤316​ρ​∑n=1N−1Δ​rn3\displaystyle\leq\frac{3}{16}~{\rho}~\sqrt{\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3}}
+(22b)
+‖γ−γ^‖∞\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{\infty}
+≤33/216​ρ​maxn⁡Δ​rn.\displaystyle\leq\frac{3^{3/2}}{16}{\rho}\max_{{{n}}}{{\Delta r}}_{{{n}}}.
+(22c)
+Proof:
+See Appendix E.
+First, observe that the error becomes 0 if Δ​rn→0​∀n{{\Delta r}}_{{{n}}}\rightarrow 0~\forall{{n}}. This is expected since γ{{\gamma}} is continuous.
+Second, the bounds for all these metrics depend on the quantities
+defining the map (wavelength, transmit power, and source position) only through the proximity coefficient ρ{\rho}, which therefore
+condenses the impact of these magnitudes effectively.
+Applying Parseval’s theorem to (17c) yields
+‖γ‖22\displaystyle\|{{\gamma}}\|_{2}^{2}
+≜∫−∞∞|γ⁡(rx)|2​d​rx=1π​∫0∞|Γ⁡(kx)|2​d​kx≥π2​∑s=1Sαs2βs3.\displaystyle\triangleq\int_{-\infty}^{\infty}|{{\gamma}}({{r}}_{x})|^{2}d{{r}}_{x}=\frac{1}{\pi}\int_{0}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}\geq\frac{\pi}{2}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}^{2}}{{{\beta}}_{{{s}}}^{3}}.
+(23a)
+The relative error can therefore be upper bounded as
+‖γ−γ^‖22‖γ‖22\displaystyle\frac{\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}^{2}}{\|{{\gamma}}\|_{2}^{2}}
+≤9128​π​[∑s=1Sαsβs3]2∑s=1Sαs2βs3​∑n=1N−1Δ​rn3.\displaystyle\leq\frac{9}{128\pi}~\frac{\left[\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}^{3}}\right]^{2}}{\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}^{2}}{{{\beta}}_{{{s}}}^{3}}}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3}.
+(24)
+Interestingly, if αs=α​∀s{{\alpha}}_{{{s}}}={{\alpha}}~\forall{{s}} and βs=β​∀s{{\beta}}_{{{s}}}={{\beta}}~\forall{{s}}, then the relative error bound becomes
+‖γ−γ^‖22‖γ‖22≤S​9128​π​∑n=1N−1[Δ​rnβ]3.\displaystyle\frac{\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}^{2}}{\|{{\gamma}}\|_{2}^{2}}\leq{{S}}\frac{9}{128\pi}\sum_{{{n}}=1}^{{{N}}-1}\left[\frac{{{\Delta r}}_{{{n}}}}{{{\beta}}}\right]^{3}.
+(25)
+This again suggests that, the closer the sources are to ℒ{{\mathcal{L}}}, the smaller the sample spacing Δ​rn{{\Delta r}}_{{{n}}} necessary for a target relative error. It is also remarkable that (25) does not depend on the transmitted power in this simple scenario. In fact, αs{{\alpha}}_{{{s}}} (equivalently PTx(s){{P}^{({{s}})}_{\text{Tx}}}) can be thought of as a factor in (24) that weights the effect of each βs{{\beta}}_{{{s}}} on the error.
+IV-B First-order Interpolation
+As in Sec. IV-A, let
+𝒩={1,…,N}{{\mathcal{N}}}=\{1,\ldots,{{N}}\} and ℛ(1)=[r1,rN){\mathcal{R}}^{(1)}=[{{r}}_{1},{{r}}_{{{N}}}).
+The considered first-order interpolator is the linear interpolator returning a function on ℛ(1){\mathcal{R}}^{(1)} that takes the values
+γ^​(rx)≜Δ​γnΔ​rn​(rx−rn)+γn,\displaystyle{{\hat{\gamma}}}({{r}}_{x})\triangleq\frac{{{\Delta{{\gamma}}}}_{{{n}}}}{{{\Delta r}}_{{{n}}}}({{r}}_{x}-{{r}}_{{{n}}})+{{{{\gamma}}}}_{{{n}}},
+(26)
+where
+Δ​γn≜γ⁡(rn+1)−γ⁡(rn){{\Delta{{\gamma}}}}_{{{n}}}\triangleq{{\gamma}}({{r}}_{{{n}}+1})-{{\gamma}}({{r}}_{{{n}}}),
+Δ​rn≜rn+1−rn{{\Delta r}}_{{{n}}}\triangleq{{r}}_{{{n}}+1}-{{r}}_{{{n}}},
+and n{{n}} is the only integer
+such that rx∈[rn,rn+1){{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{n}}+1}).
+Theorem 5.
+The estimator γ^{{\hat{\gamma}}} defined in (26) satisfies:
+‖γ−γ^‖1\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{1}
+≤27​3256​ρ​∑n=1N−1Δ​rn2\displaystyle\leq\frac{27\sqrt{3}}{256}{\rho}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2}
+(27a)
+‖γ−γ^‖2\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}
+≤144​2−1172048​ρ​∑n=1N−1Δ​rn3\displaystyle\leq\sqrt{\frac{144\sqrt{2}-117}{2048}}{\rho}\sqrt{\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3}}
+(27b)
+‖γ−γ^‖∞\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{\infty}
+≤33/216​ρ​maxn⁡Δ​rn.\displaystyle\leq\frac{3^{3/2}}{16}{\rho}\max_{{{n}}}{{\Delta r}}_{{{n}}}.
+(27c)
+Proof:
+See Appendix F.
+Observe that the bounds in Theorem 5 are the same as in Theorem 4 except for multiplicative factors. Therefore, similar observations to those in Sec. IV-A apply here.
+However, contrary to what was expected, the constants in
+Theorem 5 are in fact larger than the ones in Theorem 4. This is because the latter bounds are tighter than the former since
+the worst cases implicitly considered in the proof of Theorem 5 are more extreme. Notwithstanding, a more tedious derivation77
+7
+The idea would be to enforce continuity and the derivative bound at the midpoint of each interval [rn,rn+1][{{r}}_{{{n}}},{{r}}_{{{n}}+1}]. Then, one can maximize the worst-case error with respect to the value that γ{{\gamma}} takes at this point. Unfortunately, the derivation becomes cumbersome due to the large number of cases that must be considered. is expected to result in upper bounds for first-order interpolation that are lower than those for zeroth-order interpolation.
+IV-C Sinc Interpolation
+The sinc interpolator gives rise to an exact reconstruction of a bandlimited signal given a set of uniformly-spaced samples that satisfy the Nyquist criterion.
+Using such a sinc interpolator for reconstructing γ{{\gamma}} is therefore motivated by
+Theorem 3, which establishes that γ{{\gamma}} is approximately bandlimited. This interpolator also plays a central role in the WTI [29].
+Suppose that γ{{\gamma}} is observed at a set of uniformly-spaced locations
+ℛ~ν≜{rn(ν),n∈ℤ}{{\tilde{\mathcal{R}}}_{{{\nu}}}}\triangleq\{{{r}}_{{{n}}}^{({{\nu}})},~{{{n}}\in\mathbb{Z}}\},
+where rn(ν)≜n​Δ​r+ν{{r}}_{{{n}}}^{({{\nu}})}\triangleq{{n}}{{{\Delta r}}}+{{\nu}} are the sampling instants corresponding to offset
+ν∈ℝ{{\nu}}\in\mathbb{R} and Δ​r>0{{{\Delta r}}}>0 is the spatial sampling interval.
+Consequently,
+𝒩=ℤ{{\mathcal{N}}}=\mathbb{Z} and let ℛ(1)=ℝ{\mathcal{R}}^{(1)}=\mathbb{R}.
+In practice, ℛ~ν{{\tilde{\mathcal{R}}}_{{{\nu}}}} may correspond to a scenario where a vehicle moves along ℒ{{\mathcal{L}}} and collects measurements at regular intervals.
+The sinc interpolator is defined as
+γ^(ν)​(rx)≜∑n=−∞∞γ⁡(rn(ν))​sinc(rx−rn(ν)Δ​r),\displaystyle{{\hat{\gamma}}}^{({{\nu}})}({{r}}_{x})\triangleq\sum_{{{n}}=-\infty}^{\infty}{{\gamma}}\left({{r}}_{{{n}}}^{({{\nu}})}\right)\mathop{\rm sinc}\left(\frac{{{r}}_{x}-{{r}}_{{{n}}}^{({{\nu}})}}{{{{\Delta r}}}}\right),
+(28)
+where γ⁡(rn(ν)){{\gamma}}({{r}}_{{{n}}}^{({{\nu}})}) are the measurements. Consider the following:
+Theorem 6.
+Let γ{{\gamma}} be a function with Fourier transform Γ{{\Gamma}}. If one lets
+E⁡(ν)≜‖γ−γ^(ν)‖2≜\displaystyle{E}({{\nu}})\triangleq\|{{\gamma}}-{{\hat{\gamma}}}^{({{\nu}})}\|^{2}\triangleq
+∫−∞∞|γ⁡(rx)−γ^(ν)​(rx)|2​d​rx,\displaystyle\int_{-\infty}^{\infty}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}^{({{\nu}})}({{r}}_{x})|^{2}d{{r}}_{x},
+(29)
+then
+E¯≜1Δ​r​∫0Δ​rE⁡(ν)​𝑑ν=2π​∫π/Δ​r∞|Γ⁡(kx)|2​d​kx.\displaystyle{\bar{E}}\triangleq\frac{1}{{{{\Delta r}}}}\int_{0}^{{{{\Delta r}}}}{E}({{\nu}})d{{\nu}}=\frac{2}{\pi}\int_{\pi/{{{\Delta r}}}}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}.
+(30)
+Proof:
+See Appendix G.
+This theorem establishes that the average error across all offsets ν{{\nu}} is proportional to the energy of γ{{\gamma}} outside [−π/Δr,[-\pi/{{{\Delta r}}}, π/Δr]\pi/{{{\Delta r}}}]. This is
+therefore an aliasing error, since there is no physical way of spatially low-pass filtering γ{{\gamma}} before acquiring the measurements, as would be performed by an analog-to-digital converter (ADC) in the time domain. It can also be interpreted as the expected error when the offset is uniformly distributed in [0,Δ​r)[0,{{{\Delta r}}}), which captures the fact that the measurement locations do not generally depend on the coordinate system or γ{{\gamma}} itself.
+Observe also that (30) is an equality, i.e., it is not a bound, and that it applies to arbitrary power maps, not necessarily in free space.
+Substituting (17b) with B=π/Δ​r{{B}}=\pi/{{{\Delta r}}}
+in (30) yields the bound
+E¯≤π​S​∑s=1Sαs2βmin3e−2πβmin/Δr.\displaystyle{\bar{E}}\leq\frac{\pi{{S}}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}^{2}}{{{\beta}}_{\text{min}}^{3}}e^{-2\pi{{\beta}}_{\text{min}}/{{{\Delta r}}}}.
+(31)
+This bound decreases much faster than the bounds in Theorem 4 and Theorem 5 as βmin→∞{{\beta}}_{\text{min}}\rightarrow\infty or Δ​r→0{{{\Delta r}}}\rightarrow 0 upon setting Δ​rn=Δ​r​∀n{{\Delta r}}_{{{n}}}={{{\Delta r}}}~\forall{{n}}. Furthermore, the error in (31) is the total error in ℝ\mathbb{R}, whereas the bounds in Theorem 4 and Theorem 5 apply only to a bounded interval [r1,rN)[{{r}}_{1},{{r}}_{{{N}}}). In fact, the latter bounds diverge as one considers a longer support (just let N→∞{{N}}\rightarrow\infty with constant Δ​r{{{\Delta r}}}). Thus, the performance guarantees for the sinc interpolator are much stronger.
+A more detailed comparison between these bounds is provided in Sec. V.
+Remark 1.
+The case of a single transmitter is a relevant special case of the general problem formulated in Sec. II, where the number of sources is arbitrary. Some of the results in this paper can be readily specialized to this case by setting S=1{{S}}=1. This is the case of Lemma 1 and the bounds in Sec. IV. Theorem 2 remains unaltered if one sets S=1{{S}}=1. In contrast, other results, such as Theorem 1, Corollary 1, and Corollary 2, inherently require an arbitrary number of transmitters, so they do not apply to the case S=1{{S}}=1. Further considerations regarding the case S=1{{S}}=1 can be found in [1].
+V Numerical Experiments
+This section provides experiments that empirically corroborate
+the theoretical findings of the paper.
+V-A Tightness of the Reconstruction Error Bounds
+This section verifies and assesses the tightness of the bounds
+in Sec. IV.
+To this end, γ∈𝒢FS(1){{\gamma}}\in{{{{\mathcal{G}}}_{\text{FS}}^{(1)}}} is
+generated by placing 3 transmitters at a
+distance β{{\beta}} from ℒ{{\mathcal{L}}}.
+Let λ=1\lambda=1 to express all lengths in terms of the wavelength and consider {(r´x,s,βs,αs)}s=1S=\{({{\acute{r}}}_{x,{{s}}},{{\beta}}_{{{s}}},{{\alpha}}_{{{s}}})\}_{{{s}}=1}^{{{S}}}= {(1000,β,(4π)2),(5000,β,(4π)2),\{(1000,{{\beta}},(4\pi)^{2}),(5000,{{\beta}},(4\pi)^{2}),~~~ (8000CLOSE,(8000, β,(4π)2)}{{\beta}},(4\pi)^{2})\}. The N=11{{N}}=11 measurement locations are
+rn=(n−1)Δr,n=1,…,N{{r}}_{{{n}}}=({{n}}-1){{{\Delta r}}},~{{n}}=1,\ldots,{{N}}, where Δ​r=1000{{{\Delta r}}}=1000.
+Using these
+measurements, each algorithm returns an interpolated function
+γ^{{\hat{\gamma}}},
+which is evaluated at 1000 uniformly spaced points in the interval
+[r1,rN][{{r}}_{1},{{r}}_{{{N}}}] to approximate the error metrics in (19). The values of these parameters are set to capture typical cases in cellular communications.
+Figs. 6 and 7 depict these metrics for zeroth- and first-order interpolation along with their upper bounds in (22) and (27), respectively. Observe that the decay rates of the bounds accurately match the decay rate
+of the corresponding error metrics.
+Second, the error decreases more
+slowly than exponential, which would manifest itself as a straight
+line.
+Also, the bounds are considerably tight: observe for example that the upper bounds
+for the L2L^{2} error are lower than the L1L^{1} error. As anticipated, the bounds are tighter for zeroth-order interpolation than for first-order interpolation. However, the error for the latter is lower than for the former. Thus, first-order interpolation is preferable in terms of performance.
+The third experiment investigates the error
+of sinc interpolation. Since the upper bound in
+(31) pertains to the average of the
+L2L^{2} error across sampling offsets ν{{\nu}}
+(cf. (30)), the error is approximated for 20
+different offsets uniformly spaced in [0,Δ​r)[0,{{{\Delta r}}}) and then
+averaged. It is observed in Fig. 8 that, for a
+sufficiently small β{{\beta}}, both the error metrics and the bound
+decrease at the same rate, which furthermore is seen to be
+exponential. Thus, the decrease rate of sinc interpolation is
+much faster than for zeroth and first-order interpolation. There is,
+however, an important caveat: as described in
+Sec. IV-C, the bound in
+(31) is applicable when the sampling
+grid spans the entire real line, which will be abbreviated as
+N=∞{{N}}=\infty. However, in practice and in a simulation, the number
+N{{N}} of sampling locations rn{{r}}_{{{n}}} is finite and,
+therefore, confined to an interval with finite length. Thus, for the
+upper bound to hold, it is necessary that the interpolation error with
+finite N{{N}} is sufficiently close to the theoretical interpolation
+error when N=∞{{N}}=\infty. For this to hold, the energy of γ{{\gamma}}
+must be sufficiently concentrated on the observed interval. Otherwise,
+the omitted terms in (28), i.e. those
+corresponding to unobserved values of
+γ⁡(rn(ν)){{\gamma}}({{r}}_{{{n}}}^{({{\nu}})}), have a significant
+impact on the interval where the error metric is being
+approximated. Fig. 8 shows the sharp transition
+between both regimes when β{{\beta}} increases. For sufficiently small
+β{{\beta}}, function γ{{\gamma}} is concentrated in the observation
+interval. Remarkably, the transition occurs at a rather small value of
+β{{\beta}}: just note the difference between the scale of
+r´x,s{{\acute{r}}}_{x,{{s}}} and the scale of the β{{\beta}} at which the
+transition occurs. Thus, although the sinc interpolator is very promising from a theoretical perspective, the finite length of the sampling interval may render it impractical.
+Fig. 6: Error metrics along with their upper bounds (22a)-(22c) for the zeroth-order interpolation estimator (21).
+Fig. 7: Error metrics along with their upper bounds (27a)-(27c) for the first-order interpolation estimator (26).
+Fig. 8: Error metrics along with the upper bound for the L2L^{2} error
+(31) for sinc interpolation.
+Fig. 9:
+Norm mean square error vs. transmitter heights.
+V-B Experiment with Ray-Tracing Data
+This section presents an experiment where a power map is generated using ray-tracing software. The goal is to verify the claim that power maps are more difficult to estimate the closer transmitters are to ℛ{\mathcal{R}} in a 2D scenario with a realistic channel model.
+To this end, a collection of power maps was generated, each one for a different height of the transmitters.
+The values of the map are obtained using a 3D model of downtown Ottawa on a rectangular grid with 1 m spacing constructed on a horizontal
+region of size 47×5647\times 56 m and height 2 m.
+In all maps, 5 transmitters are deployed. The x,y-coordinates of these transmitters are the same across maps. Their z-coordinates are equal within one map but they differ across maps. The transmitters use isotropic antennas and operate at 2.4 GHz with power PTx(s)=PTx=10​dBm​∀s{{P}^{({{s}})}_{\text{Tx}}}={{P}_{\text{Tx}}}=10~\text{dBm}~\forall{{s}}.
+At each Monte Carlo iteration, a smaller map is generated by drawing a sub-region of size 32×3232\times 32 m uniformly at random from the large map of the considered height. The locations of N=100{{N}}=100 measurements collected by receivers with isotropic antennas are then drawn uniformly at random from the grid points that lie inside the sub-region but outside the buildings.
+Three simple estimators are used:
+(i) The KK-nearest neighbors estimator with K=5K=5 [1],
+(ii) simple Kriging with σs=3,δs=50\sigma_{s}=3,\delta_{s}=50 m [24], and
+(iii) kernel ridge regression (KRR) with a Gaussian kernel of width 10 m and a regularization parameter of 0.001 [32].
+The performance metric is the normalized mean square error (NMSE) defined as
+NMSE≜𝔼⁡{‖𝜸−𝜸^‖22}𝔼​{‖𝜸‖22},\displaystyle\text{NMSE}\triangleq\frac{\mathbb{E}\{\|{{\bm{{{\gamma}}}}}-{{{\hat{\bm{{{\gamma}}}}}}}\|_{2}^{2}\}}{\mathbb{E}\{\|{{\bm{{{\gamma}}}}}\|_{2}^{2}\}},
+(32)
+where 𝜸{{\bm{{{\gamma}}}}} and 𝜸^{{{\hat{\bm{{{\gamma}}}}}}} are respectively the vectors collecting the values of the true and estimated power maps at the grid points that lie outside buildings. The expectations are, as indicated, over choices of the sub-region and the measurement locations.
+Fig. 9 plots the NMSE of the three
+aforementioned estimators vs. the height of the transmitters. As
+expected, the NMSE decreases for all estimators as the transmitters
+become further away from the mapped region, which provides evidence in
+favor of the aforementioned claim.
+Although it was analytically shown
+that this always occurs in free-space and it was empirically observed
+that it holds in Fig. 9, it is important to note
+that this is not necessarily the case in all situations. For example, in
+a setup with S=1{{S}}=1, if the transmitter is placed above the center
+of a building with a horizontal metal rooftop, the transmitted signal
+will not reach the ground when the transmitter is right on the rooftop.
+This results in the map being identically 0 and, therefore, the
+estimation error for the considered estimators will be 0. However, if the transmitter is a certain height above the building, the rooftop will not block the signal everywhere. Thus, the error in this case will be strictly positive and, therefore, it will violate the claim. The conclusion is that this claim can be used as a guideline but it need not be accurate in all situations.
+VI Conclusions
+This paper studied the problem of reconstructing a power
+map produced by a set of incoherent sources.
+The variability of these maps was characterized via upper and lower bounds. Remarkably, power maps are seen to be spatially low-pass.
+Three function reconstruction error metrics were upper bounded for estimators based on zeroth-order, first-order, and sinc interpolation. A simple numerical experiment demonstrates that the bounds are tight and accurately predict the decrease rate with respect to the distance of the sources to the mapped region.
+This justifies the introduction of the proximity coefficient, which is proportionally related to most of the reconstruction bounds and indicates that the difficulty of the RME problem increases with the transmitted power and decreases with the distance from the sources to the mapped region.
+The analysis suggests that the sinc interpolator results in a much smaller reconstruction error than zeroth- and first-order interpolators. However, the finite length of the sampling interval in practice implies that the error of the sinc interpolator will be significantly large unless the sources are very close to the mapped region.
+An experiment with ray-tracing data reveals that the difficulty of the RME problem also tends to increase with the proximity of the sources in non-free space propagation environments.
+Being the first theoretical analysis in this context, this work suffers from several limitations. As a result, future work may address the estimation of radio maps in higher dimensions and account for noise, correlation among the transmitters, and propagation effects such as reflection, refraction, absorption, and diffraction. Bounds for more sophisticated estimators would also be of interest. It is thus the hope of the authors that this paper opens the door to a fertile research topic in this context.
+References
+[1]
+D. Romero and S.-J. Kim,
+“Radio map estimation: A data-driven approach to spectrum
+cartography,”
+IEEE Signal Process. Mag., vol. 39, no. 6, pp. 53–72, 2022.
+[2]
+H. Abou-zeid, H. S. Hassanein, and S. Valentin,
+“Optimal predictive resource allocation: Exploiting mobility
+patterns and radio maps,”
+in Global Commun. Conf., 2013, pp. 4877–4882.
+[3]
+S. Subramani, J. Riihijärvi, B. Sayrac, L. Gavrilovska, M. Sooriyabandara,
+T. Farnham, and P. Mähönen,
+“Towards practical REM-based radio resource management,”
+in Future Network & Mobile Summit, 2011, pp. 1–8.
+[4]
+T. Cai, J. van de Beek, B. Sayrac, S. Grimoud, J. Nasreddine, J. Riihijärvi,
+and P. Mähönen,
+“Design of layered radio environment maps for RAN optimization in
+heterogeneous LTE systems,”
+in Int. Symp. Personal, Indoor Mobile Radio Commun., 2011, pp.
+172–176.
+[5]
+A. Zalonis, N. Dimitriou, A. Polydoros, J. Nasreddine, and P. Mähönen,
+“Femtocell downlink power control based on radio environment maps,”
+in Wireless Commun. Networking Conf., 2012, pp. 1224–1228.
+[6]
+D. Romero, P. Q. Viet, and G. Leus,
+“Aerial base station placement leveraging radio tomographic maps,”
+in IEEE Int. Conf. Acoustics Speech Signal Process., Singapore,
+2022, IEEE, pp. 5358–5362.
+[7]
+P. Q. Viet and D. Romero,
+“Aerial base station placement: A tutorial introduction,”
+IEEE Commun. Mag., vol. 60, no. 5, pp. 44–49, 2022.
+[8]
+P. Q. Viet and D. Romero,
+“Probabilistic roadmaps for aerial relay path planning,”
+in IEEE Glob. Commun. Conf., 2023.
+[9]
+D. Romero, S.-J. Kim, R. López-Valcarce, and G. B. Giannakis,
+“Spectrum cartography using quantized observations,”
+in Proc. IEEE Int. Conf. Acoust., Speech, Signal Process.,
+Brisbane, Australia, Apr. 2015, pp. 3252 – 3256.
+[10]
+A. Alaya-Feki, S. B. Jemaa, B. Sayrac, P. Houze, and E. Moulines,
+“Informed spectrum usage in cognitive radio networks: Interference
+cartography,”
+in Proc. IEEE Int. Symp. Personal, Indoor Mobile Radio Commun.,
+Cannes, France, Sep. 2008, pp. 1–5.
+[11]
+A. Agarwal and R. Gangopadhyay,
+“Predictive spectrum occupancy probability-based spatio-temporal
+dynamic channel allocation map for future cognitive wireless networks,”
+Trans. Emerging Telecommun. Technol., vol. 29, no. 8, pp.
+e3442, 2018.
+[12]
+R. Shrestha, D. Romero, and S. P. Chepuri,
+“Spectrum surveying: Active radio map estimation with autonomous
+UAVs,”
+IEEE Trans. Wireless Commun., vol. 22, no. 1, pp. 627–641,
+2022.
+[13]
+J.-A. Bazerque and G. B. Giannakis,
+“Distributed spectrum sensing for cognitive radio networks by
+exploiting sparsity,”
+IEEE Trans. Signal Process., vol. 58, no. 3, pp. 1847–1862,
+Mar. 2010.
+[14]
+J.-A. Bazerque, G. Mateos, and G. B. Giannakis,
+“Group-lasso on splines for spectrum cartography,”
+IEEE Trans. Signal Process., vol. 59, no. 10, pp. 4648–4663,
+Oct. 2011.
+[15]
+B. A. Jayawickrama, E. Dutkiewicz, I. Oppermann, G. Fang, and J. Ding,
+“Improved performance of spectrum cartography based on compressive
+sensing in cognitive radio networks,”
+in Proc. IEEE Int. Commun. Conf., Budapest, Hungary, Jun. 2013,
+pp. 5657–5661.
+[16]
+B. Khalfi, B. Hamdaoui, and M. Guizani,
+“AirMAP: Scalable spectrum occupancy recovery using local
+low-rank matrix approximation,”
+in IEEE Glob. Commun. Conf., Abu Dhabi, UAE, Dec. 2018.
+[17]
+D. Schäufele, R. L. G. Cavalcante, and S. Mtanczak,
+“Tensor completion for radio map reconstruction using low rank and
+smoothness,”
+in IEEE Int. Workshop Signal Process. Advances Wireless
+Commun., Cannes, France, Jul. 2019.
+[18]
+S.-J. Kim and G. B. Giannakis,
+“Cognitive radio spectrum prediction using dictionary learning,”
+in Proc. IEEE Global Commun. Conf., Atlanta, GA, Dec. 2013, pp.
+3206 – 3211.
+[19]
+T. N. Ha, D. Romero, and R. López-Valcarce,
+“Radio maps for beam alignment in mmwave communications with
+location uncertainty,”
+in IEEE Vehicular Tech. Conf. Workshop, Spring, Singapore,
+2024.
+[20]
+E. Krijestorac, S. Hanna, and D. Cabric,
+“Spatial signal strength prediction using 3D maps and deep
+learning,”
+in Proc. IEEE Int Conf. Commun. IEEE, 2021, pp. 1–6.
+[21]
+R. Levie, Ç. Yapar, G. Kutyniok, and G. Caire,
+“RadioUNet: Fast radio map estimation with convolutional neural
+networks,”
+IEEE Trans. Wireless Commun., vol. 20, no. 6, pp. 4001–4015,
+2021.
+[22]
+X. Han, L. Xue, F. Shao, and Y. Xu,
+“A power spectrum maps estimation algorithm based on generative
+adversarial networks for underlay cognitive radio networks,”
+Sensors, vol. 20, no. 1, pp. 311, Jan. 2020.
+[23]
+Y. Teganya and D. Romero,
+“Deep completion autoencoders for radio map estimation,”
+IEEE Trans. Wireless Commun., vol. 21, no. 3, pp. 1710–1724,
+2021.
+[24]
+R. Shrestha, T. N. Ha, P. Q. Viet, and D. Romero,
+“Radio map estimation in the real-world: Empirical validation and
+analysis,”
+in 2023 IEEE Conf. on Antenna Measurements and Appl. (CAMA),
+Genoa, Italy, 2023, pp. 169–174.
+[25]
+Z. Xiang, H. Zhang, J. Huang, S. Song, and K.C. Almeroth,
+“A hidden environment model for constructing indoor radio maps,”
+in IEEE Int. Symp. World Wireless Mobile Multimedia Net., 2005,
+pp. 395–400.
+[26]
+Y. Hu, W. Zhou, Z. Wen, Y. Sun, and B. Yin,
+“Efficient radio map construction based on low-rank approximation
+for indoor positioning,”
+Math. Probl. Eng., vol. 2013, 2013.
+[27]
+B. Yang, S. He, and S.-H. G. Chan,
+“Updating wireless signal map with Bayesian compressive sensing,”
+in Proc. ACM Int. Conf. Mod., Anal. and Simu. Wireless and
+Mobile Sys., New York, NY, USA, 2016, MSWiM ’16, pp. 310–317, Association
+for Computing Machinery.
+[28]
+Q. Niu, Y. Nie, S. He, N. Liu, and X. Luo,
+“RecNet: A convolutional network for efficient radiomap
+reconstruction,”
+in IEEE Int. Conf. Commun., 2018, pp. 1–7.
+[29]
+M. Franceschetti,
+Wave Theory of Information,
+Cambridge University Press, 2018.
+[30]
+D. Romero, S.-J. Kim, and G. B. Giannakis,
+“Stochastic semiparametric regression for spectrum cartography,”
+in Proc. IEEE Int. Workshop Comput. Advan. Multi-Sensor Adapt.
+Process., Cancun, Mexico, Dec. 2015, pp. 513–516.
+[31]
+W. K. Hayman and T. J. Lyons,
+“Bases for positive continuous functions,”
+J. London Math. Society, vol. 2, no. 2, pp. 292–308, 1990.
+[32]
+D. Romero, S-J. Kim, G. B. Giannakis, and R. López-Valcarce,
+“Learning power spectrum maps from quantized power measurements,”
+IEEE Trans. Signal Process., vol. 65, no. 10, pp. 2547–2560,
+May 2017.
+[33]
+I. J. Schoenberg,
+“Metric spaces and completely monotone functions,”
+Annals Mathematics, pp. 811–841, 1938.
+[34]
+C. A. Micchelli, Y. Xu, and H. Zhang,
+“Universal kernels,”
+J. Mach. Learn. Res., vol. 7, pp. 2651–2667, Dec. 2006.
+[35]
+S.U. Pillai, T. Suel, and S. Cha,
+“The Perron-Frobenius theorem: some of its applications,”
+IEEE Signal Processing Mag., vol. 22, no. 2, pp. 62–75, 2005.
+[36]
+W. Rudin,
+Principles of mathematical analysis,
+1953.
+Appendix A Proof of Theorem 1
+If conditions (C1) and
+(C2) hold, it is clear that 𝒢FS(d){{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}}
+contains the set
+𝒢FS(d,β2)≜{γ|\displaystyle{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}}\triangleq\bigg\{{{\gamma}}~|
+γ⁡(𝒓)=∑s=1Sαs‖𝒓−𝒓´s‖2+β2,\displaystyle~{{\gamma}}({{\bm{r}}})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{\|{{\bm{r}}}-{{\acute{\bm{r}}}}_{{{s}}}\|^{2}+{{\beta}}^{2}},
+(33)
+𝒓´s∈ℛ(d),αs≥0,S∈ℕ}.\displaystyle~{{\acute{\bm{r}}}}_{{{s}}}\in{\mathcal{R}}^{({{d}})},~{{\alpha}}_{{{s}}}\geq 0,~{{S}}\in\mathbb{N}\bigg\}.
+Lemma 2.
+For any β2>0{{\beta}}^{2}>0, span¯​𝒢FS(d,β2)\overline{\mathop{\rm span}}~{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}} is a reproducing-kernel Hilbert space
+(RKHS) with kernel
+κ⁡(𝒓,𝒓′)≜1‖𝒓−𝒓′‖2+β2.\displaystyle{{\kappa}}({{\bm{r}}},{{\bm{r}}}^{\prime})\triangleq\frac{1}{\|{{\bm{r}}}-{{\bm{r}}}^{\prime}\|^{2}+{{\beta}}^{2}}.
+(34)
+Besides, κ{{\kappa}} is universal.
+Proof:
+It was shown in [33] that
+functions of the form κ⁡(𝒓,𝒓′)=g⁡(‖𝒓−𝒓′‖2){{\kappa}}({{\bm{r}}},{{\bm{r}}}^{\prime})={{g}}(\|{{\bm{r}}}-{{\bm{r}}}^{\prime}\|^{2}) are positive definite kernels if g{{g}} can be
+written as
+g⁡(t)=∫ℝ+e−t​σ​𝑑μ​(σ)\displaystyle{{g}}(t)=\int_{\mathbb{R}_{+}}e^{-t\sigma}d{{\mu}}(\sigma)
+(35)
+for some finite Borel measure μ{{\mu}}. Noting that, in
+(34), g⁡(t)=1/(t+β2){{g}}(t)=1/(t+{{\beta}}^{2}) and selecting
+μ{{\mu}} such that
+μ⁡(B)=∫Be−β2​σ​𝑑σ\displaystyle{{\mu}}({{B}})=\int_{{{B}}}e^{-{{\beta}}^{2}\sigma}d\sigma
+(36)
+for all Borel sets B⊂ℝ+{{B}}\subset\mathbb{R}_{+}, it is easy to see
+that (35) holds for κ{{\kappa}} in
+(34). Therefore, κ{{\kappa}} in
+(34) is a positive definite kernel.
+Noting that
+span𝒢FS(d,β2)={γ|\displaystyle\mathop{\rm span}{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}}=\bigg\{{{\gamma}}~|
+γ⁡(𝒓)=∑s=1Sαs‖𝒓−𝒓´s‖2+β2,\displaystyle~{{\gamma}}({{\bm{r}}})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{\|{{\bm{r}}}-{{\acute{\bm{r}}}}_{{{s}}}\|^{2}+{{\beta}}^{2}},
+(37)
+𝒓´s∈ℛ(d),αs∈ℂ,S∈ℕ}\displaystyle~{{\acute{\bm{r}}}}_{{{s}}}\in{\mathcal{R}}^{({{d}})},~{{\alpha}}_{{{s}}}\in\mathbb{C},~{{S}}\in\mathbb{N}\bigg\}
+shows that span¯​𝒢FS(d,β2)\overline{\mathop{\rm span}}~{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}} is an RKHS with kernel κ{{\kappa}}.
+Finally, observe that the Borel measure associated with κ{{\kappa}}
+in (34) is not concentrated at zero; cf.
+(36). Thus, it follows from [34, Theorem
+17] that κ{{\kappa}} is universal.
+Due to the universality of κ{{\kappa}},
+for any ϵ>0{{\epsilon}}>0 and continuous γ{{\gamma}}, there exists γ¯∈span¯​𝒢FS(d,β2){{\bar{\gamma}}}\in\overline{\mathop{\rm span}}~{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}} such that sup𝒓∈ℛ(d)|γ⁡(𝒓)−γ¯​(𝒓)|<ϵ/2\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}|{{\gamma}}({{\bm{r}}})-{{\bar{\gamma}}}({{\bm{r}}})|<{{\epsilon}}/2.
+Since γ¯∈span¯​𝒢FS(d,β2){{\bar{\gamma}}}\in\overline{\mathop{\rm span}}~{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}}, it follows that there
+exists γˇ∈span𝒢FS(d,β2){{\check{\gamma}}}\in\mathop{\rm span}~{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}} such that
+sup𝒓∈ℛ(d)|γ¯​(𝒓)−γˇ​(𝒓)|<ϵ/2\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}|{{\bar{\gamma}}}({{\bm{r}}})-{{\check{\gamma}}}({{\bm{r}}})|<{{\epsilon}}/2.
+Besides, since γ{{\gamma}} takes real values, it follows that
+sup𝒓∈ℛ(d)\displaystyle\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}
+|γ⁡(𝒓)−Re{γˇ​(𝒓)}|≤sup𝒓∈ℛ(d)|γ⁡(𝒓)−γˇ​(𝒓)|\displaystyle|{{\gamma}}({{\bm{r}}})-\mathop{\rm Re}\left\{{{\check{\gamma}}}({{\bm{r}}})\right\}|\leq\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}|{{\gamma}}({{\bm{r}}})-{{\check{\gamma}}}({{\bm{r}}})|
+(38a)
+≤sup𝒓∈ℛ(d)|γ⁡(𝒓)−γ¯​(𝒓)|+sup𝒓∈ℛ(d)|γ¯​(𝒓)−γˇ​(𝒓)|\displaystyle\leq\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}|{{\gamma}}({{\bm{r}}})-{{\bar{\gamma}}}({{\bm{r}}})|+\sup_{{{\bm{r}}}\in{\mathcal{R}}^{({{d}})}}|{{\bar{\gamma}}}({{\bm{r}}})-{{\check{\gamma}}}({{\bm{r}}})|
+(38b)
+≤ϵ2+ϵ2=ϵ,\displaystyle\leq\frac{{{\epsilon}}}{2}+\frac{{{\epsilon}}}{2}={{\epsilon}},
+(38c)
+where the second inequality follows from the triangle inequality and the properties of sup\sup.
+Thus, it remains only to write Re{γˇ}\mathop{\rm Re}\left\{{{\check{\gamma}}}\right\} as the
+difference between two functions in 𝒢FS(d){{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}}. To this end,
+note that, since γˇ∈span𝒢FS(d,β2){{\check{\gamma}}}\in\mathop{\rm span}~{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}}, it follows
+(cf. (37)) that there exist
+𝒓´s∈ℛ(d),αs∈ℂ{{\acute{\bm{r}}}}_{{{s}}}\in{\mathcal{R}}^{({{d}})},~{{\alpha}}_{{{s}}}\in\mathbb{C} and S∈ℕ{{S}}\in\mathbb{N} such that
+γˇ​(𝒓)=∑s=1Sαs​κ​(𝒓,𝒓´s){{\check{\gamma}}}({{\bm{r}}})=\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}{{\kappa}}({{\bm{r}}},{{\acute{\bm{r}}}}_{{{s}}}). If γ+{{\gamma}}_{+} and γ−{{\gamma}}_{-} are
+such that
+γ+​(𝒓)\displaystyle{{\gamma}}_{+}({{\bm{r}}})
+=∑s=1Smax⁡(0,Re{αs})​κ​(𝒓,𝒓´s)\displaystyle=\sum_{{{s}}=1}^{{{S}}}\max(0,\mathop{\rm Re}\left\{{{\alpha}}_{{{s}}}\right\}){{\kappa}}({{\bm{r}}},{{\acute{\bm{r}}}}_{{{s}}})
+(39a)
+γ−​(𝒓)\displaystyle{{\gamma}}_{-}({{\bm{r}}})
+=∑s=1Smax(0,−Re{αs})κ(𝒓,𝒓´s),\displaystyle=\sum_{{{s}}=1}^{{{S}}}\max(0,-\mathop{\rm Re}\left\{{{\alpha}}_{{{s}}}\right\}){{\kappa}}({{\bm{r}}},{{\acute{\bm{r}}}}_{{{s}}}),
+(39b)
+then, it is easy to verify that γ+,γ−∈𝒢FS(d,β2)⊂𝒢FS(d){{\gamma}}_{+},{{\gamma}}_{-}\in{{{{\mathcal{G}}}_{\text{FS}}^{({{d}},{{\beta}}^{2})}}}\subset{{{{\mathcal{G}}}_{\text{FS}}^{({{d}})}}} and
+γ+−γ−=Re{γˇ}{{\gamma}}_{+}-{{\gamma}}_{-}=\mathop{\rm Re}\left\{{{\check{\gamma}}}\right\}. Substituting this last
+expression into (38a) yields
+(9), which concludes the proof.
+Appendix B Proof of Lemma 1
+|γ′​(rx)|\displaystyle|{{\gamma}}^{\prime}({{r}}_{x})|
+=2​∑s=1Sαs​|r´x,s−rx|[(rx−r´x,s)2+βs2]2\displaystyle=2\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}|{{\acute{r}}}_{x,{{s}}}-{{r}}_{x}|}{[({{r}}_{x}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}]^{2}}
+(40a)
+≤2​∑s=1Ssupr´x,s,rxαs​|r´x,s−rx|[(rx−r´x,s)2+βs2]2\displaystyle\leq 2\sum_{{{s}}=1}^{{{S}}}\sup_{{{\acute{r}}}_{x,{{s}}},{{r}}_{x}}\frac{{{\alpha}}_{{{s}}}|{{\acute{r}}}_{x,{{s}}}-{{r}}_{x}|}{[({{r}}_{x}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}]^{2}}
+(40b)
+=2​∑s=1Ssupxαs​x[x2+βs2]2=33/28​∑s=1Sαsβs3\displaystyle=2\sum_{{{s}}=1}^{{{S}}}\sup_{{{x}}}\frac{{{\alpha}}_{{{s}}}{{x}}}{[{{x}}^{2}+{{\beta}}^{2}_{{{s}}}]^{2}}=\frac{3^{3/2}}{8}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}^{3}}
+(40c)
+Appendix C Proof of Theorem 2
+Without loss of generality, assume that rx=0{{r}}_{x}=0 and Δ​r≥0{{\Delta r}}\geq 0.
+Proving the upper bound in (14) can be equivalently phrased as finding an upper bound for the value that a power map can take at Δ​r{{\Delta r}} given that it takes the value g{{g}} at 0, where g∈ℝ+{{g}}\in\mathbb{R}_{+} is arbitrary. Formally, one needs to find an upper bound for
+sup{γ(Δr)|γ∈𝒢FS(1),γ(0)=g}.\displaystyle\sup\{{{\gamma}}({{\Delta r}})~|~{{\gamma}}\in{{{{\mathcal{G}}}_{\text{FS}}^{(1)}}},~{{\gamma}}(0)={{g}}\}.
+(41)
+Clearly, this supremum is upper bounded by
+sup{γ(Δr)|γ∈𝒢ˇFS(1),γ(0)=g}.\displaystyle\sup\{{{\gamma}}({{\Delta r}})~|~{{\gamma}}\in{{\check{{\mathcal{G}}}_{\text{FS}}^{(1)}}},~{{\gamma}}(0)={{g}}\}.
+(42)
+where 𝒢ˇFS(1){{\check{{\mathcal{G}}}_{\text{FS}}^{(1)}}} is any set such that 𝒢FS(1)⊂𝒢ˇFS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}\subset{{\check{{\mathcal{G}}}_{\text{FS}}^{(1)}}}. Due to (4), this condition is satisfied if one enlarges 𝒢FS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}} so that 𝒱(1)=ℝ1{\mathcal{V}}^{(1)}=\mathbb{R}^{1} and
+ηmin2∈ℬ⁡([r´x])​∀r´x{{\eta}}_{\text{min}}^{2}\in{{\mathcal{B}}}([{{\acute{r}}}_{x}])~\forall{{\acute{r}}}_{x}.
+From (10), the sup\sup in (42) can be expressed as the solution to
+maximizeS,{(r´x,s,βs2,αs)}s=1S⁡∑s=1Sαs(Δ​r−r´x,s)2+βs2\displaystyle\mathop{\text{maximize}}_{{{S}},\{({{\acute{r}}}_{x,{{s}}},{{\beta}}^{2}_{{{s}}},{{\alpha}}_{{{s}}})\}_{{{s}}=1}^{{{S}}}}~~\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{({{\Delta r}}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}}
+(43a)
+s.t.⁡∑s=1Sαsr´x,s2+βs2=g,βs≥ηmin​∀s.\displaystyle\mathop{\text{s.t.}}~~\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\acute{r}}}_{x,{{s}}}^{2}+{{\beta}}^{2}_{{{s}}}}={{g}},\quad{{{\beta}}_{{{s}}}}\geq{{\eta}}_{\text{min}}~\forall{{s}}.
+(43b)
+Now introduce auxiliary variables g1,g2,…,gS{{g}}_{1},{{g}}_{2},\ldots,{{g}}_{{{S}}} and rewrite the problem as
+maximizeS,{gs}s=1S,{(r´x,s,βs2,αs)}s=1S⁡∑s=1Sαs(Δ​r−r´x,s)2+βs2\displaystyle\mathop{\text{maximize}}_{{{S}},\{{{g}}_{{s}}\}_{{{s}}=1}^{{{S}}},\{({{\acute{r}}}_{x,{{s}}},{{\beta}}^{2}_{{{s}}},{{\alpha}}_{{{s}}})\}_{{{s}}=1}^{{{S}}}}~~\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{({{\Delta r}}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}}
+(44a)
+s.t.⁡∑s=1Sgs=g,gs=αsr´x,s2+βs2,βs≥ηmin​∀s.\displaystyle\mathop{\text{s.t.}}~~\sum_{{{s}}=1}^{{{S}}}{{g}}_{{s}}={{g}},~{{g}}_{{s}}=\frac{{{\alpha}}_{{{s}}}}{{{\acute{r}}}_{x,{{s}}}^{2}+{{\beta}}^{2}_{{{s}}}},~{{\beta}}_{{{s}}}\geq{{\eta}}_{\text{min}}~\forall{{s}}.
+(44b)
+By optimizing first with respect to {(r´x,s,βs2,αs)}s=1S\{({{\acute{r}}}_{x,{{s}}},{{\beta}}^{2}_{{{s}}},{{\alpha}}_{{{s}}})\}_{{{s}}=1}^{{{S}}}, it is easy to see that (44) is equivalent to
+maximizeS,{gs}s=1S\displaystyle\mathop{\text{maximize}}_{{{S}},\{{{g}}_{{s}}\}_{{{s}}=1}^{{{S}}}}~~
+∑s=1Sg∗​(gs)\displaystyle\sum_{{{s}}=1}^{{{S}}}{{g}^{*}}({{g}}_{{s}})
+(45a)
+s.t.\displaystyle\mathop{\text{s.t.}}~~
+∑s=1Sgs=g,\displaystyle\sum_{{{s}}=1}^{{{S}}}{{g}}_{{s}}={{g}},
+(45b)
+where g∗​(gs){{g}^{*}}({{g}}_{{s}}) is the optimal value of the problem
+maximizer´x,s,βs2,αs\displaystyle\mathop{\text{maximize}}_{{{\acute{r}}}_{x,{{s}}},{{\beta}}^{2}_{{{s}}},{{\alpha}}_{{{s}}}}~~
+αs(Δ​r−r´x,s)2+βs2\displaystyle\frac{{{\alpha}}_{{{s}}}}{({{\Delta r}}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}}
+(46a)
+s.t.\displaystyle\mathop{\text{s.t.}}~~
+gs=αsr´x,s2+βs2,βs≥ηmin​∀s.\displaystyle{{g}}_{{s}}=\frac{{{\alpha}}_{{{s}}}}{{{\acute{r}}}_{x,{{s}}}^{2}+{{\beta}}^{2}_{{{s}}}},~{{\beta}}_{{{s}}}\geq{{\eta}}_{\text{min}}~\forall{{s}}.
+(46b)
+To solve (46), optimize first with respect to αs{{\alpha}}_{{{s}}} to obtain
+maximizer´x,s,βs2\displaystyle\mathop{\text{maximize}}_{{{\acute{r}}}_{x,{{s}}},{{\beta}}^{2}_{{{s}}}}~~
+gs​(r´x,s2+βs2)(Δ​r−r´x,s)2+βs2\displaystyle\frac{{{g}}_{{s}}({{\acute{r}}}_{x,{{s}}}^{2}+{{\beta}}^{2}_{{{s}}})}{({{\Delta r}}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}}
+(47a)
+s.t.\displaystyle\mathop{\text{s.t.}}~~
+βs≥ηmin.\displaystyle{{\beta}}_{{{s}}}\geq{{\eta}}_{\text{min}}.
+(47b)
+Setting the derivative of the objective with respect to r´x,s{{\acute{r}}}_{x,{{s}}} equal to zero yields
+r´x,s=Δ​r±Δ​r2+4​βs22.\displaystyle{{\acute{r}}}_{x,{{s}}}=\frac{{{\Delta r}}\pm\sqrt{{{\Delta r}}^{2}+4{{\beta}}^{2}_{{{s}}}}}{2}.
+(48)
+The ++ solution is a maximum and the −- solution is a minimum. Substituting the former in (47) results in
+g∗​(gs)=gs​supβs≥ηmin(Δ​r+Δ​r2+4​βs2)2+4​βs2(Δ​r−Δ​r2+4​βs2)2+4​βs2.\displaystyle{{g}^{*}}({{g}}_{{s}})={{g}}_{{s}}\sup_{{{\beta}}_{{{s}}}\geq{{\eta}}_{\text{min}}}~~\frac{\left({{\Delta r}}+\sqrt{{{\Delta r}}^{2}+4{{\beta}}^{2}_{{{s}}}}\right)^{2}+4{{\beta}}^{2}_{{{s}}}}{\left({{\Delta r}}-\sqrt{{{\Delta r}}^{2}+4{{\beta}}^{2}_{{{s}}}}\right)^{2}+4{{\beta}}^{2}_{{{s}}}}.
+(49a)
+Letting b=Δ​r2+4​βs2/Δ​r{{b}}=\sqrt{{{\Delta r}}^{2}+4{{\beta}}^{2}_{{{s}}}}/{{\Delta r}} yields
+g∗​(gs)\displaystyle{{g}^{*}}({{g}}_{{s}})
+=gs​supb≥c⁡(Δ​r)(Δ​r+b​Δ​r)2+Δ​r2​(b2−1)(Δ​r−b​Δ​r)2+Δ​r2​(b2−1)\displaystyle={{g}}_{{s}}\sup_{{{b}}\geq{c}({{\Delta r}})}~~\frac{\left({{\Delta r}}+{{b}}{{\Delta r}}\right)^{2}+{{\Delta r}}^{2}({{b}}^{2}-1)}{\left({{\Delta r}}-{{b}}{{\Delta r}}\right)^{2}+{{\Delta r}}^{2}({{b}}^{2}-1)}
+(50a)
+=gs​supb≥c⁡(Δ​r)b+1b−1=gs​c⁡(Δ​r)+1c⁡(Δ​r)−1.\displaystyle={{g}}_{{s}}\sup_{{{b}}\geq{c}({{\Delta r}})}~~\frac{{{b}}+1}{{{b}}-1}={{g}}_{{s}}~\frac{{c}({{\Delta r}})+1}{{c}({{\Delta r}})-1}.
+(50b)
+Substituting (50b) into
+(45) and using
+(45b) yields a problem that does not
+depend on S{{S}} and
+{gs}s=1S\{{{g}}_{{s}}\}_{{{s}}=1}^{{{S}}}. Its optimal value is
+therefore the desired upper bound in (14). The lower
+bound in (14) can be obtained by following a similar
+reasoning. To see that the bounds are tight, it suffices to note
+that (41) equals (42) if
+𝒢FS(1)=𝒢ˇFS(1){{{{\mathcal{G}}}_{\text{FS}}^{(1)}}}={{\check{{\mathcal{G}}}_{\text{FS}}^{(1)}}}.
+Appendix D Proof of Theorem 3
+Let us start by considering the following result, which provides an explicit form for the Fourier transform of γ{{\gamma}}:
+Lemma 3.
+It holds that:
+Γ⁡(kx)=π​∑s=1Sαsβs​e−j​kx​r´x,s​e−βs​|kx|\displaystyle{{\Gamma}}({{k}}_{x})=\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}
+(51)
+Proof:
+It is easy to show that, for any a>0{a}>0, it follows that
+ℱ​{2​arx2+a2}=2​π​e−a​|kx|,\displaystyle\mathcal{F}\left\{\frac{2{a}}{{{r}}_{x}^{2}+{a}^{2}}\right\}=2\pi e^{-a|{{k}}_{x}|},
+(52)
+where ℱ\mathcal{F} denotes the Fourier transform.
+Therefore,
+Γ⁡(kx)\displaystyle{{\Gamma}}({{k}}_{x})
+≜ℱ​{γ⁡(rx)}\displaystyle\triangleq\mathcal{F}\left\{{{\gamma}}({{r}}_{x})\right\}
+(53a)
+=ℱ⁡{∑s=1Sαs(rx−r´x,s)2+βs2}\displaystyle=\mathcal{F}\left\{\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{({{r}}_{x}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}}\right\}
+(53b)
+=∑s=1Se−j​kx​r´x,s​ℱ​{αsrx2+βs2}\displaystyle=\sum_{{{s}}=1}^{{{S}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}\mathcal{F}\left\{\frac{{{\alpha}}_{{{s}}}}{{{r}}_{x}^{2}+{{\beta}}^{2}_{{{s}}}}\right\}
+(53c)
+=π​∑s=1Sαsβs​e−j​kx​r´x,s​e−βs​|kx|.\displaystyle=\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}.
+(53d)
+It follows from Lemma 3 that
+|Γ⁡(kx)|\displaystyle|{{\Gamma}}({{k}}_{x})|
+=|π​∑s=1Sαsβs​e−j​kx​r´x,s​e−βs​|kx||\displaystyle=\left|\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}\right|
+(54a)
+≤π​∑s=1S|αsβs​e−j​kx​r´x,s​e−βs​|kx||\displaystyle\leq\pi\sum_{{{s}}=1}^{{{S}}}\left|\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}\right|
+(54b)
+=π​∑s=1Sαsβs​e−βs​|kx|≤[πβmin​∑s=1Sαs]​e−βmin​|kx|,\displaystyle=\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}\leq\left[\frac{\pi}{{{\beta}}_{\text{min}}}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}\right]e^{-{{\beta}}_{\text{min}}|{{k}}_{x}|},
+(54c)
+which establishes (17a).
+The high-pass energy of γ{{\gamma}} can be upper bounded as
+∫B∞\displaystyle\int_{{{B}}}^{\infty}
+|Γ⁡(kx)|2​d​kx=∫B∞|π​∑s=1Sαsβs​e−j​kx​r´x,s​e−βs​|kx||2​d​kx\displaystyle|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}=\int_{{{B}}}^{\infty}\left|\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}\right|^{2}d{{k}}_{x}
+(55a)
+≤π2​∫B∞[∑s=1S|αsβs​e−j​kx​r´x,s​e−βs​|kx||]2​d​kx\displaystyle\leq\pi^{2}\int_{{{B}}}^{\infty}\left[\sum_{{{s}}=1}^{{{S}}}\left|\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-j{{k}}_{x}{{\acute{r}}}_{x,{{s}}}}e^{-{{\beta}}_{{{s}}}|{{k}}_{x}|}\right|\right]^{2}d{{k}}_{x}
+(55b)
+=π2​∫B∞[∑s=1Sαsβs​e−βs​kx]2​d​kx\displaystyle=\pi^{2}\int_{{{B}}}^{\infty}\left[\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}e^{-{{\beta}}_{{{s}}}{{k}}_{x}}\right]^{2}d{{k}}_{x}
+(55c)
+=π2​∑s=1S∑s′=1Sαsβs​αs′βs′​∫B∞e−(βs+βs′)​kx​d​kx\displaystyle=\pi^{2}\sum_{{{s}}=1}^{{{S}}}\sum_{{{s^{\prime}}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}\frac{{{\alpha}}_{{{s^{\prime}}}}}{{{\beta}}_{{{s^{\prime}}}}}\int_{{{B}}}^{\infty}e^{-({{\beta}}_{{{s}}}+{{\beta}}_{{{s^{\prime}}}}){{k}}_{x}}d{{k}}_{x}
+(55d)
+=π2​∑s=1S∑s′=1Sαsβs​αs′βs′​e−(βs+βs′)​Bβs+βs′\displaystyle=\pi^{2}\sum_{{{s}}=1}^{{{S}}}\sum_{{{s^{\prime}}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}}\frac{{{\alpha}}_{{{s^{\prime}}}}}{{{\beta}}_{{{s^{\prime}}}}}\frac{e^{-({{\beta}}_{{{s}}}+{{\beta}}_{{{s^{\prime}}}}){{B}}}}{{{\beta}}_{{{s}}}+{{\beta}}_{{{s^{\prime}}}}}
+(55e)
+=π2​𝒗⊤​𝑨​𝒗,\displaystyle=\pi^{2}{{\bm{v}}}^{\top}{{\bm{A}}}{{\bm{v}}},
+(55f)
+where 𝒗≜[α1/β1;…;αS/βS]{{\bm{v}}}\triangleq[{{{\alpha}}_{1}}/{{{\beta}}_{1}};\ldots;{{{\alpha}}_{{{S}}}}/{{{\beta}}_{{{S}}}}] and the S×S{{S}}\times{{S}} matrix 𝑨{{\bm{A}}} is such that its (s,s′)({{s}},{{s^{\prime}}})-th entry is As,s′≜e−(βs+βs′)​B/(βs+βs′){{A}}_{{{s}},{{s^{\prime}}}}\triangleq{e^{-({{\beta}}_{{{s}}}+{{\beta}}_{{{s^{\prime}}}}){{B}}}}/({{{\beta}}_{{{s}}}+{{\beta}}_{{{s^{\prime}}}}}). Since 𝑨{{\bm{A}}} is symmetric, its eigenvalues are real. In particular, its largest eigenvalue λmax​(𝑨){\mathcal{\lambda}}_{\text{max}}({{\bm{A}}}) is real. Since all entries of 𝑨{{\bm{A}}} are positive, it follows necessarily that λmax​(𝑨)>0{\mathcal{\lambda}}_{\text{max}}({{\bm{A}}})>0 and
+∫B∞|Γ⁡(kx)|2​d​kx\displaystyle\int_{{{B}}}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+≤π2​‖𝒗‖2​λmax​(𝑨).\displaystyle\leq\pi^{2}\|{{\bm{v}}}\|^{2}{\mathcal{\lambda}}_{\text{max}}({{\bm{A}}}).
+(56a)
+Furthermore, since all the entries of 𝑨{{\bm{A}}} are positive, λmax​(𝑨){\mathcal{\lambda}}_{\text{max}}({{\bm{A}}}) is a Perron-Frobenius eigenvalue and, therefore, satisfies [35, eq. (2)] that λmax​(𝑨)≤max⁡∑s′s⁡As,s′{\mathcal{\lambda}}_{\text{max}}({{\bm{A}}})\leq\max_{{{s}}}\sum_{{{s^{\prime}}}}{{A}}_{{{s}},{{s^{\prime}}}}. It follows that
+∫B∞|Γ⁡(kx)|2​d​kx\displaystyle\int_{{{B}}}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+≤π2​S​∑s=1Sαs22​βmin3​e−2​βmin​B,\displaystyle\leq\frac{\pi^{2}{{S}}\sum_{{{s}}=1}^{{{S}}}{{\alpha}}_{{{s}}}^{2}}{2{{\beta}}_{\text{min}}^{3}}e^{-2{{\beta}}_{\text{min}}{{B}}},
+(57a)
+which establishes (17b).
+Finally, to upper bound the total energy, note that
+∫0∞|Γ⁡(kx)|2​d​kx\displaystyle\int_{0}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+=12​∫−∞∞|Γ⁡(kx)|2​d​kx\displaystyle=\frac{1}{2}\int_{-\infty}^{\infty}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+(58a)
+=π​∫−∞∞|γ⁡(rx)|2​d​rx\displaystyle=\pi\int_{-\infty}^{\infty}|{{\gamma}}({{r}}_{x})|^{2}d{{r}}_{x}
+(58b)
+≥π​∫−∞∞∑s=1S|αs(rx−r´x,s)2+βs2|2​d​rx\displaystyle\geq\pi\int_{-\infty}^{\infty}\sum_{{{s}}=1}^{{{S}}}\left|\frac{{{\alpha}}_{{{s}}}}{({{r}}_{x}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}}\right|^{2}d{{r}}_{x}
+(58c)
+=π​∑s=1S∫−∞∞[αsrx2+βs2]2​d​rx.\displaystyle=\pi\sum_{{{s}}=1}^{{{S}}}\int_{-\infty}^{\infty}\left[\frac{{{\alpha}}_{{{s}}}}{{{r}}_{x}^{2}+{{\beta}}^{2}_{{{s}}}}\right]^{2}d{{r}}_{x}.
+(58d)
+It is straightforward to verify that, for any a≠0{a}\neq 0, it holds that
+∫1(rx2+a2)2​d​rx=12​a2​[rxrx2+a2+1a​arctan⁡(rxa)].\displaystyle\int\frac{1}{({{r}}_{x}^{2}+{a}^{2})^{2}}d{{r}}_{x}=\frac{1}{2{a}^{2}}\left[\frac{{{r}}_{x}}{{{r}}_{x}^{2}+{a}^{2}}+\frac{1}{{a}}\arctan\left(\frac{{{r}}_{x}}{{a}}\right)\right].
+(59)
+Hence,
+∫0∞\displaystyle\int_{0}^{\infty}
+|Γ⁡(kx)|2​d​kx\displaystyle|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}
+≥π​∑s=1Sαs22​βs2​[rxrx2+βs2+1βs​arctan⁡(rxβs)]−∞∞\displaystyle\geq\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}^{2}}{2{{\beta}}_{{{s}}}^{2}}\left[\frac{{{r}}_{x}}{{{r}}_{x}^{2}+{{\beta}}_{{{s}}}^{2}}+\frac{1}{{{\beta}}_{{{s}}}}\arctan\left(\frac{{{r}}_{x}}{{{\beta}}_{{{s}}}}\right)\right]_{-\infty}^{\infty}
+(60a)
+=π​∑s=1Sαs22​βs2​πβs=π22​∑s=1Sαs2βs3,\displaystyle=\pi\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}^{2}}{2{{\beta}}_{{{s}}}^{2}}\frac{\pi}{{{\beta}}_{{{s}}}}=\frac{\pi^{2}}{2}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}^{2}}{{{\beta}}_{{{s}}}^{3}},
+(60b)
+which proves (17c).
+Appendix E Proof of Theorem 4
+Let
+m≜33/28​∑s=1Sαsβs3\displaystyle{{m}}\triangleq\frac{3^{3/2}}{8}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}^{3}}
+(61)
+be the upper bound on the derivative of γ{{\gamma}} provided by (11).
+To prove Theorem 4, it is convenient to first establish the following result:
+Lemma 4.
+If rx∈[rn,rn+1]{{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{n}}+1}], then
+max[\displaystyle\max[
+−m(rx−rn),−m(rn+1−rx)+Δγn]\displaystyle-{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),-{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})+{{\Delta{{\gamma}}}}_{{{n}}}]
+(62a)
+≤γ⁡(rx)−γn\displaystyle\leq{{\gamma}}({{r}}_{x})-{{{{\gamma}}}}_{{{n}}}
+(62b)
+≤min⁡[m⁡(rx−rn),m⁡(rn+1−rx)+Δ​γn],\displaystyle\leq\min[{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})+{{\Delta{{\gamma}}}}_{{{n}}}],
+(62c)
+where Δ​γn≜γ⁡(rn+1)−γ⁡(rn){{\Delta{{\gamma}}}}_{{{n}}}\triangleq{{\gamma}}({{r}}_{{{n}}+1})-{{\gamma}}({{r}}_{{{n}}}).
+Proof:
+Given that γ{{\gamma}} is differentiable, it follows from the mean-value
+theorem [36, Th. 5.10] that, for any r⌞x<r⌟x\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}<\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x},
+∃rx∈(rx⌞,rx⌟)|γ′(rx)=γ(r⌟x)−γ(r⌞x)r⌟x−r⌞x.\displaystyle\exists{{r}}_{x}\in(\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x},\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x})~|~{{\gamma}}^{\prime}({{r}}_{x})=\frac{{{\gamma}}(\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x})-{{\gamma}}(\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x})}{\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x}-\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}}.
+(63)
+From |γ′​(rx)|≤m|{{\gamma}}^{\prime}({{r}}_{x})|\leq{{m}}, it follows that, for all
+r⌞x<r⌟x\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}<\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x},
+|γ(r⌟x)−γ(r⌞x)r⌟x−r⌞x|≤m.\displaystyle\left|\frac{{{\gamma}}(\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x})-{{\gamma}}(\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x})}{\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x}-\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}}\right|\leq{{m}}.
+(64)
+Setting r⌞x=rn\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}={{r}}_{{{n}}} and r⌟x=rx>rn\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x}={{r}}_{x}>{{r}}_{{{n}}} yields
+|γ⁡(rx)−γ⁡(rn)|≤m⁡(rx−rn)\left|{{\gamma}}({{r}}_{x})-{{\gamma}}({{r}}_{{{n}}})\right|\leq{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}) or, equivalently,
+−m⁡(rx−rn)≤γ⁡(rx)−γ⁡(rn)≤m⁡(rx−rn).\displaystyle-{{m}}({{{r}}_{x}-{{r}}_{{{n}}}})\leq{{\gamma}}({{r}}_{x})-{{\gamma}}({{r}}_{{{n}}})\leq{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}).
+(65)
+On the other hand, setting r⌟x=rn+1\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x}={{r}}_{{{n}}+1} and
+r⌞x=rx<rn+1\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}={{r}}_{x}<{{r}}_{{{n}}+1} results in
+|γ⁡(rn+1)−γ⁡(rx)|≤m⁡(rn+1−rx)\left|{{{\gamma}}({{r}}_{{{n}}+1})-{{\gamma}}({{r}}_{x})}\right|\leq{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}}), which can also be written as
+−m⁡(rn+1−rx)+Δ​γn\displaystyle-{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})+{{\Delta{{\gamma}}}}_{{{n}}}
+≤γ⁡(rx)−γ⁡(rn)\displaystyle\leq{{\gamma}}({{r}}_{x})-{{\gamma}}({{r}}_{{{n}}})
+(66a)
+≤m⁡(rn+1−rx)+Δ​γn.\displaystyle\leq{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})+{{\Delta{{\gamma}}}}_{{{n}}}.
+(66b)
+Combining (65) and
+(66a) yields (62) for
+rx∈(rn,rn+1){{r}}_{x}\in({{r}}_{{{n}}},{{r}}_{{{n}}+1}). The cases rx=rn{{r}}_{x}={{r}}_{{{n}}} and rx=rn+1{{r}}_{x}={{r}}_{{{n}}+1} follow from
+continuity.
+To prove Theorem 4, it is also convenient to first establish the following result:
+Lemma 5.
+Let 0≤a≤b0\leq a\leq b and let Δ∈ℝ\Delta\in\mathbb{R}. It holds that
+max[\displaystyle\max\big[
+OPENmin⁡(a,b−Δ),min⁡(a,b+Δ)]=a\displaystyle\min(a,b-\Delta),\min(a,b+\Delta)\big]=a
+(67)
+Proof:
+To prove (67), consider the
+following cases:
+(C1) Δ≤−b+a\Delta\leq-b+a: In this case, it clearly holds that b−Δ≥2​b−a≥ab-\Delta\geq 2b-a\geq a, which implies that min⁡(a,b−Δ)=a\min(a,b-\Delta)=a. On the other hand, it also holds that b+Δ≤ab+\Delta\leq a, which in turn implies that min⁡(a,b+Δ)=b+Δ\min(a,b+\Delta)=b+\Delta. Therefore, the left-hand side of (67) becomes max⁡[a,b+Δ]=a\max\big[a,b+\Delta\big]=a.
+(C2) −b+a≤Δ≤b−a-b+a\leq\Delta\leq b-a: Since b−Δ≥ab-\Delta\geq a, it follows that min⁡(a,b−Δ)=a\min(a,b-\Delta)=a. Furthermore, since b+Δ≥ab+\Delta\geq a, one has that min⁡(a,b+Δ)=a\min(a,b+\Delta)=a. Hence, the left-hand side of (67) becomes
+max⁡[a,a]=a\max\big[a,a\big]=a.
+(C3) Δ≥b−a\Delta\geq b-a: Since b−Δ≤ab-\Delta\leq a, it follows that min⁡(a,b−Δ)=b−Δ\min(a,b-\Delta)=b-\Delta. Since b+Δ≥2​b−a≥ab+\Delta\geq 2b-a\geq a, it holds that min⁡(a,b+Δ)=a\min(a,b+\Delta)=a. Thus, the left-hand side of (67) becomes
+max⁡[b−Δ,a]=a\max\big[b-\Delta,a\big]=a.
+Noting that (67) has been proved for all values of Δ\Delta concludes the proof.
+For
+rx∈[rn,rn+1]{{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{n}}+1}], the nearest neighbor
+interpolator is given by
+γ^​(rn)\displaystyle{{\hat{\gamma}}}({{r}}_{{{n}}})
+≜{γnif ​rx≤r~nγn+1if ​rx≥r~n,\displaystyle\triangleq\begin{cases}{{{{\gamma}}}}_{{{n}}}\quad\text{if }{{r}}_{x}\leq{{\tilde{r}}}_{{{n}}}\\
+{{{{\gamma}}}}_{{{n}}+1}\quad\text{if }{{r}}_{x}\geq{{\tilde{r}}}_{{{n}}},\end{cases}
+(68)
+where r~n≜(rn+rn+1)/2{{\tilde{r}}}_{{{n}}}\triangleq({{r}}_{{{n}}}+{{r}}_{{{n}}+1})/2.
+It follows from (62) and a≤x≤b⟹|x|≤max⁡(−a,b)a\leq x\leq b\implies|x|\leq\max(-a,b) that, for
+rx∈[rn,r~n]{{r}}_{x}\in[{{r}}_{{{n}}},{{\tilde{r}}}_{{{n}}}],
+|\displaystyle|
+γ(rx)−γn|≤max[min[m(rx−rn),m(rn+1−rx)−Δγn],\displaystyle{{\gamma}}({{r}}_{x})-{{{{\gamma}}}}_{{{n}}}|\leq\max\Bigg[\min\big[{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})-{{\Delta{{\gamma}}}}_{{{n}}}\big],
+min[m(rx−rn),m(rn+1−rx)+Δγn]].\displaystyle\min\big[{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})+{{\Delta{{\gamma}}}}_{{{n}}}\big]\Bigg].
+(69a)
+Now applying Lemma 5 yields
+|γ⁡(rx)−γn|≤m⁡(rx−rn),∀Δ​rn.\displaystyle|{{\gamma}}({{r}}_{x})-{{{{\gamma}}}}_{{{n}}}|\leq{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),\forall{{\Delta r}}_{{{n}}}.
+(70)
+Similarly, for rx∈[r~n,rn+1]{{r}}_{x}\in[{{\tilde{r}}}_{{{n}}},{{r}}_{{{n}}+1}] , one obtains
+|γ⁡(rx)−γn+1|≤m⁡(rn+1−rx),∀Δ​rn.\displaystyle|{{\gamma}}({{r}}_{x})-{{{{\gamma}}}}_{{{n}}+1}|\leq{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}}),\forall{{\Delta r}}_{{{n}}}.
+(71a)
+Thus, combining (70) and (71a) produces the bound
+|γ⁡(rx)−γ^​(rx)|\displaystyle|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|
+≤{m⁡(rx−rn)if ​rn≤rx<r~nm⁡(rn+1−rx)if ​r~n≤rx≤rn+1.\displaystyle\leq\begin{cases}{{m}}({{{r}}_{x}-{{r}}_{{{n}}}})&~\text{if }{{r}}_{{{n}}}\leq{{r}}_{x}<{{\tilde{r}}}_{{{n}}}\\
+{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})&~\text{if }{{\tilde{r}}}_{{{n}}}\leq{{r}}_{x}\leq{{r}}_{{{n}}+1}.\end{cases}
+(72a)
+The next step is to bound the L1L^{1} error. Using the above expressions, it follows that
+∫rnrn+1\displaystyle\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}
+|γ⁡(rx)−γ^​(rx)|​d​rx\displaystyle|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|d{{r}}_{x}
+≤∫rnr~n|m⁡(rx−rn)|​d​rx+∫r~nrn+1|m⁡(rn+1−rx)|​d​rx\displaystyle\leq\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}|{{m}}({{r}}_{x}-{{r}}_{{{n}}})|d{{r}}_{x}+\int_{{{\tilde{r}}}_{{{n}}}}^{{{r}}_{{{n}}+1}}|{{m}}({{r}}_{{{n}}+1}-{{r}}_{x})|d{{r}}_{x}
+(73a)
+=m2​[(r~n−rn)2+(rn+1−r~n)2]\displaystyle=\frac{{{m}}}{2}\Bigg[({{\tilde{r}}}_{{{n}}}-{{r}}_{{{n}}})^{2}+({{r}}_{{{n}}+1}-{{\tilde{r}}}_{{{n}}})^{2}\Bigg]
+(73b)
+=m​Δ​rn24\displaystyle=\frac{{{m}}{{\Delta r}}_{{{n}}}^{2}}{4}
+(73c)
+Combining this bound for the N−1{{N}}-1 intervals yields
+‖γ−γ^‖1\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{1}
+≤∑n=1N−1∫rnrn+1|γ⁡(rx)−γ^​(rx)|​d​rx\displaystyle\leq\sum_{{{n}}=1}^{{{N}}-1}\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|d{{r}}_{x}
+≤m4​∑n=1N−1Δ​rn2,\displaystyle\leq\frac{{{m}}}{4}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2},
+(74)
+which, combined with (61), proves (22a).
+For the L2L^{2} error, one can write the following:
+∫rnrn+1\displaystyle\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}
+|γ⁡(rx)−γ^​(rx)|2​d​rx\displaystyle|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|^{2}d{{r}}_{x}
+≤∫rnr~nm2​(rx−rn)2​d​rx+∫r~nrn+1m2​(rn+1−rx)2​d​rx\displaystyle\leq\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{{m}}^{2}({{r}}_{x}-{{r}}_{{{n}}})^{2}d{{r}}_{x}+\int_{{{\tilde{r}}}_{{{n}}}}^{{{r}}_{{{n}}+1}}{{m}}^{2}({{r}}_{{{n}}+1}-{{r}}_{x})^{2}d{{r}}_{x}
+(75a)
+=m23​[(r~n−rn)3+(rn+1−r~n)3]\displaystyle=\frac{{{m}}^{2}}{3}\Bigg[({{\tilde{r}}}_{{{n}}}-{{r}}_{{{n}}})^{3}+({{r}}_{{{n}}+1}-{{\tilde{r}}}_{{{n}}})^{3}\Bigg]
+(75b)
+=m2​Δ​rn312\displaystyle=\frac{{{m}}^{2}{{\Delta r}}_{{{n}}}^{3}}{12}
+(75c)
+Combining this bound for the N−1{{N}}-1 intervals yields
+‖γ−γ^‖22\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}^{2}
+≤∫rnrN|γ⁡(rx)−γ^​(rx)|2​d​rx\displaystyle\leq\int_{{{r}}_{{{n}}}}^{{{r}}_{{{N}}}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|^{2}d{{r}}_{x}
+≤m212​∑n=1N−1Δ​rn3,\displaystyle\leq\frac{{{m}}^{2}}{12}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3},
+(76)
+which proves (22b) after substitution of (61).
+Finally, for the L∞L^{\infty} error, it follows that
+∥γ\displaystyle\|{{\gamma}}
+−γ^∥∞=suprx∈[rn,rN)|γ(rx)−γ^(rx)|\displaystyle-{{\hat{\gamma}}}\|_{\infty}=\sup_{{{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{N}}})}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|
+(77a)
+≤maxn[max(suprx∈[rn,r~n]m(rx−rn),\displaystyle\leq\max_{{{n}}}\bigg[\max\bigg(\sup_{{{r}}_{x}\in[{{r}}_{{{n}}},{{\tilde{r}}}_{{{n}}}]}{{m}}({{r}}_{x}-{{r}}_{{{n}}}),
+suprx∈[r~n,rn+1]m(rn+1−rx))]\displaystyle\sup_{{{r}}_{x}\in[{{\tilde{r}}}_{{{n}}},{{r}}_{{{n}}+1}]}{{m}}({{r}}_{{{n}}+1}-{{r}}_{x})\bigg)\bigg]
+(77b)
+=maxn⁡[max⁡(m⁡(r~n−rn),m⁡(rn+1−r~n))]\displaystyle=\max_{{{n}}}\bigg[\max\bigg({{m}}({{\tilde{r}}}_{{{n}}}-{{r}}_{{{n}}}),{{m}}({{r}}_{{{n}}+1}-{{\tilde{r}}}_{{{n}}})\bigg)\bigg]
+(77c)
+=m2​maxn​Δ​rn,\displaystyle=\frac{m}{2}\max_{{{n}}}{{\Delta r}}_{{{n}}},
+(77d)
+which, together with (61), proves (22c).
+Appendix F Proof of Theorem 5
+Using Lemma 4, it is possible to prove the following:
+Lemma 6.
+The estimator γ^{{\hat{\gamma}}} defined in (26) satisfies:
+‖γ−γ^‖1\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{1}
+≤932​a​m​∑n=1N−1Δ​rn2\displaystyle\leq\frac{9}{32a}{{m}}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2}
+(78a)
+‖γ−γ^‖22\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{2}^{2}
+≤16​2−1396​m2​∑n=1N−1Δ​rn3\displaystyle\leq\frac{16\sqrt{2}-13}{96}{{m}}^{2}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{3}
+(78b)
+‖γ−γ^‖∞\displaystyle\|{{\gamma}}-{{\hat{\gamma}}}\|_{\infty}
+≤m2​maxn​Δ​rn\displaystyle\leq\frac{{{m}}}{2}\max_{{{n}}}{{\Delta r}}_{{{n}}}
+(78c)
+Proof:
+It follows from (62) that, for rx∈[rn,rn+1]{{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{n}}+1}],
+fn(l)​(rx)≤γ⁡(rx)−γ^​(rx)≤fn(u)​(rx),\displaystyle{{f}}^{(l)}_{{{n}}}({{r}}_{x})\leq{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})\leq{{f}}^{(u)}_{{{n}}}({{r}}_{x}),
+(79)
+where
+fn(l)​(rx)\displaystyle{{f}}^{(l)}_{{{n}}}({{r}}_{x})
+≜−min⁡[m⁡(rx−rn),m⁡(rn+1−rx)−Δ​γn]\displaystyle\triangleq-\min[{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})-{{\Delta{{\gamma}}}}_{{{n}}}]
+−Δ​γnΔ​rn​(rx−rn)\displaystyle-\frac{{{\Delta{{\gamma}}}}_{{{n}}}}{{{\Delta r}}_{{{n}}}}({{r}}_{x}-{{r}}_{{{n}}})
+(80a)
+fn(u)​(rx)\displaystyle{{f}}^{(u)}_{{{n}}}({{r}}_{x})
+≜min⁡[m⁡(rx−rn),m⁡(rn+1−rx)+Δ​γn]\displaystyle\triangleq\min[{{m}}({{{r}}_{x}-{{r}}_{{{n}}}}),{{m}}({{{r}}_{{{n}}+1}-{{r}}_{x}})+{{\Delta{{\gamma}}}}_{{{n}}}]
+−Δ​γnΔ​rn​(rx−rn).\displaystyle-\frac{{{\Delta{{\gamma}}}}_{{{n}}}}{{{\Delta r}}_{{{n}}}}({{r}}_{x}-{{r}}_{{{n}}}).
+(80b)
+Letting r~n≜(rn+rn+1)/2{{\tilde{r}}}_{{{n}}}\triangleq({{r}}_{{{n}}}+{{r}}_{{{n}}+1})/2, it is then straightforward to verify that
+fn(u)​(rx)=fn​(rx,Δ​γn){{f}}^{(u)}_{{{n}}}({{r}}_{x})={{f}}_{{{n}}}({{r}}_{x};{{\Delta{{\gamma}}}}_{{{n}}}) and
+fn(l)​(rx)=−fn​(rx,−Δ​γn){{f}}^{(l)}_{{{n}}}({{r}}_{x})=-{{f}}_{{{n}}}({{r}}_{x};-{{\Delta{{\gamma}}}}_{{{n}}}),
+where
+fn​(rx,Δ​γn)\displaystyle{{f}}_{{{n}}}({{r}}_{x};{{\Delta{{\gamma}}}}_{{{n}}})
+≜{(m−Δ​γnΔ​rn)​(rx−rn)if ​rn≤rx<r~n+Δ​γn/2​m(m+Δ​γnΔ​rn)​(rn+1−rx)if ​r~n+Δ​γn/2​m≤rx<rn+1.\displaystyle\triangleq\begin{cases}\left({{m}}-\frac{{{\Delta{{\gamma}}}}_{{{n}}}}{{{\Delta r}}_{{{n}}}}\right)({{r}}_{x}-{{r}}_{{{n}}})\\
+\quad\quad\text{if }{{r}}_{{{n}}}\leq{{r}}_{x}<{{\tilde{r}}}_{{{n}}}+{{\Delta{{\gamma}}}}_{{{n}}}/2{{m}}\\
+\left({{m}}+\frac{{{\Delta{{\gamma}}}}_{{{n}}}}{{{\Delta r}}_{{{n}}}}\right)({{r}}_{{{n}}+1}-{{r}}_{x})\\
+\quad\quad\text{if }{{\tilde{r}}}_{{{n}}}+{{\Delta{{\gamma}}}}_{{{n}}}/2{{m}}\leq{{r}}_{x}<{{r}}_{{{n}}+1}.\end{cases}
+(81)
+It can be readily shown that that both coefficients m−Δ​γn/Δ​rn{{m}}-{{\Delta{{\gamma}}}}_{{{n}}}/{{\Delta r}}_{{{n}}}
+and
+m+Δ​γn/Δ​rn{{m}}+{{\Delta{{\gamma}}}}_{{{n}}}/{{\Delta r}}_{{{n}}}
+in (81) are non-negative (just substitute r⌞x=rn\stackrel{{\scriptstyle\llcorner}}{{{r}}}_{x}={{r}}_{{{n}}} and
+r⌟x=rn+1\stackrel{{\scriptstyle\lrcorner}}{{{r}}}_{x}={{r}}_{{{n}}+1} in (64) to note that
+|Δ​γn|≤Δ​rn​m|{{\Delta{{\gamma}}}}_{{{n}}}|\leq{{\Delta r}}_{{{n}}}{{m}}).
+Since a≤x≤ba\leq x\leq b implies that |x|≤max⁡(−a,b)|x|\leq\max(-a,b), it follows
+from (79) that
+|\displaystyle|
+γ⁡(rx)−γ^​(rx)|≤max⁡[−fn(l)​(rx),fn(u)​(rx)]\displaystyle{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|\leq\max[-{{f}}^{(l)}_{{{n}}}({{r}}_{x}),{{f}}^{(u)}_{{{n}}}({{r}}_{x})]
+(82a)
+=max⁡[fn​(rx,−Δ​γn),fn​(rx,Δ​γn)]\displaystyle=\max[{{f}}_{{{n}}}({{r}}_{x};-{{\Delta{{\gamma}}}}_{{{n}}}),{{f}}_{{{n}}}({{r}}_{x};{{\Delta{{\gamma}}}}_{{{n}}})]
+(82b)
+=max⁡[fn​(rx,−|Δ​γn|),fn​(rx,|Δ​γn|)]≜f~n​(rx)\displaystyle=\max[{{f}}_{{{n}}}({{r}}_{x};-|{{\Delta{{\gamma}}}}_{{{n}}}|),{{f}}_{{{n}}}({{r}}_{x};|{{\Delta{{\gamma}}}}_{{{n}}}|)]\triangleq{\tilde{f}}_{{{n}}}({{r}}_{x})
+(82c)
+for all rx∈[rn,rn+1]{{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{n}}+1}].
+Using (81), it is also easy to verify that
+fn​(rx,Δ​γn)=fn​(2​r~n−rx,−Δ​γn){{f}}_{{{n}}}({{r}}_{x};{{\Delta{{\gamma}}}}_{{{n}}})={{f}}_{{{n}}}(2{{\tilde{r}}}_{{{n}}}-{{r}}_{x};-{{\Delta{{\gamma}}}}_{{{n}}}). As a
+consequence, it is easy to see from (82) that
+f~n​(2​r~n−rx)=f~n​(rx){\tilde{f}}_{{{n}}}(2{{\tilde{r}}}_{{{n}}}-{{r}}_{x})={\tilde{f}}_{{{n}}}({{r}}_{x}). Thus, (82) can be
+alternatively expressed as
+|γ⁡(rx)−γ^​(rx)|\displaystyle|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|
+≤{f~n​(rx)if ​rn≤rx<r~nf~n​(2​r~n−rx)if ​r~n≤rx<rn+1.\displaystyle\leq\begin{cases}{\tilde{f}}_{{{n}}}({{r}}_{x})&~\text{if }{{r}}_{{{n}}}\leq{{r}}_{x}<{{\tilde{r}}}_{{{n}}}\\
+{\tilde{f}}_{{{n}}}(2{{\tilde{r}}}_{{{n}}}-{{r}}_{x})&~\text{if }{{\tilde{r}}}_{{{n}}}\leq{{r}}_{x}<{{r}}_{{{n}}+1}.\end{cases}
+(83a)
+Observe that rx∈[r~n,rn+1]{{r}}_{x}\in[{{\tilde{r}}}_{{{n}}},{{r}}_{{{n}}+1}] if and only if
+2​r~n−rx∈[rn,r~n]2{{\tilde{r}}}_{{{n}}}-{{r}}_{x}\in[{{r}}_{{{n}}},{{\tilde{r}}}_{{{n}}}]. Hence, it
+suffices to consider f~n​(rx){\tilde{f}}_{{{n}}}({{r}}_{x}) in rx∈[rn,r~n]{{r}}_{x}\in[{{r}}_{{{n}}},{{\tilde{r}}}_{{{n}}}]. In this interval, it is easy to
+see that f~n​(rx)=fn​(rx,−|Δ​γn|){\tilde{f}}_{{{n}}}({{r}}_{x})={{f}}_{{{n}}}({{r}}_{x};-|{{\Delta{{\gamma}}}}_{{{n}}}|).
+The next step is to bound the L1L^{1} error. Using the above expressions, it follows that
+∫rnrn+1\displaystyle\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}
+|γ⁡(rx)−γ^​(rx)|​d​rx\displaystyle|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|d{{r}}_{x}
+≤∫rnr~nf~n​(rx)​d​rx+∫r~nrn+1f~n​(2​r~n−rx)​d​rx\displaystyle\leq\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{\tilde{f}}_{{{n}}}({{r}}_{x})d{{r}}_{x}+\int_{{{\tilde{r}}}_{{{n}}}}^{{{r}}_{{{n}}+1}}{\tilde{f}}_{{{n}}}(2{{\tilde{r}}}_{{{n}}}-{{r}}_{x})d{{r}}_{x}
+(84a)
+=2​∫rnr~nf~n​(rx)​d​rx=2​∫rnr~nfn​(rx,−|Δ​γn|)​d​rx\displaystyle=2\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{\tilde{f}}_{{{n}}}({{r}}_{x})d{{r}}_{x}=2\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{{f}}_{{{n}}}({{r}}_{x};-|{{\Delta{{\gamma}}}}_{{{n}}}|)d{{r}}_{x}
+(84b)
+=2​∫rnr~n−|Δ​γn|/2​mfn​(rx,−|Δ​γn|)​d​rx\displaystyle=2\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}-|{{\Delta{{\gamma}}}}_{{{n}}}|/2{{m}}}{{f}}_{{{n}}}({{r}}_{x};-|{{\Delta{{\gamma}}}}_{{{n}}}|)d{{r}}_{x}
+(84c)
++2∫r~n−|Δ​γn|/2​mr~nfn(rx;−|Δγn|)drx\displaystyle+2\int_{{{\tilde{r}}}_{{{n}}}-|{{\Delta{{\gamma}}}}_{{{n}}}|/2{{m}}}^{{{\tilde{r}}}_{{{n}}}}{{f}}_{{{n}}}({{r}}_{x};-|{{\Delta{{\gamma}}}}_{{{n}}}|)d{{r}}_{x}
+(84d)
+=m2​Δ​rn2+m​Δ​rn​|Δ​γn|−2​|Δ​γn|24​m.\displaystyle=\frac{{{m}}^{2}{{\Delta r}}_{{{n}}}^{2}+{{m}}{{\Delta r}}_{{{n}}}|{{\Delta{{\gamma}}}}_{{{n}}}|-2|{{\Delta{{\gamma}}}}_{{{n}}}|^{2}}{4{{m}}}.
+(84e)
+This is maximum when |Δ​γn|=m​Δ​rn/4|{{\Delta{{\gamma}}}}_{{{n}}}|={{m}}{{\Delta r}}_{{{n}}}/4,
+which yields
+∫rnrn+1|γ⁡(rx)−γ^​(rx)|​d​rx\displaystyle\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|d{{r}}_{x}
+≤932​m​Δ​rn2.\displaystyle\leq\frac{9}{32}{{m}}{{\Delta r}}_{{{n}}}^{2}.
+(85)
+Combining this bound for the N−1{{N}}-1 intervals yields
+∫r1rN|γ⁡(rx)−γ^​(rx)|​d​rx\displaystyle\int_{{{r}}_{1}}^{{{r}}_{{{N}}}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|d{{r}}_{x}
+≤932​m​∑n=1N−1Δ​rn2,\displaystyle\leq\frac{9}{32}{{m}}\sum_{{{n}}=1}^{{{N}}-1}{{\Delta r}}_{{{n}}}^{2},
+(86)
+which proves (78a).
+When it comes to the L2L^{2} error, one can write the following:
+∫rnrn+1\displaystyle\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}
+|γ⁡(rx)−γ^​(rx)|2​d​rx\displaystyle|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|^{2}d{{r}}_{x}
+≤∫rnr~nf~n2​(rx)​d​rx+∫r~nrn+1f~n2​(2​r~n−rx)​d​rx\displaystyle\leq\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{\tilde{f}}_{{{n}}}^{2}({{r}}_{x})d{{r}}_{x}+\int_{{{\tilde{r}}}_{{{n}}}}^{{{r}}_{{{n}}+1}}{\tilde{f}}_{{{n}}}^{2}(2{{\tilde{r}}}_{{{n}}}-{{r}}_{x})d{{r}}_{x}
+(87a)
+=2​∫rnr~nf~n2​(rx)​d​rx=2​∫rnr~nfn2​(rx,−|Δ​γn|)​d​rx\displaystyle=2\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{\tilde{f}}_{{{n}}}^{2}({{r}}_{x})d{{r}}_{x}=2\int_{{{r}}_{{{n}}}}^{{{\tilde{r}}}_{{{n}}}}{{f}}_{{{n}}}^{2}({{r}}_{x};-|{{\Delta{{\gamma}}}}_{{{n}}}|)d{{r}}_{x}
+(87b)
+=Δ​rn3​m212​(1−ξn)2​(1+4​ξn+2​ξn2),\displaystyle=\frac{{{\Delta r}}_{{{n}}}^{3}{{m}}^{2}}{12}\left(1-{\xi}_{{{n}}}\right)^{2}(1+4{\xi}_{{{n}}}+2{\xi}_{{{n}}}^{2}),
+(87c)
+where ξn≜|Δ​γn|/(m​Δ​rn){\xi}_{{{n}}}\triangleq{|{{\Delta{{\gamma}}}}_{{{n}}}|}/({{{m}}{{\Delta r}}_{{{n}}}}).
+The maximum subject to ξn∈[0,1]{\xi}_{{{n}}}\in[0,1] is attained when ξn=ξn∗≜(−1+2)/2{\xi}_{{{n}}}={\xi}_{{{n}}}^{*}\triangleq({-1+\sqrt{2}})/{2}, which yields
+∫rnrn+1|γ⁡(rx)−γ^​(rx)|2​d​rx\displaystyle\int_{{{r}}_{{{n}}}}^{{{r}}_{{{n}}+1}}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|^{2}d{{r}}_{x}
+≤16​2−1396​Δ​rn3​m2.\displaystyle\leq\frac{16\sqrt{2}-13}{96}{{\Delta r}}_{{{n}}}^{3}{{m}}^{2}.
+(88a)
+Adding this error over the N−1{{N}}-1 intervals
+proves (78b).
+Finally, for the L∞L^{\infty} error, note that
+suprx∈[rn,rn+1)|γ⁡(rx)−γ^​(rx)|\displaystyle\sup_{{{r}}_{x}\in[{{r}}_{{{n}}},{{r}}_{{{n}}+1})}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|
+(89a)
+=max[suprx∈[rn,r~n)|γ(rx)−γ^(rx)|,\displaystyle=\max\bigg[\sup_{{{r}}_{x}\in[{{r}}_{{{n}}},{{\tilde{r}}}_{{{n}}})}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|,
+suprx∈[r~n,rn+1)|γ(rx)−γ^(rx)|]\displaystyle\sup_{{{r}}_{x}\in[{{\tilde{r}}}_{{{n}}},{{r}}_{{{n}}+1})}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|\bigg]
+(89b)
+≤max⁡[suprx∈[rn,r~n)f~n​(rx),suprx∈[r~n,rn+1)f~n​(2​r~n−rx)]\displaystyle\leq\max[\sup_{{{r}}_{x}\in[{{r}}_{{{n}}},{{\tilde{r}}}_{{{n}}})}{\tilde{f}}_{{{n}}}({{r}}_{x}),\sup_{{{r}}_{x}\in[{{\tilde{r}}}_{{{n}}},{{r}}_{{{n}}+1})}{\tilde{f}}_{{{n}}}(2{{\tilde{r}}}_{{{n}}}-{{r}}_{x})]
+(89c)
+=m2​Δ​rn2−|Δ​γn|22​m​Δ​rn≤m​Δ​rn2.\displaystyle=\frac{{{m}}^{2}{{\Delta r}}_{{{n}}}^{2}-|{{\Delta{{\gamma}}}}_{{{n}}}|^{2}}{2{{m}}{{\Delta r}}_{{{n}}}}\leq\frac{{{m}}{{\Delta r}}_{{{n}}}}{2}.
+(89d)
+Combining this bound for all intervals
+proves (78c).
+Finally, combining (78) with
+(61) completes the proof.
+Appendix G Proof of Theorem 6
+Lemma 7.
+Let
+γ⁡[n]≜γ⁡(n​Δ​r){{\gamma}}[{{n}}]\triangleq{{\gamma}}({{n}}{{{\Delta r}}}) and
+γ^​(rx)≜∑n=−∞∞γ⁡[n]​sinc(rx−n​Δ​rΔ​r).\displaystyle{{\hat{\gamma}}}({{r}}_{x})\triangleq\sum_{{{n}}=-\infty}^{\infty}{{\gamma}}[{{n}}]\mathop{\rm sinc}\left(\frac{{{r}}_{x}-{{n}}{{{\Delta r}}}}{{{{\Delta r}}}}\right).
+(90)
+Then
+E≜\displaystyle{E}\triangleq
+∫−∞∞|γ⁡(rx)−γ^​(rx)|2​d​rx\displaystyle\int_{-\infty}^{\infty}|{{\gamma}}({{r}}_{x})-{{\hat{\gamma}}}({{r}}_{x})|^{2}d{{r}}_{x}
+(91a)
+=\displaystyle=
+12​π​∑m=−∞,m≠0∞∫−∞∞|Γm​(kx)|2​d​kx\displaystyle\frac{1}{2\pi}\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}\int_{-\infty}^{\infty}\left|{{\Gamma}}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x}
+(91b)
++12​π∫−∞∞|∑m=−∞,m≠0∞Γm(kx)|2dkx,\displaystyle+\frac{1}{2\pi}\int_{-\infty}^{\infty}\left|\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}{{\Gamma}}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x},
+(91c)
+where
+Γm​(kx)≜{Γ⁡(kx+m​2​πΔ​r) if kx∈[−πΔ​r,πΔ​r)0otherwise.\displaystyle{{\Gamma}}_{{m}}({{k}}_{x})\triangleq\begin{cases}{{\Gamma}}({{k}}_{x}+{{m}}\frac{2\pi}{{{{\Delta r}}}})&\text{ if }{{k}}_{x}\in[-\frac{\pi}{{{{\Delta r}}}},\frac{\pi}{{{{\Delta r}}}})\\
+0&\text{otherwise}.\end{cases}
+(92)
+Proof:
+From Parseval’s
+relation
+E=\displaystyle{E}=
+12​π​∫−∞∞|Γ⁡(kx)−Γ^​(kx)|2​d​kx.\displaystyle\frac{1}{2\pi}\int_{-\infty}^{\infty}|{{\Gamma}}({{k}}_{x})-\hat{{{\Gamma}}}({{k}}_{x})|^{2}d{{k}}_{x}.
+(93)
+Note that
+γ^​(rx)\displaystyle{{\hat{\gamma}}}({{r}}_{x})
+=∑n=−∞∞γ⁡(rx)​δ​(rx−n​Δ​r)∗sinc(rxΔ​r).\displaystyle=\sum_{{{n}}=-\infty}^{\infty}{{\gamma}}({{r}}_{x})\delta({{r}}_{x}-{{n}}{{{\Delta r}}})\ast\mathop{\rm sinc}\left(\frac{{{r}}_{x}}{{{{\Delta r}}}}\right).
+(94a)
+In the frequency domain:
+Γ^​(kx)=\displaystyle\hat{{{\Gamma}}}({{k}}_{x})=
+12​π[Γ(kx)∗2​πΔ​r∑m=−∞∞δ(kx−m2​πΔ​r)]\displaystyle\frac{1}{2\pi}\left[{{\Gamma}}({{k}}_{x})\ast\frac{2\pi}{{{{\Delta r}}}}\sum_{{{m}}=-\infty}^{\infty}\delta\left({{k}}_{x}-{{m}}\frac{2\pi}{{{{\Delta r}}}}\right)\right]
+(95)
+⋅Δr⋅Π−π/Δrπ/Δ​r(kx),\displaystyle\cdot{{{\Delta r}}}\cdot{\Pi}_{-\pi/{{{\Delta r}}}}^{\pi/{{{\Delta r}}}}({{k}}_{x}),
+(96)
+where
+Πab​(kx)≜{1if ​kx∈[a,b)0otherwise.\displaystyle{\Pi}_{a}^{b}({{k}}_{x})\triangleq\begin{cases}1&\text{if }{{k}}_{x}\in[a,b)\\
+0&\text{otherwise.}\end{cases}
+(97)
+Therefore,
+Γ^​(kx)\displaystyle\hat{{{\Gamma}}}({{k}}_{x})
+=[∑m=−∞∞Γ(kx−m2​πΔ​r)]⋅Π−π/Δrπ/Δ​r(kx)\displaystyle=\left[\sum_{{{m}}=-\infty}^{\infty}{{\Gamma}}\left({{k}}_{x}-{{m}}\frac{2\pi}{{{{\Delta r}}}}\right)\right]\cdot{\Pi}_{-\pi/{{{\Delta r}}}}^{\pi/{{{\Delta r}}}}({{k}}_{x})
+(98a)
+=∑m=−∞∞Γm​(kx).\displaystyle=\sum_{{{m}}=-\infty}^{\infty}{{\Gamma}}_{{m}}\left({{k}}_{x}\right).
+(98b)
+On the other hand, it is straightforward to see that
+Γ⁡(kx)=∑m=−∞∞Γm​(kx−m​2​πΔ​r).\displaystyle{{\Gamma}}({{k}}_{x})=\sum_{{{m}}=-\infty}^{\infty}{{\Gamma}}_{{m}}\left({{k}}_{x}-{{m}}\frac{2\pi}{{{{\Delta r}}}}\right).
+(99)
+Substituting (98b) and (99) into (93) yields
+E\displaystyle{E}
+=12​π​∫−∞∞|∑m=−∞,m≠0∞Γm​(kx−m​2​πΔ​r)|2​d​kx\displaystyle=\frac{1}{2\pi}\int_{-\infty}^{\infty}\left|\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}{{\Gamma}}_{{m}}\left({{k}}_{x}-{{m}}\frac{2\pi}{{{{\Delta r}}}}\right)\right|^{2}d{{k}}_{x}
++12​π∫−∞∞|∑m=−∞,m≠0∞Γm(kx)|2dkx\displaystyle+\frac{1}{2\pi}\int_{-\infty}^{\infty}\left|\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}{{\Gamma}}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x}
+(100a)
+=12​π​∑m=−∞,m≠0∞∫−∞∞|Γm​(kx)|2​d​kx\displaystyle=\frac{1}{2\pi}\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}\int_{-\infty}^{\infty}\left|{{\Gamma}}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x}
+(100b)
++12​π∫−∞∞|∑m=−∞,m≠0∞Γm(kx)|2dkx.\displaystyle+\frac{1}{2\pi}\int_{-\infty}^{\infty}\left|\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}{{\Gamma}}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x}.
+(100c)
+For the following result, consider the shifted signal ϕ(ν)​(rx)≜γ⁡(rx−ν){\phi}^{({{\nu}})}({{r}}_{x})\triangleq{{\gamma}}({{r}}_{x}-{{\nu}}) and its reconstruction
+ϕ^(ν)​(rx)≜∑n=−∞∞ϕ(ν)​(n​Δ​r)​sinc(rx−n​Δ​rΔ​r).\displaystyle{\hat{\phi}}^{({{\nu}})}({{r}}_{x})\triangleq\sum_{{{n}}=-\infty}^{\infty}{\phi}^{({{\nu}})}({{n}}{{{\Delta r}}})\mathop{\rm sinc}\left(\frac{{{r}}_{x}-{{n}}{{{\Delta r}}}}{{{{\Delta r}}}}\right).
+(101)
+Lemma 8.
+Let
+E′​(ν)≜\displaystyle{E}^{\prime}({{\nu}})\triangleq
+∫−∞∞|ϕ(ν)​(rx)−ϕ^(ν)​(rx)|2​d​rx.\displaystyle\int_{-\infty}^{\infty}|{\phi}^{({{\nu}})}({{r}}_{x})-{\hat{\phi}}^{({{\nu}})}({{r}}_{x})|^{2}d{{r}}_{x}.
+(102)
+It holds that
+E¯′≜1Δ​r​∫0Δ​rE′​(ν)​𝑑ν=1π​∫ℬ|Γ⁡(kx)|2​d​kx,\displaystyle{\bar{E}}^{\prime}\triangleq\frac{1}{{{{\Delta r}}}}\int_{0}^{{{{\Delta r}}}}{E}^{\prime}({{\nu}})d{{\nu}}=\frac{1}{\pi}\int_{{\mathcal{B}}}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x},
+(103)
+where ℬ≜(−∞,−π/Δr]∪[π/Δr,∞){{\mathcal{B}}}\triangleq(-\infty,-{\pi}/{{{{\Delta r}}}}]\cup[\pi/{{{\Delta r}}},\infty).
+Proof:
+Let
+Φm(ν)​(kx)≜{Φ(ν)​(kx+m​2​πΔ​r)if kx∈[−πΔ​r,πΔ​r)0otherwise.\displaystyle{\Phi}^{({{\nu}})}_{{m}}({{k}}_{x})\triangleq\begin{cases}{\Phi}^{({{\nu}})}({{k}}_{x}+{{m}}\frac{2\pi}{{{{\Delta r}}}})&\text{if }{{k}}_{x}\in[-\frac{\pi}{{{{\Delta r}}}},\frac{\pi}{{{{\Delta r}}}})\\
+0&\text{otherwise}.\end{cases}
+(104)
+From Lemma 7, it follows that
+E′​(ν)=E1′​(ν)+E2′​(ν),\displaystyle{E}^{\prime}({{\nu}})={E}^{\prime}_{1}({{\nu}})+{E}^{\prime}_{2}({{\nu}}),
+(105)
+where
+E1′​(ν)\displaystyle{E}^{\prime}_{1}({{\nu}})
+≜12​π​∑m=−∞,m≠0∞∫−∞∞|Φm(ν)​(kx)|2​d​kx\displaystyle\triangleq\frac{1}{2\pi}\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}\int_{-\infty}^{\infty}\left|{\Phi}^{({{\nu}})}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x}
+(106a)
+E2′​(ν)\displaystyle{E}^{\prime}_{2}({{\nu}})
+≜12​π​∫−∞∞|∑m=−∞,m≠0∞Φm(ν)​(kx)|2​d​kx.\displaystyle\triangleq\frac{1}{2\pi}\int_{-\infty}^{\infty}\left|\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}{\Phi}^{({{\nu}})}_{{m}}\left({{k}}_{x}\right)\right|^{2}d{{k}}_{x}.
+(106b)
+Letting E¯i′≜(1/Δ​r)​∫0Δ​rEi′​(ν)​𝑑ν{\bar{E}}^{\prime}_{i}\triangleq(1/{{{\Delta r}}})\int_{0}^{{{{\Delta r}}}}{E}^{\prime}_{i}({{\nu}})d{{\nu}}, it follows
+that
+E¯′=E¯1′+E¯2′.\displaystyle{\bar{E}}^{\prime}={\bar{E}}^{\prime}_{1}+{\bar{E}}^{\prime}_{2}.
+(107)
+Noting that Φ(ν)​(kx)=e−j​kx​ν​Γ​(kx){\Phi}^{({{\nu}})}({{k}}_{x})=e^{-j{{k}}_{x}{{\nu}}}{{\Gamma}}({{k}}_{x}) yields
+Φm(ν)​(kx)=e−j⁡(kx+m​2​πΔ​r)​ν​Γm​(kx).\displaystyle{\Phi}^{({{\nu}})}_{{m}}({{k}}_{x})=e^{-j({{k}}_{x}+{{m}}\frac{2\pi}{{{{\Delta r}}}}){{\nu}}}{{\Gamma}}_{{m}}({{k}}_{x}).
+(108a)
+From (106a), it is then easy to see that
+E1′​(ν)=12​π​∫ℬ|Γ⁡(kx)|2​d​kx=E¯1′.\displaystyle{E}^{\prime}_{1}({{\nu}})=\frac{1}{2\pi}\int_{{\mathcal{B}}}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}={\bar{E}}^{\prime}_{1}.
+(109)
+On the other hand, from (106b), it follows that
+E¯2′\displaystyle{\bar{E}}^{\prime}_{2}
+(110)
+=12​π​Δ​r​∫−∞∞∫0Δ​r|∑m=−∞,m≠0∞e−j​m​2​πΔ​r​ν​Γm​(kx)|2​𝑑ν​d​kx\displaystyle=\frac{1}{2\pi{{{\Delta r}}}}\int_{-\infty}^{\infty}\int_{0}^{{{{\Delta r}}}}\left|\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}e^{-j{{m}}\frac{2\pi}{{{{\Delta r}}}}{{\nu}}}{{\Gamma}}_{{m}}({{k}}_{x})\right|^{2}d{{\nu}}d{{k}}_{x}
+=1(2​π)2​∫−∞∞∫02​π|Ψ⁡(θ,kx)|2​𝑑θ​d​kx,\displaystyle=\frac{1}{(2\pi)^{2}}\int_{-\infty}^{\infty}\int_{0}^{2\pi}\left|{\Psi}({{\theta}},{{k}}_{x})\right|^{2}d{{\theta}}d{{k}}_{x},
+(111)
+where Ψ⁡(θ,kx)≜∑m=−∞,m≠0∞e−j​m​θ​Γm​(kx){\Psi}({{\theta}},{{k}}_{x})\triangleq\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}e^{-j{{m}}{{\theta}}}{{\Gamma}}_{{m}}({{k}}_{x})
+is the discrete-time Fourier transform of
+ψm​(kx)≜{Γm​(kx)if ​m≠00otherwise.\displaystyle{\psi}_{{m}}({{k}}_{x})\triangleq\begin{cases}{{\Gamma}}_{{m}}({{k}}_{x})&\text{if }{{m}}\neq 0\\
+0&\text{otherwise}.\end{cases}
+(112)
+Applying Parseval’s identity to (111), it follows that
+E¯2′\displaystyle{\bar{E}}^{\prime}_{2}
+=12​π​∫−∞∞∑m=−∞∞|ψm​(kx)|2​d​kx\displaystyle=\frac{1}{2\pi}\int_{-\infty}^{\infty}\sum_{{{m}}=-\infty}^{\infty}|{\psi}_{{m}}({{k}}_{x})|^{2}d{{k}}_{x}
+(113a)
+=12​π​∫−∞∞∑m=−∞,m≠0∞|Γm​(kx)|2​d​kx\displaystyle=\frac{1}{2\pi}\int_{-\infty}^{\infty}\sum_{{{m}}=-\infty,{{m}}\neq 0}^{\infty}|{{\Gamma}}_{{m}}({{k}}_{x})|^{2}d{{k}}_{x}
+(113b)
+=12​π​∫ℬ|Γ⁡(kx)|2​d​kx.\displaystyle=\frac{1}{2\pi}\int_{{{\mathcal{B}}}}|{{\Gamma}}({{k}}_{x})|^{2}d{{k}}_{x}.
+(113c)
+Substituting (109) and (113c) into (107) concludes the proof.
+Finally, noting that ϕ^(ν)​(rx)=γ^(−ν)​(rx−ν){\hat{\phi}}^{({{\nu}})}({{r}}_{x})={{\hat{\gamma}}}^{(-{{\nu}})}({{r}}_{x}-{{\nu}}) shows that E′​(ν){E}^{\prime}({{\nu}}) in (102) equals E⁡(−ν){E}(-{{\nu}}) in (29). Since both functions are periodic with period Δ​r{{{\Delta r}}}, it follows that E¯′{\bar{E}}^{\prime} in (103) equals E¯{\bar{E}} in (30), which completes the proof.
+Appendix H Arbitrary Path-loss Exponent
+The results in this paper
+were obtained for free-space propagation, where the channel gain adheres
+to (1). In more complex scenarios, the presence of
+obstacles introduces propagation phenomena such as reflection and
+diffraction. As a result, the channel gain no longer depends on the transmitter and receiver
+locations only through their distance. Still, one may be interested in predicting the channel gain
+of a given link based on its distance.
+To this end, a common trick is
+to use (1) after replacing the square with a constant
+υ{{\upsilon}} termed path-loss exponent that is empirically
+adjusted. Although the resulting expression is not physically accurate, one may wonder whether the results in this paper can be extended to an arbirary υ{{\upsilon}}.
+The answer is yes for the most part. For example,
+expressions (10) and (11) become
+γ⁡(𝒓)=γ⁡(rx)=∑s=1Sαs[(rx−r´x,s)2+βs2]υ/2,\displaystyle{{\gamma}}({{\bm{r}}})={{\gamma}}({{r}}_{x})=\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{\left[({{r}}_{x}-{{\acute{r}}}_{x,{{s}}})^{2}+{{\beta}}^{2}_{{{s}}}\right]^{{{\upsilon}}/2}},
+(114a)
+|γ′​(rx)|≤(2​υ−1)υ−1/22υ−1​υυ​∑s=1Sαsβs2​υ−1\displaystyle|{{\gamma}}^{\prime}({{r}}_{x})|\leq\frac{(2{{\upsilon}}-1)^{{{\upsilon}}-1/2}}{2^{{{\upsilon}}-1}{{\upsilon}}^{{{\upsilon}}}}\sum_{{{s}}=1}^{{{S}}}\frac{{{\alpha}}_{{{s}}}}{{{\beta}}_{{{s}}}^{2{{\upsilon}}-1}}
+(114b)
+as a result of this generalization.
+Setting m{{m}} equal to the right-hand side of (114b) and following the same steps as in Appendices E and F, one can readily generalize the error bounds for zeroth- and first-order interpolation.
+On the other hand, the variability bounds in Theorem 3 and the error bounds in Sec. IV-C are not easily generalizable to arbitrary path-loss exponents. This is because of the different nature of the proof techniques used therein.
+To sum up, some of the results in this paper can be extended to arbitrary path-loss exponents, but this is not fully meaningful as the model with υ≠2{{\upsilon}}\neq 2 is not physically accurate. An analysis that accurately captures actual propagation phenomena will be the subject of future publications.
+Experimental support, please
+view the build logs
+for errors. Generated by
+L
+A
+T
+E
+xml
+.
+Instructions for reporting errors
+We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+methods listed below:
+Click the "Report Issue" (
+) button, located in the page header.
+Tip: You can select the relevant text first, to include it in your report.
+Our team has already identified the following issues. We appreciate your time reviewing and reporting rendering errors we
+may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+all.
+Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion, and welcome developer contributions.
+We gratefully acknowledge support from our major funders,
+member institutions, ,
+and all contributors.
+About ·
+Help ·
+Contact ·
+Subscribe ·
+Copyright ·
+Privacy ·
+Accessibility ·
+Operational Status (opens in new tab)

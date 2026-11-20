@@ -1,0 +1,172 @@
+{
+  "purpose": "Original-source retrieval for task contrast witness literature; not experiment evidence",
+  "retrievals": [
+    {
+      "file": "predictive_multiplicity_landing.html",
+      "requested_url": "https://proceedings.mlr.press/v119/marx20a.html",
+      "retrieved_utc": "2026-11-20T07:28:49.083368+00:00",
+      "final_url": "https://proceedings.mlr.press/v119/marx20a.html",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 14341,
+      "sha256": "b5d8f1e6b337ab41088548c386a8e0148bf4fe7d851d705de506b433c6467aba"
+    },
+    {
+      "file": "predictive_multiplicity_original.pdf",
+      "requested_url": "https://proceedings.mlr.press/v119/marx20a/marx20a.pdf",
+      "retrieved_utc": "2026-11-20T07:28:49.084590+00:00",
+      "final_url": "https://proceedings.mlr.press/v119/marx20a/marx20a.pdf",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "bytes": 965239,
+      "sha256": "3f59e8fc11776173fc77f5363227419fc4fe9a53fc22d74e2a3e3244efd1be57"
+    },
+    {
+      "file": "spo_landing.html",
+      "requested_url": "https://arxiv.org/abs/1710.08005",
+      "retrieved_utc": "2026-11-20T07:28:49.085472+00:00",
+      "final_url": "https://arxiv.org/abs/1710.08005",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 41953,
+      "sha256": "2d15a568f53b1ec9398c1c8769b97e17f62c6a2850ae888d0e7bd67cf891bfcc"
+    },
+    {
+      "file": "spo_original.pdf",
+      "requested_url": "https://arxiv.org/pdf/1710.08005",
+      "retrieved_utc": "2026-11-20T07:28:49.086100+00:00",
+      "final_url": "https://arxiv.org/pdf/1710.08005",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "bytes": 857150,
+      "sha256": "56381283da01e0a21a861cc8d1bfda97b377095b64051d7d68156b94e848cc3b"
+    },
+    {
+      "file": "decision_focused_landing.html",
+      "requested_url": "https://arxiv.org/abs/1809.05504",
+      "retrieved_utc": "2026-11-20T07:28:49.086949+00:00",
+      "final_url": "https://arxiv.org/abs/1809.05504",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "bytes": 45493,
+      "sha256": "65ff1064226bd83e474f530395e72ba960b2f8f48fbe1043828c30f4333b857f"
+    },
+    {
+      "file": "decision_focused_original.pdf",
+      "requested_url": "https://arxiv.org/pdf/1809.05504",
+      "retrieved_utc": "2026-11-20T07:28:49.479252+00:00",
+      "final_url": "https://arxiv.org/pdf/1809.05504",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "bytes": 493263,
+      "sha256": "7ba5ab2a93ad6fe1d33360c4707696e73d6b3ecfd3240198f0a646fc4460c83b"
+    },
+    {
+      "file": "search_crossref.json",
+      "requested_url": "https://api.crossref.org/works?query.title=predictive%20multiplicity%20decision%20focused%20learning&rows=5",
+      "retrieved_utc": "2026-11-20T07:28:49.554582+00:00",
+      "final_url": "https://api.crossref.org/works?query.title=predictive%20multiplicity%20decision%20focused%20learning&rows=5",
+      "http_status": 200,
+      "content_type": "application/json",
+      "bytes": 32971,
+      "sha256": "7d557096aabb59058cec0a39cd3d44373e10f9c1544520a97e58c9300eeeacc7"
+    }
+  ],
+  "extractor": {
+    "name": "pypdf",
+    "version": "5.9.0",
+    "isolated_wheel": "pypdf-5.9.0-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/48/d9/6cff57c80a6963e7dd183bf09e9f21604a77716644b1e580e97b259f7612/pypdf-5.9.0-py3-none-any.whl",
+    "sha256": "be10a4c54202f46d9daceaa8788be07aa8cd5ea8c25c529c50dd509206382c35",
+    "note": "Pure Python wheel imported directly from this new reference directory; environment dependencies unchanged.",
+    "warnings": [
+      "Some source PDF objects had zero offsets; pypdf reported ignoring them. Layout extraction also reported rotated text; final extraction uses default plain text. Equations/figure placement may be imperfect; original PDF is retained."
+    ],
+    "text_normalization": "Unmapped NUL glyphs replaced by [UNMAPPED] in derived text only; PDF originals unchanged."
+  },
+  "extractions": [
+    {
+      "pdf": "predictive_multiplicity_original.pdf",
+      "pages": 10,
+      "extracted_text": "predictive_multiplicity_fulltext.txt",
+      "sha256": "4e1bda26b4eda3cad519a89027d4fc58814d86eee144f8e06b2c4dc3b7639407"
+    },
+    {
+      "pdf": "spo_original.pdf",
+      "pages": 46,
+      "extracted_text": "spo_fulltext.txt",
+      "sha256": "906594fd3bfeb08dd958611304f86758e7f7949dcd701e36cd102649a092a951"
+    },
+    {
+      "pdf": "decision_focused_original.pdf",
+      "pages": 10,
+      "extracted_text": "decision_focused_fulltext.txt",
+      "sha256": "a02b638d99a9318638c1c087324b1de4ab22b571da8144937cdc6682b1de4d50"
+    }
+  ],
+  "actual_selected_reading": [
+    {
+      "source_pdf": "predictive_multiplicity_original.pdf",
+      "read_selection": "predictive_multiplicity_selected.txt",
+      "selection_sha256": "f9f980d00ff2dd1d9807d858d7bb3456c179c983ac4061a421761dd38e43d9a3",
+      "derived_fulltext_line_ranges": [
+        {
+          "start": 1,
+          "end": 25,
+          "label": "PDF p1 abstract/title"
+        },
+        {
+          "start": 223,
+          "end": 291,
+          "label": "PDF p3 section 2 competing models and Definitions 1/2"
+        },
+        {
+          "start": 347,
+          "end": 391,
+          "label": "PDF p4 section 3.1 overview and MIP Solvers"
+        },
+        {
+          "start": 393,
+          "end": 458,
+          "label": "PDF p5 section 3.2 discrepancy and Bounds"
+        }
+      ],
+      "read_scope": "Selected passages only; downloaded remainder not claimed read."
+    },
+    {
+      "source_pdf": "spo_original.pdf",
+      "read_selection": "spo_selected.txt",
+      "selection_sha256": "97aaa798b25d781a64355f73e6d093298fa42e39e3a6f2c2fa923aac0d2b7188",
+      "derived_fulltext_line_ranges": [
+        {
+          "start": 39,
+          "end": 109,
+          "label": "PDF pp2-3 selected introduction"
+        },
+        {
+          "start": 357,
+          "end": 420,
+          "label": "PDF pp10-12 section 3 motivation, Figure 1, Definitions 1/2 and ties"
+        }
+      ],
+      "read_scope": "Selected passages only; downloaded remainder not claimed read."
+    },
+    {
+      "source_pdf": "decision_focused_original.pdf",
+      "read_selection": "decision_focused_selected.txt",
+      "selection_sha256": "172c356983e447a41ef6d24e044f749865282aa28162d62f3da5abf08e1f8748",
+      "pdf_pages": [
+        1,
+        2
+      ],
+      "sections": [
+        "Abstract",
+        "Introduction",
+        "Problem description",
+        "Equation (1)"
+      ],
+      "read_scope": "Selected passages only; downloaded remainder not claimed read."
+    }
+  ],
+  "search_assessment": "Crossref query attempted; five broad hits not used as full-text evidence. Known foundational titles then located directly at publisher/arXiv original-source URLs."
+}

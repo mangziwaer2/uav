@@ -40,6 +40,37 @@ def training_points(points, geometry, now, settings):
 def covariance(x,t,z,u,settings,geometry,mode):
     return space_time_kernel(x,t,z,u,settings)
 
+
+def support_reference(model, xy, times):
+    """Nearest fresh point within radius, shared by GP support and blending.
+
+    Eligibility uses the query time and the frozen training prefix. Unsupported
+    receivers have no reference point; the returned distance/age are infinite.
+    This support rule is a data-coverage convention, not a safety certificate.
+    """
+    xy, times = np.asarray(xy, float), np.asarray(times, float)
+    size = len(times)
+    supported = np.zeros(size, bool)
+    distance = np.full(size, np.inf)
+    age = np.full(size, np.inf)
+    indices = np.full(size, -1, int)
+    if not model.points or not size:
+        return supported, distance, age, indices
+    distances = np.linalg.norm(xy[:, None, :] - model.xy[None, :, :], axis=-1)
+    ages = times[:, None] - model.times[None, :]
+    eligible = ((distances <= model.settings.support_radius_m)
+                & (ages >= 0.) & (ages <= model.settings.max_age_seconds))
+    eligible_distances = np.where(eligible, distances, np.inf)
+    nearest = np.argmin(eligible_distances, axis=1)
+    selected_distance = eligible_distances[np.arange(size), nearest]
+    supported = (np.isfinite(selected_distance)
+                 & np.array([model.geometry.free(p) for p in xy], bool))
+    distance[supported] = selected_distance[supported]
+    age[supported] = ages[np.arange(size), nearest][supported]
+    indices[supported] = nearest[supported]
+    return supported, distance, age, indices
+
+
 class LocalPredictor:
     def __init__(self, points, geometry, now, settings, mode, background=-100.):
         if mode != 'local_level_gp': raise ValueError('only local_level_gp is active')
@@ -87,11 +118,7 @@ class FrozenGP:
                 variance = m.settings.unknown_error_db ** 2 - np.sum((cross @ m.inverse) * cross, axis=1)
                 variance += (1 - cross @ m.inverse_ones) ** 2 / m.level_precision
                 sigma = np.sqrt(np.maximum(0, variance) + m.settings.measured_error_db ** 2)
-                distance = np.linalg.norm(q[:, None, :] - m.xy[None, :, :], axis=-1)
-                nearest = np.argmin(distance, axis=1)
-                support = ((distance[np.arange(len(q)), nearest] <= m.settings.support_radius_m)
-                           & (tt - m.times[nearest] <= m.settings.max_age_seconds)
-                           & np.array([m.geometry.free(p) for p in q]))
+                support = support_reference(m, q, tt)[0]
                 sl = slice(start, start + len(q))
                 mean[sl] = np.where(support, mu, mean[sl])
                 std[sl] = np.where(support, sigma, std[sl])
@@ -130,6 +157,7 @@ class PointGP:
             self.geometry, tuple(self.points[-16:]), {})
         snapshot.estimation_details = dict(method='local_level_gp', calibrated=False,
             support_radius_m=self.settings.support_radius_m,
-            maximum_age_seconds=self.settings.max_age_seconds)
+            maximum_age_seconds=self.settings.max_age_seconds,
+            support_rule='nearest_fresh_within_radius_v2')
         return snapshot, gp
 

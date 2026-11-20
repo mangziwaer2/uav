@@ -1,0 +1,95 @@
+[
+  {
+    "file": "llm_modulo_abs.html",
+    "requested_url": "https://arxiv.org/abs/2402.01817",
+    "status": "downloaded",
+    "bytes": 44018,
+    "sha256": "6ad203ca950ecbc65ba6b3f205a3bb44681b7b8b2bf7484efead7724c9510ad1",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:43:49.943201+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "llm_modulo_pdf.pdf",
+    "requested_url": "https://arxiv.org/pdf/2402.01817",
+    "status": "downloaded",
+    "bytes": 1926112,
+    "sha256": "8f79507f1fb1f1d6b4e086be2c2401df6775f091ae158efdc291116cfe6b720c",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:44:12.095199+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "lats_abs.html",
+    "requested_url": "https://arxiv.org/abs/2310.04406",
+    "status": "downloaded",
+    "bytes": 43360,
+    "sha256": "2315ef562bcd0d1897d49ef02bc6d06e19ae71219fe65f654ad9740d6ae7f2ec",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:43:49.919200+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "lats_pdf.pdf",
+    "requested_url": "https://arxiv.org/pdf/2310.04406",
+    "status": "downloaded",
+    "bytes": 1054882,
+    "sha256": "04c1e9cb00f384052739c53bcecb75626bf1f58f66c379cc289ea60ffc988635",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:43:54.551200+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "tot_abs.html",
+    "requested_url": "https://arxiv.org/abs/2305.10601",
+    "status": "downloaded",
+    "bytes": 44020,
+    "sha256": "cc7d44b56526a920fc7c4d73b4ebcb4b28c2b46012412a28206280dcbecd9dff",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:43:49.915200+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "tot_pdf.pdf",
+    "requested_url": "https://arxiv.org/pdf/2305.10601",
+    "status": "downloaded",
+    "bytes": 799685,
+    "sha256": "79c5237e3f63953a73f2b0d6894327702ee1f7e981450c251bb1b5cb4f8d7b8f",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:43:57.595200+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "search_modulo.xml",
+    "requested_url": "https://export.arxiv.org/api/query?search_query=ti%3A%22LLM-Modulo%22&max_results=5",
+    "status": "downloaded",
+    "bytes": 8223,
+    "sha256": "79d2ddf0c1ff6724dfcbeb99f03b5e3e6537c8dabed0f1ab71e97f8210f605c0",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:44:01.007200+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "compound_modulo_pdf.pdf",
+    "requested_url": "https://arxiv.org/pdf/2411.14484v1",
+    "status": "downloaded",
+    "bytes": 713194,
+    "sha256": "b9badcfcc6b5c123fe9252d091fdfaf9f182fc2e55ff4221d7ed6130eb158306",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:45:39.423194+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "file": "compound_modulo_abs.html",
+    "requested_url": "https://arxiv.org/abs/2411.14484v1",
+    "status": "downloaded",
+    "bytes": 40514,
+    "sha256": "d0cefa1b784a04711fa95ddef08776ce0eb396b208ec93687c3b1f2629ec3955",
+    "retrieved_utc_from_file_mtime": "2026-11-20T07:45:38.083194+00:00",
+    "metadata_note": "Successful urllib fetch wrote this file; HTTP status/resolved URL were not persisted before another worker stalled. Do not infer status or resolved version from URL alone."
+  },
+  {
+    "requested_url": "https://proceedings.mlr.press/v229/rana23a/rana23a.pdf",
+    "status": "aborted_stalled",
+    "timeout_s": 20,
+    "error": "urllib timeout=20 is a socket timeout and did not bound overall fetch. Pending worker terminated; no usable original retained."
+  },
+  {
+    "requested_url": "https://arxiv.org/pdf/2307.06135",
+    "status": "aborted_stalled",
+    "timeout_s": 20,
+    "error": "urllib timeout=20 is a socket timeout and did not bound overall fetch. Pending worker terminated; no usable original retained."
+  }
+]

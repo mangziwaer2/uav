@@ -1,0 +1,149 @@
+{
+  "status": "review_complete",
+  "production_source_changed": false,
+  "new_flights": 0,
+  "new_sensor_points": 0,
+  "new_experiment_decision_calls": 0,
+  "hidden_evaluation_queries": 0,
+  "findings": [
+    {
+      "id": "F01",
+      "priority": "P1",
+      "kind": "integration_gap",
+      "file": "src/uav_em/scenario_loop.py",
+      "line": 125,
+      "title": "飞行中的推断LLM缺任务上下文，最新源工具未连接成统一LLM飞行链",
+      "evidence": "call-order and guard inspection; cross-checked by independent inference reviewer",
+      "fix": "推断前构建共享任务快照；在新入口显式连接无延续源池、受约束/anytime工具与LLM；保留旧入口复现"
+    },
+    {
+      "id": "F02",
+      "priority": "P1",
+      "kind": "shared_operator_limitation",
+      "file": "src/uav_em/event_inference.py",
+      "line": 286,
+      "title": "满容量warm强占所有基元槽，排除已有新字典候选",
+      "evidence": "inference/evidence.json#warm_start",
+      "numbers": {
+        "warm_mse_db2": 325.2662654649767,
+        "cold_mse_db2": 7.4199395353765345,
+        "solver_cap_each": 2
+      },
+      "fix": "相同总预算下把warm作为候选，提供冷字典/替换机会，非增加免费求解"
+    },
+    {
+      "id": "F03",
+      "priority": "P1",
+      "kind": "conditional_runtime_failure",
+      "file": "src/uav_em/feasible_scenario.py",
+      "line": 56,
+      "title": "要求旧路线先可行，阻止搜索更短合法恢复路线",
+      "evidence": "planning/evidence.json#incumbent_hover",
+      "fix": "旧路线拒绝记账后继续找替代；全无可行解时受控终止"
+    },
+    {
+      "id": "F04",
+      "priority": "P2",
+      "kind": "shared_budget_allocation",
+      "file": "src/uav_em/feasible_scenario.py",
+      "line": 135,
+      "title": "固定744验证边预留及前腿优化吞掉后腿搜索机会",
+      "evidence": "planning/evidence.json#two_leg_default",
+      "numbers": {
+        "default_quotas": [
+          350,
+          350
+        ],
+        "failed_used_edges": 9257,
+        "remaining_edges": 743,
+        "lower_quotas": [
+          40,
+          40
+        ],
+        "success_used_edges": 731,
+        "success_length_m": 183.96074170757328
+      },
+      "fix": "给每腿实际搜索份额，按实际路径/剩余配额预留复核，保留已求得解"
+    },
+    {
+      "id": "F05",
+      "priority": "P1-design",
+      "kind": "frozen_acceptance_policy",
+      "file": "src/uav_em/source_geometry.py",
+      "line": 243,
+      "title": "必须正常收敛导致耗尽时丢弃已求得合法改进",
+      "evidence": "inference/evidence.json#default_budget",
+      "numbers": {
+        "seed_objective": 0.5256797921481255,
+        "best_evaluated_legal_objective": 0.00014406538252869226,
+        "max_objective_evaluations": 40
+      },
+      "fix": "新工具合同返回best-feasible，独立标记未收敛且维持原约束/上限，不追改旧标签"
+    },
+    {
+      "id": "F06",
+      "priority": "P2",
+      "kind": "shared_operator_progress_loss",
+      "file": "src/uav_em/feasible_scenario.py",
+      "line": 41,
+      "title": "捷径检查耗尽时丢弃已认证的部分简化",
+      "evidence": "planning/evidence.json#partial_shortcut",
+      "numbers": {
+        "original_length_m": 710.7463837598151,
+        "partial_length_m": 704.9242250247064,
+        "max_checks": 40
+      },
+      "fix": "返回已认证前缀拼原尾段，保留raw并统一整路复核"
+    },
+    {
+      "id": "F07",
+      "priority": "P2-design",
+      "kind": "frozen_support_semantics",
+      "file": "src/uav_em/point_gp.py",
+      "line": 91,
+      "title": "较近过期点可遮掉稍远新点的有效GP支持",
+      "evidence": "inference/evidence.json#support",
+      "fix": "新合同明确支持是否为任一未过期半径内点，GP和融合统一有效点选择"
+    },
+    {
+      "id": "F08",
+      "priority": "P2",
+      "kind": "mailbox_race",
+      "file": "src/uav_em/event_demo.py",
+      "line": 105,
+      "title": "started回执部分写入时立即误判失败",
+      "evidence": "orchestration/evidence.json",
+      "fix": "生产者原子发布回执；消费者在截止内重试暂时不完整JSON，绑定错误仍拒绝"
+    },
+    {
+      "id": "F09",
+      "priority": "P1-design",
+      "kind": "task_coverage_and_inference_scope",
+      "file": "src/uav_em/task_contrast.py",
+      "line": 119,
+      "title": "近竞争覆盖不保证，单rate/单机制实验无法回答更广的任务假设问题",
+      "evidence": "source inspection; M7 existing documented scope, no new state queries",
+      "fix": "双方共同保证近竞争最低覆盖，再允许有限任务相关联合幅度/动态/每基元机制作业"
+    },
+    {
+      "id": "F10",
+      "priority": "P2-design",
+      "kind": "model_adequacy_limit",
+      "file": "src/uav_em/source_revision.py",
+      "line": 29,
+      "title": "源相对权重与绝对适用性分离，但当前工具缺少足够的适用性/外推管理",
+      "evidence": "source inspection: unknown removal, std4, homogeneous per-world dictionary, indefinite dynamic rate",
+      "fix": "报告绝对误差/时域/支持与决策分歧；新版本独立出生，不凭拟合下降提高权重"
+    },
+    {
+      "id": "F11",
+      "priority": "P3-conditional",
+      "kind": "public_geometry_omission",
+      "file": "src/uav_em/scenario_planning.py",
+      "line": 192,
+      "title": "公开建筑摘要遗漏洞环",
+      "evidence": "planning/evidence.json#holes",
+      "fix": "含庭院地图应发布完整已知洞环；未证明当前开发场景受影响"
+    }
+  ]
+}

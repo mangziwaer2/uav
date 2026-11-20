@@ -282,75 +282,137 @@ def fit_job(bank, public, job, budget, identifier, *, soft=None):
     budget.dictionary_kernel_terms += int(matrix.size)
     chosen, peaks, traces = [], [], []
     prediction = np.full(len(labels), -100.)
-    loss = float(np.sum(((prediction-labels)*scales)**2)) if has_soft else float(np.mean((prediction-labels)**2))
+    loss = float(np.sum(((prediction-labels)*scales)**2))
+    started_calls, started_residuals = budget.solver_calls, budget.residual_calls
+    job_call_limit = min(job['max_bases'], budget.reserved_calls-started_calls)
+    job_residual_limit = min(40*job['max_bases'], budget.reserved_residual_calls-started_residuals)
+    if job_call_limit <= 0 or job_residual_limit <= 0:
+        raise ValueError('unreserved fitting budget')
+    selected_branch, selected_trace, stop_reason = 'background', None, None
+    warm_candidate = None
+    if warm:
+        # The old version is an optional, freshly evaluated candidate, not a
+        # compulsory set of slots. Charge its prefix objective to the same job.
+        budget.residual_calls += 1
+        warm_prediction = power_and_jacobian(matrix[:, :len(warm)], warm_peaks)[0]
+        warm_loss = float(np.sum(((warm_prediction-labels)*scales)**2))
+        eligible = bool(np.all(np.isfinite(warm_peaks)) and np.all(np.isfinite(warm_prediction))
+                        and np.all(np.asarray(warm_peaks) >= -140.) and np.all(np.asarray(warm_peaks) <= upper))
+        retained = bool(eligible and warm_loss <= loss+1e-8)
+        warm_candidate = dict(columns=list(range(len(warm))), peaks_dbm=list(warm_peaks),
+            candidate_mse=warm_loss, eligible=eligible, accepted=retained,
+            residual_calls=1, solver_calls=0, inherited_scored_points=0)
+        if retained:
+            chosen, peaks, prediction, loss = list(range(len(warm))), list(warm_peaks), warm_prediction, warm_loss
+            selected_branch = 'warm_seed'
+
+    # Cold greedy growth has its own incumbent: a better warm seed must not
+    # prevent the cold branch from building a useful two-basis alternative.
+    cold_columns, cold_peaks = [], []
+    cold_prediction = np.full(len(labels), -100.)
+    cold_loss = float(np.sum(((cold_prediction-labels)*scales)**2))
     for step in range(job['max_bases']):
-        if step == 0 and warm:
-            columns, initial = list(range(len(warm))), np.array(warm_peaks)
-        else:
-            if len(chosen) >= job['max_bases'] or not len(bases):
-                break
-            derivatives = matrix/10.**((prediction+80.)/10.)[:, None]
-            norms = np.linalg.norm(derivatives*scales[:, None] if has_soft else derivatives, axis=0)
-            gradient=(derivatives*scales[:, None]).T@((labels-prediction)*scales) if has_soft else derivatives.T@(labels-prediction)
-            scores = np.divide(gradient, norms,
-                               out=np.full(len(bases), -np.inf), where=norms > 1e-12)
-            scores[chosen] = -np.inf
-            index = int(np.argmax(scores))
-            if not np.isfinite(scores[index]) or scores[index] <= 0:
-                break
-            residual = 10.**((labels+80.)/10.)-10.**((prediction+80.)/10.)
-            a = matrix[:, index]
-            amplitude = (max(1e-6, float((a*scales)@(residual*scales))/max(float((a*scales)@(a*scales)), 1e-30))
-                         if has_soft else max(1e-6,float(a@residual)/max(float(a@a),1e-30)))
-            initial = np.r_[peaks, np.clip(-80.+10.*math.log10(amplitude), -140.+1e-8, upper-1e-8)]
-            columns = chosen+[index]
+        remaining_residuals = job_residual_limit-(budget.residual_calls-started_residuals)
+        if budget.solver_calls-started_calls >= job_call_limit or remaining_residuals <= 0:
+            stop_reason = 'job_fitting_budget_exhausted'
+            break
+        if len(cold_columns) >= job['max_bases'] or not len(bases):
+            break
+        derivatives = matrix/10.**((cold_prediction+80.)/10.)[:, None]
+        norms = np.linalg.norm(derivatives*scales[:, None], axis=0)
+        gradient = (derivatives*scales[:, None]).T@((labels-cold_prediction)*scales)
+        scores = np.divide(gradient, norms, out=np.full(len(bases), -np.inf), where=norms > 1e-12)
+        # Old off-grid geometry competes on equal terms; it can be selected for
+        # amplitude refitting, but never occupies a slot by obligation.
+        scores[cold_columns] = -np.inf
+        index = int(np.argmax(scores))
+        if not np.isfinite(scores[index]) or scores[index] <= 0:
+            stop_reason = 'no_positive_dictionary_direction'
+            break
+        residual = 10.**((labels+80.)/10.)-10.**((cold_prediction+80.)/10.)
+        a = matrix[:, index]
+        amplitude = max(1e-6, float((a*scales)@(residual*scales))/max(float((a*scales)@(a*scales)), 1e-30))
+        initial = np.r_[cold_peaks, np.clip(-80.+10.*math.log10(amplitude), -140.+1e-8, upper-1e-8)]
+        columns = cold_columns+[index]
         selected = matrix[:, columns]
-        if budget.solver_calls >= budget.reserved_calls:
-            raise ValueError('unreserved solver call')
         budget.solver_calls += 1
         residual_calls = jacobian_calls = 0
+        evaluation_limit = min(40, remaining_residuals)
+        best_evaluated = None
 
         def objective(p):
-            nonlocal residual_calls
-            if residual_calls >= 40 or budget.residual_calls >= budget.reserved_residual_calls:
+            nonlocal residual_calls, best_evaluated
+            if (residual_calls >= evaluation_limit or budget.residual_calls >= budget.reserved_residual_calls
+                    or budget.residual_calls-started_residuals >= job_residual_limit):
                 raise ValueError('residual budget exhausted')
             residual_calls += 1
             budget.residual_calls += 1
-            residual=power_and_jacobian(selected,p)[0]-labels
-            return residual*scales if has_soft else residual/math.sqrt(len(labels))
+            evaluated_prediction = power_and_jacobian(selected, p)[0]
+            residual = (evaluated_prediction-labels)*scales
+            evaluated_loss = float(residual@residual)
+            if (np.all(np.isfinite(p)) and np.all(np.isfinite(evaluated_prediction))
+                    and np.all(p >= -140.) and np.all(p <= upper)
+                    and (best_evaluated is None or evaluated_loss < best_evaluated['loss'])):
+                best_evaluated = dict(peaks=np.array(p, copy=True), prediction=evaluated_prediction.copy(), loss=evaluated_loss)
+            return residual
 
         def jacobian(p):
             nonlocal jacobian_calls
+            if jacobian_calls >= 40:
+                raise ValueError('Jacobian budget exhausted')
             jacobian_calls += 1
             budget.jacobian_calls += 1
-            jac=power_and_jacobian(selected,p)[1]
-            return jac*scales[:,None] if has_soft else jac/math.sqrt(len(labels))
+            return power_and_jacobian(selected, p)[1]*scales[:, None]
 
-        solved = least_squares(objective, initial, jac=jacobian, bounds=(-140., upper),
-                               max_nfev=40, ftol=1e-8, xtol=1e-8, gtol=1e-8)
-        result = power_and_jacobian(selected, solved.x)[0]
-        mse = float(np.sum(((result-labels)*scales)**2)) if has_soft else float(np.mean((result-labels)**2))
-        accepted = bool(solved.success and np.all(np.isfinite(solved.x))
-                        and np.all(solved.x >= -140.) and np.all(solved.x <= upper)
-                        and mse <= loss+1e-8)
-        traces.append(dict(columns=columns, initial_peaks_dbm=initial.tolist(), peaks_dbm=solved.x.tolist(),
-            previous_mse=loss, candidate_mse=mse, accepted=accepted,
-            solver_success=bool(solved.success), solver_status=int(solved.status),
-            residual_calls=residual_calls, jacobian_calls=jacobian_calls,
-            nfev=int(solved.nfev), njev=int(solved.njev), optimality=float(solved.optimality)))
+        report = dict(branch='cold_dictionary', columns=columns, initial_peaks_dbm=initial.tolist(),
+            previous_mse=cold_loss, solver_success=False, solver_status=None, solver_message=None,
+            nfev=0, njev=0, optimality=None)
+        try:
+            solved = least_squares(objective, initial, jac=jacobian, bounds=(-140., upper),
+                                   max_nfev=evaluation_limit, ftol=1e-8, xtol=1e-8, gtol=1e-8)
+            report.update(solver_success=bool(solved.success), solver_status=int(solved.status),
+                solver_message=str(solved.message), nfev=int(solved.nfev), njev=int(solved.njev),
+                optimality=float(solved.optimality) if math.isfinite(solved.optimality) else None)
+        except (ValueError, FloatingPointError) as exc:
+            report.update(error=str(exc), nfev=residual_calls, njev=jacobian_calls)
+        accepted = bool(best_evaluated is not None and best_evaluated['loss'] <= cold_loss+1e-8)
+        report.update(peaks_dbm=best_evaluated['peaks'].tolist() if best_evaluated is not None else None,
+            candidate_mse=best_evaluated['loss'] if best_evaluated is not None else None,
+            accepted=accepted, residual_calls=residual_calls, jacobian_calls=jacobian_calls,
+            selection_reason='best_evaluated_legal' if accepted else 'no_legal_improvement')
+        traces.append(report)
         if not accepted:
+            stop_reason = report.get('error', 'no_legal_improvement')
             break
-        chosen, peaks, prediction, loss = columns, solved.x.tolist(), result, mse
+        cold_columns, cold_peaks = columns, best_evaluated['peaks'].tolist()
+        cold_prediction, cold_loss = best_evaluated['prediction'], best_evaluated['loss']
+        if cold_loss < loss-1e-8 or (not chosen and cold_loss <= loss+1e-8):
+            chosen, peaks, prediction, loss = cold_columns, cold_peaks, cold_prediction, cold_loss
+            selected_branch, selected_trace = 'cold_dictionary', len(traces)-1
+        if report.get('error'):
+            stop_reason = report['error']
+            break
+    for i, row in enumerate(traces):
+        row['selected_for_return'] = i == selected_trace
+    if warm_candidate is not None:
+        warm_candidate['selected_for_return'] = selected_branch == 'warm_seed'
     model = dict(id=identifier, family=job['family'], std_db=4., born_index=len(bank.history)-1,
                  scored_points=0, reference_time_seconds=now, bases=[bases[i] for i in chosen],
                  peaks_dbm=peaks, fit_mse=float(np.mean((prediction[:point_count]-labels[:point_count])**2)))
     return dict(job=deepcopy(job), dictionary=bases, window=deepcopy(history), model=model,
                 bounds_dbm=[-140., upper], trace=traces,
-                warm_start_bases=len(warm), training_error_is_predictive_evidence=False,
+                warm_start_bases=len(warm), warm_candidate=warm_candidate,
+                selection_policy='warm_candidate_open_dictionary_v2', selected_branch=selected_branch,
+                stop_reason=stop_reason,
+                job_resources=dict(solver_calls=budget.solver_calls-started_calls,
+                    residual_calls=budget.residual_calls-started_residuals,
+                    solver_call_limit=job_call_limit, residual_call_limit=job_residual_limit),
+                training_error_is_predictive_evidence=False,
                 fit_objective=loss, gp_soft_constraints=deepcopy(soft),
                 gp_dictionary_kernel_terms=len(bases)*(len(labels)-point_count),
                 gp_shape_mse=float(np.sum(np.asarray(soft['weights'])*(prediction[point_count:]-labels[point_count:])**2))
                     if soft is not None and soft['position_m'] else None)
+
 
 
 def execute_plan(bank, request, response, public, identifier):

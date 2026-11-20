@@ -1,0 +1,157 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/h5dHn+QpJO2foS70BuRTVIyKUEI</id>
+  <title>arXiv Query: search_query=ti:"Radio Map Estimation"&amp;id_list=&amp;start=0&amp;max_results=6</title>
+  <updated>2026-11-20T04:56:56Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=ti:%22Radio+Map+Estimation%22&amp;start=0&amp;max_results=6&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>6</opensearch:itemsPerPage>
+  <opensearch:totalResults>35</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2502.00319v1</id>
+    <title>Physics-Inspired Distributed Radio Map Estimation</title>
+    <updated>2025-02-01T04:58:17Z</updated>
+    <link href="https://arxiv.org/abs/2502.00319v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2502.00319v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>To gain panoramic awareness of spectrum coverage in complex wireless environments, data-driven learning approaches have recently been introduced for radio map estimation (RME). While existing deep learning based methods conduct RME given spectrum measurements gathered from dispersed sensors in the region of interest, they rely on centralized data at a fusion center, which however raises critical concerns on data privacy leakages and high communication overloads. Federated learning (FL) enhance data security and communication efficiency in RME by allowing multiple clients to collaborate in model training without directly sharing local data. However, the performance of the FL-based RME can be hindered by the problem of task heterogeneity across clients due to their unavailable or inaccurate landscaping information. To fill this gap, in this paper, we propose a physics-inspired distributed RME solution in the absence of landscaping information. The main idea is to develop a novel distributed RME framework empowered by leveraging the domain knowledge of radio propagation models, and by designing a new distributed learning approach that splits the entire RME model into two modules. A global autoencoder module is shared among clients to capture the common pathloss influence on radio propagation pattern, while a client-specific autoencoder module focuses on learning the individual features produced by local shadowing effects from the unique building distributions in local environment. Simulation results show that our proposed method outperforms the benchmarks in achieving higher performance.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.DC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-02-01T04:58:17Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Dong Yang</name>
+    </author>
+    <author>
+      <name>Yue Wang</name>
+    </author>
+    <author>
+      <name>Songyang Zhang</name>
+    </author>
+    <author>
+      <name>Yingshu Li</name>
+    </author>
+    <author>
+      <name>Zhipeng Cai</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2411.01211v2</id>
+    <title>Spatial Transformers for Radio Map Estimation</title>
+    <updated>2024-11-07T14:51:44Z</updated>
+    <link href="https://arxiv.org/abs/2411.01211v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2411.01211v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Radio map estimation (RME) involves spatial interpolation of radio measurements to predict metrics such as the received signal strength at locations where no measurements were collected. The most popular estimators nowadays project the measurement locations to a regular grid and complete the resulting measurement tensor with a convolutional deep neural network. Unfortunately, these approaches suffer from poor spatial resolution and require a great number of parameters. The first contribution of this paper addresses these limitations by means of an attention-based estimator named Spatial TransfOrmer for Radio Map estimation (STORM). This scheme not only outperforms the existing estimators, but also exhibits lower computational complexity, translation equivariance, rotation equivariance, and full spatial resolution. The second contribution is an extended transformer architecture that allows STORM to perform active sensing, by which the next measurement location is selected based on the previous measurements. This is particularly useful for minimization of drive tests (MDT) in cellular networks, where operators request user equipment to collect measurements. Finally, STORM is extensively validated by experiments with one ray-tracing and two real-measurement datasets.</summary>
+    <category term="math.OC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-11-02T11:04:45Z</published>
+    <arxiv:primary_category term="math.OC"/>
+    <author>
+      <name>Pham Q. Viet</name>
+    </author>
+    <author>
+      <name>Daniel Romero</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2310.11036v3</id>
+    <title>Radio Map Estimation: Empirical Validation and Analysis</title>
+    <updated>2025-08-19T09:15:11Z</updated>
+    <link href="https://arxiv.org/abs/2310.11036v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2310.11036v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Radio maps provide metrics such as the received signal strength at every location in a geographical region of interest. Extensive research has been carried out in this context, but it relies almost exclusively on synthetic-data experiments. Thus, the practical aspects of the radio map estimation (RME) problem as well as the performance of existing estimators in the real world remain unknown. To fill this gap end, this paper puts forth the first comprehensive, rigorous, and reproducible study of RME with real data. The main contributions include (C1) an assessment of the viability of RME based on the estimation error that can be achieved, (C2) the analysis of the main phenomena and trade-offs involved in RME, including the experimental verification of theoretical findings in the literature, and (C3) a thorough evaluation of a wide range of estimators on realworld data. Remarkably, this reveals that the performance gain of existing deep estimators in their pure form may not compensate for their complexity. A simple enhancement (C4) is proposed to alleviate this issue. The vast amount of data collected for this study is published along with the developed simulator to enable research on new schemes, hopefully bringing RME one step closer to practical deployment.</summary>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="physics.app-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2023-10-17T07:03:41Z</published>
+    <arxiv:comment>13 pages, Journal version, submitted to the IEEE Transactions on Wireless Communications</arxiv:comment>
+    <arxiv:primary_category term="eess.SP"/>
+    <author>
+      <name>Raju Shrestha</name>
+    </author>
+    <author>
+      <name>Tien Ngoc Ha</name>
+    </author>
+    <author>
+      <name>Pham Q. Viet</name>
+    </author>
+    <author>
+      <name>Daniel Romero</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2005.05964v3</id>
+    <title>Deep Completion Autoencoders for Radio Map Estimation</title>
+    <updated>2021-09-09T17:11:41Z</updated>
+    <link href="https://arxiv.org/abs/2005.05964v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2005.05964v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Radio maps provide metrics such as power spectral density for every location in a geographic area and find numerous applications such as UAV communications, interference control, spectrum management, resource allocation, and network planning to name a few. Radio maps are constructed from measurements collected by spectrum sensors distributed across space. Since radio maps are complicated functions of the spatial coordinates due to the nature of electromagnetic wave propagation, model-free approaches are strongly motivated. Nevertheless, all existing schemes for radio occupancy map estimation rely on interpolation algorithms unable to learn from experience. In contrast, this paper proposes a novel approach in which the spatial structure of propagation phenomena such as shadowing is learned beforehand from a data set with measurements in other environments. Relative to existing schemes, a significantly smaller number of measurements is therefore required to estimate a map with a prescribed accuracy. As an additional novelty, this is also the first work to estimate radio occupancy maps using deep neural networks. Specifically, a fully convolutional deep completion autoencoder architecture is developed to effectively exploit the manifold structure of this class of maps.</summary>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2020-05-11T22:06:07Z</published>
+    <arxiv:comment>15 pages, 19 figures. Accepted for publication in the IEEE Transactions on Wireless Communications. arXiv admin note: text overlap with arXiv:1911.12810</arxiv:comment>
+    <arxiv:primary_category term="eess.SP"/>
+    <author>
+      <name>Yves Teganya</name>
+    </author>
+    <author>
+      <name>Daniel Romero</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2310.15106v4</id>
+    <title>Theoretical Analysis of the Radio Map Estimation Problem</title>
+    <updated>2024-03-23T09:26:59Z</updated>
+    <link href="https://arxiv.org/abs/2310.15106v4" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2310.15106v4" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Radio maps provide radio frequency metrics, such as the received signal strength, at every location of a geographic area. These maps, which are estimated using a set of measurements collected at multiple positions, find a wide range of applications in wireless communications, including the prediction of coverage holes, network planning, resource allocation, and path planning for mobile robots. Although a vast number of estimators have been proposed, the theoretical understanding of the radio map estimation (RME) problem has not been addressed. The present work aims at filling this gap along two directions. First, the complexity of the set of radio map functions is quantified by means of lower and upper bounds on their spatial variability, which offers valuable insight into the required spatial distribution of measurements and the estimators that can be used. Second, the reconstruction error for power maps in free space is upper bounded for three conventional spatial interpolators. The proximity coefficient, which is a decreasing function of the distance from the transmitters to the mapped region, is proposed to quantify the complexity of the RME problem. Numerical experiments assess the tightness of the obtained bounds and the validity of the main takeaways in complex environments.</summary>
+    <category term="cs.IT" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2023-10-23T17:12:58Z</published>
+    <arxiv:primary_category term="cs.IT"/>
+    <author>
+      <name>Daniel Romero</name>
+    </author>
+    <author>
+      <name>Tien Ngoc Ha</name>
+    </author>
+    <author>
+      <name>Raju Shrestha</name>
+    </author>
+    <author>
+      <name>Massimo Franceschetti</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2602.22231v1</id>
+    <title>FM-RME: Foundation Model Empowered Radio Map Estimation</title>
+    <updated>2026-02-15T01:37:11Z</updated>
+    <link href="https://arxiv.org/abs/2602.22231v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2602.22231v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Traditional radio map estimation (RME) techniques fail to capture multi-dimensional and dynamic characteristics of complex spectrum environments. Recent data-driven methods achieve accurate RME in spatial domain, but ignore physical prior knowledge of radio propagation, limiting data efficiency especially in multi-dimensional scenarios. To overcome such limitations, we propose a new foundation model, characterized by self-supervised pre-training on diverse data for zero-shot generalization, enabling multi-dimensional radio map estimation (FM-RME). Specifically, FM-RME builds an effective synergy of two core components: a geometry-aware feature extraction module that encodes physical propagation symmetries, i.e., translation and rotation invariance, as inductive bias, and an attention-based neural network that learns long-range correlations across the spatial-temporal-spectral domains. A masked self-supervised multi-dimensional pre-training strategy is further developed to learn generalizable spectrum representations across diverse wireless environments. Once pre-trained, FM-RME supports zero-shot inference for multi-dimensional RME, including spatial, temporal, and spectral estimation, without scenario-specific retraining. Simulation results verify that FM-RME exhibits desired learning performance across diverse datasets and zero-shot generalization capabilities beyond existing RME methods.</summary>
+    <category term="eess.SP" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-02-15T01:37:11Z</published>
+    <arxiv:comment>7 pages, 5 figures, conference</arxiv:comment>
+    <arxiv:primary_category term="eess.SP"/>
+    <author>
+      <name>Dong Yang</name>
+    </author>
+    <author>
+      <name>Yue Wang</name>
+    </author>
+    <author>
+      <name>Songyang Zhang</name>
+    </author>
+    <author>
+      <name>Yingshu Li</name>
+    </author>
+    <author>
+      <name>Zhipeng Cai</name>
+    </author>
+    <author>
+      <name>Zhi Tian</name>
+    </author>
+  </entry>
+</feed>

@@ -1,0 +1,212 @@
+--- PDF p1 abstract/title; derived fulltext lines 1-25 ---
+=== PDF PAGE 1 ===
+Predictive Multiplicity in Classiﬁcation
+Charles T. Marx1 Flavio du Pin Calmon2 Berk Ustun3
+Abstract
+Prediction problems often admit competing mod-
+els that perform almost equally well. This effect
+challenges key assumptions in machine learning
+when competing models assign conﬂicting pre-
+dictions. In this paper, we deﬁnepredictive mul-
+tiplicity as the ability of a prediction problem to
+admit competing models with conﬂicting predic-
+tions. We introduce formal measures to evaluate
+the severity of predictive multiplicity and develop
+integer programming tools to compute them ex-
+actly for linear classiﬁcation problems. We ap-
+ply our tools to measure predictive multiplicity
+in recidivism prediction problems. Our results
+show that real-world datasets may admit compet-
+ing models that assign wildly conﬂicting predic-
+tions, and motivate the need to measure and report
+predictive multiplicity in model development.
+1 Introduction
+Machine learning algorithms are often designed to ﬁt a best
+model from data. For example, modern methods for empiri-
+cal risk minimization ﬁt a model by optimizing a speciﬁc
+
+--- PDF p3 section 2 competing models and Definitions 1/2; derived fulltext lines 223-291 ---
+plicity. For clarity of exposition, we present measures for
+binary classiﬁcation problems. Our measures generalize to
+problems where models optimize other performance metrics
+(e.g., AUC), predict multiple outcomes, or obey additional
+constraints on performance or model form.
+Preliminaries. We start with a dataset ofn examples
+{(xi,y i)}n
+i=1 where each example consists of a feature vec-
+tor xi =( 1,x i1,...,x id) 2 Rd+1 and a labelyi 2 {±1}.
+We use the dataset to ﬁt abaseline classiﬁerh : Rd+1 !
+{±1} from a hypothesis classH by minimizing empirical
+risk (i.e., training error):
+h0 2 argmin
+h2H
+ˆR(h)
+where ˆR(h): = 1
+n
+Pn
+i=1
+ [h(xi) 6= yi].
+This practice is aligned with the goal of optimizing true
+risk (i.e., test error) whenh0 generalizes. Generalization is
+a reasonable assumption in our setting as we work with a
+simple hypothesis class (see e.g., empirical results in Table
+1). Fitting models that optimize performance on all of the
+training data is a best practice in machine learning (see e.g.,
+Cawley & Talbot, 2010, for a discussion).1
+Competing Models. We measure predictive multiplicity
+over a set of classiﬁers that perform almost as well as the
+baseline classiﬁer. We refer to this set as the✏-level setand
+to ✏ as theerror tolerance.
+Deﬁnition 1 (✏-Level Set) Given a baseline classiﬁerh0
+and a hypothesis classH, the✏-level setaround h0 is the
+set of all classiﬁersh 2H with an error rate of at most
+ˆR(h0)+ ✏ on the training data:
+S✏(h0): ={h 2H : ˆR(h)  ˆR(h0)+ ✏}.
+Predictive multiplicity can arise over an✏-level set where
+✏ =0 (see e.g., Figure1). Despite this, we typically mea-
+sure predictive multiplicity over an✏-level set where✏> 0.
+This is because a competing model with near-optimal per-
+formance on the training data may outperform the optimal
+model in deployment. In such cases, it would not be defen-
+sible to rule out competing models due to small differences
+in training error.
+In practice,✏ should be set so that the✏-level set is likely
+to include a model that attains optimal performance in de-
+ployment. This can be achieved by computing conﬁdence
+intervals for out-of-sample performance (e.g., via bootstrap-
+ping or cross-validation) or by using generalization bounds
+(e.g., by setting✏ so that with high probability the✏-level
+set contains the model that optimizes true risk).
+Predictive Multiplicity. A prediction problem exhibits
+predictive multiplicityif competing models assign conﬂict-
+ing predictions over the training data.
+Deﬁnition 2 (Predictive Multiplicity)Given a baseline
+classiﬁer h0 and an error tolerance✏, a prediction problem
+exhibits predictive multiplicity over the✏-level setS✏(h0) if
+there exists a modelh 2 S✏(h0) such thath(xi) 6= h0(xi)
+for somexi in the training dataset.
+The fact that competing models assign conﬂicting predic-
+tions means that model selection will involve arbitrating
+irreconcilable predictions.
+In what follows, we present formal measures of predictive
+1For example, in a typical setting where we need to control
+overﬁtting by tuning hyperparameters over a validation dataset,
+we would ﬁrst ﬁnd hyperparameters that optimize an estimate of
+out-of-sample error (e.g., mean 5-CV error). We would then ﬁt a
+model to optimize performance for these hyperparameters using
+all of the training data.
+
+--- PDF p4 section 3.1 overview and MIP Solvers; derived fulltext lines 347-391 ---
+In this section, we present integer programming tools to
+compute ambiguity and discrepancy for linear classiﬁcation
+problems.
+3.1 Overview
+Baseline Classiﬁer. Our tools compute ambiguity and dis-
+crepancy given a baseline linear classiﬁerh0 – i.e., the clas-
+siﬁer that we would typically deploy. In our experiments,
+we use a baseline classiﬁerh0 that minimizes the error rate,
+which we ﬁt using a MIP formulation in AppendixB. This
+ensures that multiplicity does not arise due to suboptimality.
+Thus, the only way to avoid multiplicity is to change the
+prediction problem – i.e., by changing the dataset, the model
+class, or the constraints.
+Path Algorithms. We presentpath algorithms to com-
+pute ambiguity and discrepancy for all possible✏-level sets.
+Path algorithms efﬁciently compute the information needed
+to show how ambiguity and discrepancy change with re-
+spect to ✏ (see Figure 3). These plots relax the need for
+practitioners to choose✏ a priori, and calibrates their choice
+of ✏ in settings where small changes in✏ may produce large
+changes in ambiguity and discrepancy.
+MIP Formulations. We compute ambiguity and discrep-
+ancy by ﬁtting classiﬁers from the✏-level set. We ﬁt each
+classiﬁer by solving a discrete empirical risk minimization
+problem. We formulate each problem as amixed integer pro-
+gram (MIP). Our MIP formulations can easily be changed to
+compute predictive multiplicity for more complex prediction
+problems – e.g., problems where we optimize other perfor-
+mance measures (e.g., TPR, FPR) or where models must
+obey constraints on model form or model predictions (e.g.,
+group fairness constraints as inZafar et al., 2019; Celis
+et al., 2019; Cotter et al., 2019).
+MIP Solvers. We solve each MIP with a MIP solver such
+as CPLEX, CBC, or Gurobi. MIP solvers ﬁnd the global op-
+timum of a discrete optimization problem using exhaustive
+search algorithms like branch-and-bound (Wolsey, 1998).
+In our setting, solving a MIP returns: (i) an upper bound
+on the objective value; (ii) a lower bound on the objective
+value; and (iii) the coefﬁcients of a linear classiﬁer that
+achieves the upper bound. When the upper bound matches
+the lower bound, the solution (iii) iscertiﬁably optimal, and
+our measures are exact. If a MIP solver does not return a
+certiﬁably optimal solution in a user-speciﬁed time limit,
+the bounds from (i) and (ii) can be used to produce bounds
+on ambiguity and discrepancy.
+
+--- PDF p5 section 3.2 discrepancy and Bounds; derived fulltext lines 393-458 ---
+=== PDF PAGE 5 ===
+Predictive Multiplicity in Classiﬁcation
+3.2 Computing Discrepancy
+Given a training dataset, a baseline classiﬁerh0, and a user-
+speciﬁed error tolerance✏, we compute the discrepancy
+over the ✏-level set aroundh0 by solving the following
+optimization problem.
+min
+h2H
+nX
+i=1
+[h(xi)= h0(xi)]
+s.t. ˆR(h)  ˆR(h0)+ ✏
+(1)
+We denote the optimal solution to Equation(1) as g✏. For lin-
+ear classiﬁcation problems, we can recover the coefﬁcients
+of g✏ by solving the following MIP formulation, which we
+refer to asDiscMIP(h0,✏ ):
+min
+nX
+i=0
+ai
+s.t. Miai [UNMAPPED][UNMAPPED] + h0(xi)
+dX
+j=0
+wjxij i =1 ,. . . ,n(2a)
+✏ [UNMAPPED] 1
+n
+nX
+i=1
+yih0(xi)(1 [UNMAPPED] ai) (2b)
+wj = w+
+j + w[UNMAPPED]
+j j =0 ,. . . ,d(2c)
+1=
+dX
+j=0
+(w+
+j [UNMAPPED] w[UNMAPPED]
+j ) (2d)
+ai 2{ 0, 1} i =1 ,. . . ,n
+w+
+j 2 [0, 1] j =0 ,. . . ,d
+w[UNMAPPED]
+j 2 [[UNMAPPED]1, 0] j =0 ,. . . ,d
+DiscMIP minimizes the agreement betweenh and h0 us-
+ing indicator variablesai =
+ [h(xi)= h0(xi)]. These
+variables are set via the “Big-M” constraints in(2a). These
+constraints depend on: (i) a margin parameter[UNMAPPED]> 0, which
+should be set to a small positive number (e.g.,[UNMAPPED] = 10[UNMAPPED]4);
+and (ii) the Big-M parametersMi, which can be set as
+Mi = [UNMAPPED] + maxi kxik1 since we have ﬁxedkwk1 =1 in
+constraint (2d). Constraint (2b) ensures that any feasible
+classiﬁer must belong to the✏-level set.
+Bounds. Solving DiscMIP returns the coefﬁcients of the
+classiﬁer that maximizes discrepancy with respect to the
+baseline classiﬁerh0. If the solution is not certiﬁably opti-
+mal, the upper bound fromDiscMIP corresponds to a lower
+bound on discrepancy. Likewise, the lower bound from
+DiscMIP corresponds to an upper bound on discrepancy.
+Path Algorithm. In Algorithm1, we present a procedure
+to compute discrepancy for all possible values of✏. The
+procedure solvesDiscMIP(h0,✏ ) for increasing values of
+✏ 2E . At each iteration, it uses the current solution to
+initialize DiscMIP for the next iteration. The solution from

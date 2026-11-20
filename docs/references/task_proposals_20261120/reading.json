@@ -1,0 +1,27 @@
+{
+  "date": "2026-11-20",
+  "new_search": {
+    "date_utc": "2026-11-20T06:27:16.462724+00:00",
+    "url": "https://export.arxiv.org/api/query?search_query=all:%22large%20language%20models%22%20AND%20all:%22hypothesis%20generation%22&max_results=5",
+    "status": "downloaded_metadata_only",
+    "sha256": "168443d50cde6ba83fbd72a175af52d69c9adc1555c53ea787a40623cbffe85f"
+  },
+  "sources": [
+    {
+      "title": "Literature Meets Data: A Synergistic Approach to Hypothesis Generation",
+      "url": "https://arxiv.org/html/2410.17309v3",
+      "originals": {
+        "docs/references/hypothesis_refinement_20261119/hypothesis_literature_data.html": "bac398c358a4b7a475348712af1ada6c4218d59a7e58825b2d935f9abb2bae1a",
+        "docs/references/hypothesis_refinement_20261119/hypothesis_literature_data.txt": "10560930ef33219be6ad17625df5e917a91db8bf057a017e9a4af406a72530ca"
+      },
+      "actual_reading": "Cached original text lines 38-49 (sections 2.2/2.3: UCB-inspired reward, wrong-example pool, iterative hypothesis refinement/union); lines 97-120 include section 7 limitations. Not a full-paper new reading.",
+      "use": "Motivates explicit feedback-driven hypothesis proposal under limited tools; M5 uses retrospective residual and task-action disagreement, not its classifier reward or literature retrieval pipeline.",
+      "limitations": [
+        "Paper tasks are natural-language classification; no dynamic EM field or UAV optimization evidence.",
+        "Paper notes limited literature corpus, non-exhaustive tuning and small human study; subjective hypothesis selection limits attribution.",
+        "M5 regions, 4dB rule, source birth weights and budgets are project choices, not guarantees from this paper.",
+        "M5 known tail points are already public development feedback, not independent future validation; no new RAG or training."
+      ]
+    }
+  ]
+}
