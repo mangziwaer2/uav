@@ -17,6 +17,7 @@ from .scenario_planning import canonical_route, finite, score_route, state_reque
 
 
 VERSION = 'task-context-v1'
+COMPOUND_VERSION = 'task-context-compound-v1'
 METHODS = ('joint', 'mixture')
 COUNTERS = ('receiver_queries', 'scenario_receiver_terms', 'basis_receiver_terms', 'gp_receiver_queries')
 STATE_FIELDS = {'position_m', 'goal_m', 'route_m', 'speed_mps', 'spent_length_m',
@@ -97,12 +98,12 @@ def _geometry_summary(geometry):
                                 for b in geometry.blocking_buildings])))
 
 
-def _check_forecast(forecast, method):
+def _check_forecast(forecast, method, allow_composite=False):
     if method not in METHODS:
         raise ValueError('task source context requires joint or mixture prediction')
     if digest(forecast.identity()) != forecast.fingerprint:
         raise ValueError('frozen forecast was mutated')
-    if any(m['family'] not in (*FAMILIES, 'unknown_prior') for m in forecast.models):
+    if any(m['family'] not in (*FAMILIES, 'unknown_prior', *(('composite',) if allow_composite else ())) for m in forecast.models):
         raise ValueError('power persistence cannot enter the task source pool')
 
 
@@ -177,9 +178,9 @@ def _record_interrupted_waypoint(extra, state):
         proposal=dict(kind='deterministic_lateral_waypoint', fraction=fraction, offset_m=offset)))
 
 
-def build_task_context(state, forecast, geometry, work, method='joint'):
+def build_task_context(state, forecast, geometry, work, method='joint', *, allow_composite=False):
     """Pay for one finite shared pool and freeze its public causal task context."""
-    _check_forecast(forecast, method)
+    _check_forecast(forecast, method, allow_composite)
     request = state_request(state, forecast, geometry, work)
     before = work.summary()
     counts_before = deepcopy(forecast.counts)
@@ -191,7 +192,7 @@ def build_task_context(state, forecast, geometry, work, method='joint'):
                    scored_points=m.get('scored_points', 0), fit_mse=m.get('fit_mse'))
               for m in forecast.models]
     public_geometry = _geometry_summary(geometry)
-    value = _json_copy(dict(version=VERSION, time_seconds=forecast.now,
+    value = _json_copy(dict(version=COMPOUND_VERSION if allow_composite else VERSION, time_seconds=forecast.now,
         history_sha256=digest(forecast.history), models_sha256=digest(forecast.models),
         forecast_sha256=forecast.fingerprint, state=request['state'], state_sha256=digest(request['state']),
         **public_geometry, geometry_sha256=digest(public_geometry), planner_method=method,
@@ -279,7 +280,7 @@ def validate_task_context(context, *, history=None, models=None, state=None, for
         _keys(context, CONTEXT_FIELDS)
         for key in ('task_snapshot_id', 'history_sha256', 'models_sha256', 'forecast_sha256', 'state_sha256', 'geometry_sha256'):
             _sha(context[key])
-        if context['version'] != VERSION or context['planner_method'] not in METHODS:
+        if context['version'] not in (VERSION, COMPOUND_VERSION) or context['planner_method'] not in METHODS:
             raise ValueError('unsupported task context version/method')
         if context['task_snapshot_id'] != digest({k: v for k, v in context.items() if k != 'task_snapshot_id'}):
             raise ValueError('task context content changed')
@@ -312,7 +313,8 @@ def validate_task_context(context, *, history=None, models=None, state=None, for
         if not isinstance(adequacy, list) or not adequacy: raise ValueError('task worlds required')
         for model in adequacy:
             _keys(model, {'id', 'family', 'weight', 'born_index', 'scored_points', 'fit_mse'})
-            if (not isinstance(model['id'], str) or not model['id'] or model['family'] not in (*FAMILIES, 'unknown_prior')
+            if (not isinstance(model['id'], str) or not model['id'] or model['family'] not in (
+                    *FAMILIES, 'unknown_prior', *(('composite',) if context['version'] == COMPOUND_VERSION else ()))
                     or type(model['born_index']) is not int or model['born_index'] < 0
                     or type(model['scored_points']) is not int or model['scored_points'] < 0):
                 raise ValueError('invalid task model evidence summary')
@@ -384,7 +386,7 @@ def validate_task_context(context, *, history=None, models=None, state=None, for
         if geometry is not None and digest(_geometry_summary(geometry)) != context['geometry_sha256']:
             raise ValueError('task context live geometry changed')
         if forecast is not None:
-            _check_forecast(forecast, context['planner_method'])
+            _check_forecast(forecast, context['planner_method'], context['version'] == COMPOUND_VERSION)
             if (forecast.fingerprint != context['forecast_sha256'] or forecast.now != context['time_seconds']
                     or digest(forecast.history) != context['history_sha256'] or digest(forecast.models) != context['models_sha256']):
                 raise ValueError('task context live forecast changed')
@@ -403,7 +405,7 @@ def rescore_task_candidates(context, state, forecast, geometry, work, method='jo
     certificate or silently discard a previously legal path.
     """
     validate_task_context(context, history=forecast.history, state=state, geometry=geometry)
-    _check_forecast(forecast, method)
+    _check_forecast(forecast, method, context['version'] == COMPOUND_VERSION)
     if forecast.now != context['time_seconds'] or method != context['planner_method']:
         raise ValueError('task candidate rescore requires the same time and prediction method')
     # Keep the dedicated shared limits even when no samples/edges remain.

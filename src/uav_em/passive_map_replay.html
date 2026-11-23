@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P1 · 被动全图估计回放</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f6f7f7;color:#182a2a;font:15px/1.5 system-ui,sans-serif}
+main{max-width:1340px;margin:auto;padding:24px}header,.controls,.stats,.keys,footer{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+header{justify-content:space-between}h1{font-size:25px;margin:4px 0 18px}h2{font-size:16px;margin:0 0 5px}
+a{color:#176a68}button,select{background:white;color:inherit;border:1px solid #9aaead;border-radius:5px;min-height:38px;padding:0 10px;font:inherit}
+button{cursor:pointer}button:hover{background:#e5f1ee}button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid #167c73;outline-offset:2px}
+button:disabled{opacity:.45;cursor:default}input[type=range]{accent-color:#17746f;min-width:135px;flex:1}
+output{min-width:115px;font-variant-numeric:tabular-nums}.controls{background:#e9efee;padding:12px;border-block:1px solid #cddbd9}
+.stats{margin:16px 0;gap:8px 24px;font-variant-numeric:tabular-nums}.stats b{font-weight:650}.panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+figure{margin:0;min-width:0}canvas{width:100%;height:auto;display:block;background:#142735;border:1px solid #a5b7b7}
+figcaption{color:#405553;min-height:2em;margin:7px 0}.keys{gap:8px 18px;margin:10px 0 16px;font-size:13px}
+.keys span{white-space:nowrap}.scale{display:inline-block;background:linear-gradient(90deg,#193143,#26586b,#289284,#ead578,#f1754b,#b4353e);width:100px;height:10px;vertical-align:middle;margin:0 6px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;border:1px solid #284343;margin-right:5px}.tx{color:#9a3d2a}
+.solid,.dash{display:inline-block;width:20px;border-top:3px solid #007c83;vertical-align:middle;margin-right:5px}.dash{border-top:2px dashed #824395}
+.unknown{display:inline-block;width:17px;height:12px;background:repeating-linear-gradient(135deg,#819394,#819394 2px,#d8e1e0 2px,#d8e1e0 5px);vertical-align:middle;margin-right:4px}
+.summary{overflow-x:auto;border-top:1px solid #cddbd9}table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;text-align:right}
+td,th{padding:8px;border-bottom:1px solid #d9e2e1;white-space:nowrap}td:first-child,th:first-child{text-align:left}footer{margin-top:14px}
+@media(max-width:760px){main{padding:12px}.panels{grid-template-columns:1fr;gap:12px}.controls{gap:8px}h1{font-size:22px}}
+</style>
+<main>
+<header><h1>P1 · 被动全图估计回放</h1><a href="../index.html">所有实验</a></header>
+<div class="controls">
+  <label>飞行 <select id="arm"><option value="local">Local · 近场 GP</option><option value="full">Full · 全图 GP</option></select></label>
+  <button type="button" id="play" aria-label="播放" title="播放">▶</button>
+  <button type="button" id="previous" aria-label="上一决策" title="上一决策">‹</button>
+  <button type="button" id="next" aria-label="下一决策" title="下一决策">›</button>
+  <input type="range" id="timeline" min="0" value="0" aria-label="飞行时间">
+  <output id="time" for="timeline"></output>
+  <label>右图 <select id="layer"><option value="mean">功率估计</option><option value="std">后验标准差</option></select></label>
+</div>
+<div class="stats" id="stats" aria-live="off"></div>
+<div class="panels">
+  <figure><h2>逐时真场 · 事后观察</h2><canvas id="truth" width="800" height="600" aria-label="真实场、发射机及已飞轨迹"></canvas><figcaption id="truth-info"></figcaption></figure>
+  <figure><h2>冻结决策快照 · 仅当时信息</h2><canvas id="belief" width="800" height="600" aria-label="GP估计、原始点测和候选余程"></canvas><figcaption id="belief-info"></figcaption></figure>
+</div>
+<div class="keys">
+  <span>功率 −105 <i class="scale"></i> −65 dBm</span><span class="tx">✚ 活动发射源</span><span><i class="dot"></i>原始点测</span>
+  <span><i class="solid"></i>执行余程</span><span><i class="dash"></i>另一评分器首选</span><span><i class="unknown"></i>未用于该组定价</span>
+</div>
+<div class="summary"><table><thead><tr><th>组</th><th>状态</th><th>T (s)</th><th>Q</th><th>T+Q</th><th>航程 (m)</th><th>能量 (Wh)</th></tr></thead><tbody id="outcomes"></tbody></table></div>
+<footer><a href="contract.md">冻结合同</a><a href="results.json">事后结果</a><a href="public_local.json">Local 公开日志</a><a href="public_full.json">Full 公开日志</a><a href="progress.jsonl">运行记录</a></footer>
+</main>
+<script type="application/json" id="data">{{REPLAY_DATA}}</script>
+<script>
+"use strict";
+const byId = id => document.getElementById(id);
+const {grid, arms} = JSON.parse(byId("data").textContent);
+const range = byId("timeline"), arm = byId("arm"), powerLayer = byId("layer");
+const truth = byId("truth").getContext("2d"), belief = byId("belief").getContext("2d");
+const labels = {local:"Local · 近场 GP", full:"Full · 全图 GP"};
+const stops = {arrived:"到达", time_limit:"到时限", no_legal_remaining_route:"无合法余程"};
+const palette = [[25,49,67],[38,88,107],[40,146,132],[234,213,120],[241,117,75],[180,53,62]];
+let timer = null;
+const endX = (grid.cols - 1) * grid.spacing, endY = (grid.rows - 1) * grid.spacing;
+const xy = (ctx, point) => [point[0] * ctx.canvas.width / endX, (1 - point[1] / endY) * ctx.canvas.height];
+const fmt = (value, digits=2) => value.toFixed(digits);
+function color(value, min, max) {
+  const scaled = Math.max(0, Math.min(value - min, max - min)) / (max - min) * (palette.length - 1);
+  const index = Math.min(Math.floor(scaled), palette.length - 2);
+  return `rgb(${palette[index].map((component, channel) => Math.round(component + (palette[index+1][channel] - component) * (scaled-index))).join(",")})`;
+}
+function heat(ctx, values, support, limit, isStd) {
+  const stepX = ctx.canvas.width / (grid.cols - 1), stepY = ctx.canvas.height / (grid.rows - 1);
+  for (let cell=0; cell<values.length; cell++) {
+    const px = cell % grid.cols * stepX - stepX/2, py = (grid.rows-1-Math.floor(cell/grid.cols))*stepY-stepY/2;
+    ctx.fillStyle = color(values[cell], isStd ? 0 : -105, isStd ? 15 : -65);
+    ctx.fillRect(px,py,stepX+1,stepY+1);
+    if (support && support[cell] > limit) {
+      ctx.fillStyle="rgba(22,36,43,.38)";ctx.fillRect(px,py,stepX+1,stepY+1);
+      ctx.strokeStyle="rgba(220,233,234,.43)";ctx.lineWidth=1;ctx.beginPath();
+      ctx.moveTo(px,py+stepY);ctx.lineTo(px+stepX,py);ctx.stroke();
+    }
+  }
+  for (const [left,bottom,right,top] of grid.obstacles) {
+    const [px,py]=xy(ctx,[left,top]), [qx,qy]=xy(ctx,[right,bottom]);
+    ctx.fillStyle="#465257";ctx.fillRect(px,py,qx-px,qy-py);
+    ctx.strokeStyle="#dce7e0";ctx.lineWidth=1.5;ctx.strokeRect(px,py,qx-px,qy-py);
+  }
+}
+function path(ctx, points, ink, width, dashed=false) {
+  if (points.length<2) return;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.setLineDash(dashed?[10,7]:[]);ctx.beginPath();
+  ctx.moveTo(...xy(ctx,points[0]));for(const point of points.slice(1)) ctx.lineTo(...xy(ctx,point));
+  ctx.strokeStyle="#202b33";ctx.lineWidth=width+2;ctx.stroke();ctx.strokeStyle=ink;ctx.lineWidth=width;ctx.stroke();ctx.restore();
+}
+function dot(ctx, point, radius, fill) {
+  ctx.beginPath();ctx.arc(...xy(ctx,point),radius,0,2*Math.PI);ctx.fillStyle=fill;ctx.fill();
+  ctx.strokeStyle="#263234";ctx.lineWidth=1.4;ctx.stroke();
+}
+function text(ctx, point, label, x=10, y=-10) {
+  const [px,py]=xy(ctx,point);ctx.font="bold 15px system-ui";ctx.strokeStyle="#243139";ctx.lineWidth=3;
+  ctx.strokeText(label,px+x,py+y);ctx.fillStyle="#fff";ctx.fillText(label,px+x,py+y);
+}
+function endpoints(ctx) {
+  dot(ctx,grid.start,5,"#f4f7f6");dot(ctx,grid.goal,7,"#85e6c8");text(ctx,grid.start,"S",-23,-9);text(ctx,grid.goal,"G");
+}
+function draw() {
+  const mode=arm.value, other=mode==="local"?"full":"local", {log,evaluation}=arms[mode];
+  const index=Number(range.value), frame=log.frames[index], current=evaluation.trajectory[index];
+  const decision=log.decisions.filter(item=>item.t<=frame.t).at(-1);
+  heat(truth,current.dbm);endpoints(truth);
+  path(truth,log.frames.slice(0,index+1).flatMap(item=>item.moved),"#a0f5e5",3);
+  for (const source of current.sources) {
+    dot(truth,source.position_m,8,"#ffd169");text(truth,source.position_m,`✚ ${source.id}`,11,-9);
+  }
+  dot(truth,frame.xy,7,"#fff");
+  byId("truth-info").textContent=`t=${fmt(frame.t)} s · 活动源 ${current.sources.length} · 当前位置点测 ${fmt(frame.measured_dbm,1)} dBm`;
+  byId("time").value=`${fmt(frame.t,1)} / ${fmt(log.frames.at(-1).t,1)} s`;
+  byId("stats").innerHTML=`<b>${labels[mode]}</b><span>已飞 ${fmt(frame.flown_m,1)} m</span><span>全程 T+Q ${fmt(evaluation.metrics.T_plus_Q)}</span><span>${stops[evaluation.metrics.stop]}</span>`;
+  byId("previous").disabled=!log.decisions.some(item=>item.t<frame.t);
+  byId("next").disabled=!log.decisions.some(item=>item.t>frame.t);
+  if (!decision) {
+    belief.clearRect(0,0,800,600);byId("belief-info").textContent="无合法起飞决策";return;
+  }
+  const std=powerLayer.value==="std";
+  heat(belief,std?decision.gp.std_db:decision.gp.dbm,decision.gp.support,mode==="local"?0:1,std);
+  endpoints(belief);
+  if (decision.selected[mode]!==decision.selected[other]) path(belief,decision.candidates[decision.selected[other]].route,"#ec9dff",3,true);
+  const selected=decision.candidates[decision.selected[mode]];
+  path(belief,selected.route,"#a0f5e5",4);
+  for (const point of log.points.slice(0,decision.prefix_size)) dot(belief,point.position_m,3.5,color(point.interference_dbm,-105,-65));
+  dot(belief,decision.xy,7,"#fff");
+  const unknown=selected.coverage.unknown+(mode==="local"?selected.coverage.extended:0);
+  byId("belief-info").textContent=`冻结 t=${fmt(decision.t,1)} s · ${decision.prefix_size} 个原始点 · ${decision.candidates.length} 条合法余程 · 未知 ${fmt(unknown,1)} s${std?" · 色标 0–15 dB":""}`;
+}
+function pause() {
+  if(timer!==null) window.clearInterval(timer);timer=null;byId("play").textContent="▶";byId("play").title="播放";byId("play").setAttribute("aria-label","播放");
+}
+function configure(time=0) {
+  const frames=arms[arm.value].log.frames;
+  range.max=frames.length-1;const index=frames.findIndex(frame=>frame.t>=time);
+  range.value=index<0?frames.length-1:index;draw();
+}
+function jump(forward) {
+  pause();const {log}=arms[arm.value], time=log.frames[Number(range.value)].t;
+  const event=forward?log.decisions.find(item=>item.t>time):log.decisions.filter(item=>item.t<time).at(-1);
+  if(event) configure(event.t);
+}
+byId("play").addEventListener("click",()=>{
+  if(timer!==null){pause();return;}
+  if(range.value===range.max) range.value=0;
+  draw();byId("play").textContent="Ⅱ";byId("play").title="暂停";byId("play").setAttribute("aria-label","暂停");
+  timer=window.setInterval(()=>{
+    if(range.value===range.max){pause();return;}
+    range.value=Number(range.value)+1;draw();
+  },240);
+});
+range.addEventListener("input",draw);powerLayer.addEventListener("change",draw);
+arm.addEventListener("change",()=>{pause();configure();});
+byId("previous").addEventListener("click",()=>jump(false));byId("next").addEventListener("click",()=>jump(true));
+for(const [mode,{evaluation:{metrics}}] of Object.entries(arms)) {
+  const row=byId("outcomes").insertRow();
+  for(const value of [labels[mode],stops[metrics.stop],...[metrics.T,metrics.Q,metrics.T_plus_Q,metrics.length_m,metrics.energy_wh].map(v=>fmt(v))]) row.insertCell().textContent=value;
+}
+configure();
+</script>
+</html>

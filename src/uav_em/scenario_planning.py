@@ -63,7 +63,7 @@ def arrival_queries(route, now, speed, delay=0.5, spacing=10.):
 
 class ScenarioForecast:
     """Immutable copy of a causal bank snapshot; quality is never route-dependent."""
-    def __init__(self, history, models, now, gp=None, gp_version=None, joint_settings=None):
+    def __init__(self, history, models, now, gp=None, gp_version=None, joint_settings=None, *, allow_composite=False):
         self.history, self.models = deepcopy(history), deepcopy(models)
         self.now = finite(now)
         if (not self.history or self.history[-1]['time_seconds'] != self.now
@@ -78,8 +78,12 @@ class ScenarioForecast:
         for m in self.models:
             if (finite(m['std_db']) < 0 or type(m['born_index']) is not int
                     or not 0 <= m['born_index'] < len(history)
-                    or m['family'] not in ('persistence','unknown_prior','static','translate','strength_change')):
+                    or m['family'] not in ('persistence','unknown_prior','static','translate','strength_change',
+                                           *(('composite',) if allow_composite else ()))):
                 raise ValueError('invalid scenario uncertainty/birth')
+            if m['family'] == 'composite':
+                from .event_inference import validate_compound_model
+                validate_compound_model(m, active=True)
             if m['family'] != 'persistence' and (m['reference_time_seconds'] > now or len(m['bases']) != len(m['peaks_dbm'])):
                 raise ValueError('future/misaligned field model')
             if m['family'] == 'unknown_prior' and (m['bases'] or m['peaks_dbm']):

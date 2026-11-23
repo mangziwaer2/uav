@@ -19,6 +19,7 @@ from .equivalent_field import kernel, power_and_jacobian
 
 FAMILIES = ('static', 'translate', 'strength_change')
 REGIONS = ('task_disk', 'left_half', 'right_half')
+COMPOUND_MODES = ('static', 'translate', 'strength_change', 'translate_strength')
 
 
 def digest(value):
@@ -36,6 +37,99 @@ def point(value):
     if not np.all(np.isfinite([t, y])) or t < 0:
         raise ValueError('finite measurement required')
     return dict(position_m=xy.tolist(), time_seconds=t, interference_dbm=y)
+
+
+def validate_compound_model(model, *, active=False):
+    """Validate a compound field without expanding the legacy tool families.
+
+    A mode is a permitted parameter group: its permitted velocity/rate may be
+    zero. Parameters omitted by a mode must be exactly zero. Active validation
+    accepts already scored bank snapshots; birth additionally enforces fresh
+    evidence and strips no submitted evidence on the caller's behalf.
+    """
+    def scalar(value):
+        if (isinstance(value, (bool, np.bool_)) or not isinstance(value, (int, float, np.number))
+                or not math.isfinite(value)):
+            raise ValueError('finite compound scalar required')
+        return float(value)
+
+    def pair(value):
+        if not isinstance(value, (list, tuple)) or len(value) != 2:
+            raise ValueError('compound two-dimensional vector required')
+        return np.asarray([scalar(v) for v in value])
+
+    if (not isinstance(model, dict) or model.get('family') != 'composite'
+            or not isinstance(model.get('id'), str) or not 1 <= len(model['id']) <= 200):
+        raise ValueError('named compound field required')
+    bases, modes, peaks = model.get('bases'), model.get('component_modes'), model.get('peaks_dbm')
+    if (not isinstance(bases, list) or not 1 <= len(bases) <= 2
+            or not isinstance(modes, list) or len(modes) != len(bases)
+            or any(mode not in COMPOUND_MODES for mode in modes)
+            or not isinstance(peaks, list) or len(peaks) != len(bases)):
+        raise ValueError('one or two bases with explicit compound modes required')
+    if (scalar(model.get('std_db')) < 0.
+            or scalar(model.get('reference_time_seconds')) < 0):
+        raise ValueError('compound nonnegative fixed uncertainty/reference required')
+    for base, mode, peak in zip(bases, modes, peaks):
+        if (not isinstance(base, dict)
+                or set(base) != {'center_m', 'scale_m', 'velocity_mps', 'rate_db_per_second'}):
+            raise ValueError('exact compound basis fields required')
+        pair(base['center_m']); velocity = pair(base['velocity_mps'])
+        rate = scalar(base['rate_db_per_second']); scalar(peak)
+        if scalar(base['scale_m']) <= 0 or np.linalg.norm(velocity) > 3.+1e-9 or abs(rate) > .5+1e-12:
+            raise ValueError('compound basis outside physical parameter domain')
+        if mode not in ('translate', 'translate_strength') and np.any(velocity != 0.):
+            raise ValueError('compound mode forbids velocity')
+        if mode not in ('strength_change', 'translate_strength') and rate != 0.:
+            raise ValueError('compound mode forbids strength change')
+    if active:
+        if (type(model.get('born_index')) is not int or model['born_index'] < 0
+                or type(model.get('scored_points')) is not int or model['scored_points'] < 0
+                or model.get('diagnostic_only') is not False):
+            raise ValueError('active compound version metadata required')
+    try:
+        with np.errstate(over='raise', invalid='raise', divide='raise'):
+            matrix = kernel(bases, [base['center_m'] for base in bases],
+                            [model['reference_time_seconds']]*len(bases), model['reference_time_seconds'])
+            means, jacobian = power_and_jacobian(matrix, peaks)
+        if not np.all(np.isfinite(means)) or not np.all(np.isfinite(jacobian)):
+            raise ValueError('nonfinite compound field at its reference time')
+    except FloatingPointError as exc:
+        raise ValueError('compound field overflows at its reference time') from exc
+    return deepcopy(model)
+
+
+def prepare_compound_version(model, now, index, identifier=None):
+    """Rebase a diagnostic as a fresh version, never carrying its old evidence.
+
+    Its field predictions and the parent's declared uncertainty are unchanged.
+    The declared uncertainty is not a calibrated guarantee.
+    No parent posterior, birth index, historical score or diagnostic weight is
+    imported into the new active version.
+    """
+    validate_compound_model(model)
+    if (isinstance(now, bool) or not isinstance(now, (int, float)) or not math.isfinite(now)
+            or now < model['reference_time_seconds'] or type(index) is not int or index < 0):
+        raise ValueError('causal compound birth time/index required')
+    if identifier is not None and (not isinstance(identifier, str) or not identifier):
+        raise ValueError('new compound identifier required')
+    result = {key: deepcopy(model[key]) for key in ('id', 'family', 'std_db', 'reference_time_seconds',
+        'bases', 'peaks_dbm', 'component_modes')}
+    for key in ('parent_id', 'lineage_id'):
+        if key in model:
+            if not isinstance(model[key], str) or not model[key]:
+                raise ValueError('compound parent/lineage identifier required')
+            result[key] = model[key]
+    result['diagnostic_origin_id'] = model['id']
+    result['id'] = identifier or model['id']
+    dt = float(now)-model['reference_time_seconds']
+    for i, base in enumerate(result['bases']):
+        base['center_m'] = (np.asarray(base['center_m'])+dt*np.asarray(base['velocity_mps'])).tolist()
+        result['peaks_dbm'][i] += dt*base['rate_db_per_second']
+    result.update(reference_time_seconds=float(now), born_index=index, scored_points=0,
+                  diagnostic_only=False)
+    validate_compound_model(result, active=True)
+    return result
 
 
 class HypothesisBank:

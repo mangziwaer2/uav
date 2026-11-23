@@ -36,10 +36,15 @@ def recovery_plan(request):
 
 def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=None,
         joint_settings=None,forecast_method=None,soft_fit=False,revision_settings=None,path_search='feedback',
-        source_renewal=False,geometry_refinement=None):
+        source_renewal=False,geometry_refinement=None,compound_settings=None):
     if method not in METHODS or config.sensor.mode!='power_only':raise ValueError('point-only declared method required')
     if timing not in ('fixed','power_rise','forward','source_revision','task_source'):raise ValueError('unknown consultation timing')
     task_source=timing=='task_source';source_timing=timing in ('source_revision','task_source')
+    compound=compound_settings is not None
+    if compound:
+        from .task_revision import TaskRevisionSettings
+        if not task_source or not isinstance(compound_settings,TaskRevisionSettings) or source_renewal:
+            raise ValueError('compound settings require explicit task-source mode without renewal')
     if timing in ('forward','source_revision','task_source') and joint_settings is None:raise ValueError('forward timing requires frozen joint settings')
     if timing=='source_revision' and (revision_settings is None or method!='mixture_numeric' or inference_advisor is not None):
         raise ValueError('source revision pilot requires explicit settings and numerical organization')
@@ -103,9 +108,11 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
                 residual_db=point['interference_dbm']-issued_joint['mean_dbm']))
         observations.append(point);estimator.observe(measurement)
         if bank is None:
-            bank_type=SourceRenewalBank if source_renewal else SourceOnlyBank
+            from .source_revision import CompoundSourceBank
+            bank_type=CompoundSourceBank if compound else SourceRenewalBank if source_renewal else SourceOnlyBank
             bank=(bank_type(point,config.electromagnetic.background_dbm,config.belief.unknown_error_db,
-                           **({'mismatch_db':revision_settings.mismatch_db} if source_renewal else {}))
+                           **({'birth_mass':compound_settings.birth_mass} if compound else
+                              {'mismatch_db':revision_settings.mismatch_db} if source_renewal else {}))
                   if source_timing else HypothesisBank(point))
         else:
             rows.append(bank.observe(point))
@@ -122,7 +129,7 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
         if now>=100.-1e-8:break
         gp_version=digest(dict(history=observations,now=point['time_seconds'],settings=asdict(config.belief)))
         if timing in ('forward','source_revision','task_source'):
-            monitor=ScenarioForecast(bank.history,bank.snapshot(),now,gp,gp_version=gp_version,joint_settings=joint_settings)
+            monitor=ScenarioForecast(bank.history,bank.snapshot(),now,gp,gp_version=gp_version,joint_settings=joint_settings,allow_composite=compound)
             trigger_record=(trigger.observe(monitor,route,a.speed_mps,len(bank.history),rows[-1] if rows else None)
                             if source_timing else trigger.observe(monitor,route,a.speed_mps,len(bank.history)))
             trigger_record['receiver_work']=deepcopy(monitor.counts)
@@ -131,14 +138,18 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
         if trigger_record is not None:trigger_records.append(trigger_record)
         due=(trigger_record['requested'] if trigger else event_number<len(EVENTS) and abs(now-EVENTS[event_number])<1e-7)
         if due:
+            if task_source and energy-.5*a.hover_power_w/3600<a.reserve_energy_wh:
+                trigger_record['dispatch_blocker']='hover_energy_reserve'
+                termination='energy_reserve';frames.append(frame('consultation_blocked'));break
             state=dict(position_m=deepcopy(position),goal_m=goal,route_m=deepcopy(route),speed_mps=a.speed_mps,
                 spent_length_m=spent,maximum_length_m=maximum,remaining_energy_wh=energy,flight_power_w=a.flight_power_w,
                 hover_power_w=a.hover_power_w,reserve_energy_wh=a.reserve_energy_wh,delay_seconds=.5)
             work=WorkBudget(700,10000);task_context=None
             if task_source:
                 from .task_context import build_task_context
-                pre_forecast=ScenarioForecast(bank.history,bank.snapshot(),now,gp,gp_version=gp_version,joint_settings=joint_settings)
-                task_context=build_task_context(state,pre_forecast,geometry,work,predict_method)
+                pre_forecast=ScenarioForecast(bank.history,bank.snapshot(),now,gp,gp_version=gp_version,joint_settings=joint_settings,allow_composite=compound)
+                task_context=(build_task_context(state,pre_forecast,geometry,work,predict_method,allow_composite=True)
+                              if compound else build_task_context(state,pre_forecast,geometry,work,predict_method))
             # Pilot fitting withholds three known readings; never fit before four exist.
             fit_ready=(len(bank.history)>=4 and method not in ('gp_numeric','persistence_numeric')) if trigger else event_number>0
             if fit_ready:
@@ -147,6 +158,8 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
                                       settings=joint_settings) if soft_fit or task_source else None)
                 if task_source:
                     from .task_decision import run_task_event
+                    if compound:
+                        from .task_revision import run_revision_event
                     from .task_context import validate_task_context
                     def checked_task_advisor(request):
                         try:
@@ -154,16 +167,17 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
                         finally:
                             validate_task_context(task_context,history=bank.history,models=bank.snapshot(),
                                 state=state,forecast=pre_forecast,geometry=geometry)
-                    event=run_task_event(bank,public_map(geometry,goal),len(inferences),rows,
+                    event_runner=run_revision_event if compound else run_task_event
+                    event=event_runner(bank,public_map(geometry,goal),len(inferences),rows,
                         'llm' if inference_advisor is not None else 'feedback',
                         advisor=checked_task_advisor if inference_advisor is not None else None,
-                        task_context=task_context,**fit_options)
+                        task_context=task_context,**({'settings':compound_settings} if compound else {}),**fit_options)
                 else:
                     event=run_event(bank,public_map(geometry,goal),len(inferences),rows,
                         'llm' if inference_advisor is not None else 'feedback',advisor=inference_advisor,
                         geometry_refinement=geometry_refinement,**fit_options)
                 inferences.append(event)
-            forecast=ScenarioForecast(bank.history,bank.snapshot(),now,gp,gp_version=gp_version,joint_settings=joint_settings)
+            forecast=ScenarioForecast(bank.history,bank.snapshot(),now,gp,gp_version=gp_version,joint_settings=joint_settings,allow_composite=compound)
             if task_source:
                 from .task_context import rescore_task_candidates
                 candidates=rescore_task_candidates(task_context,state,forecast,geometry,work,predict_method)
@@ -211,6 +225,12 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
                 request_info['inference_feedback']=[]
                 if fit_ready:
                     for rnd in event['rounds']:
+                        if event.get('revision_phase')=='compound_revision':
+                            request_info['inference_feedback'].append(dict(phase=rnd['request']['phase'],
+                                parser_accepted=rnd['parser_accepted'],task_feedback=rnd['task_feedback'],
+                                pending_submit_ids=rnd['pending_submit_ids'],selection_error=rnd['selection_error'],
+                                tool_error=rnd['tool_error'],ledger=rnd['ledger'],resources_after=rnd['resources_after']))
+                            continue
                         request_info['inference_feedback'].append(dict(phase=rnd['request']['phase'],
                             parser_accepted=rnd['parser_accepted'],pilot_feedback=rnd['pilot_feedback'],
                             fits=[dict(job=f['job'],error=f.get('error'),model=f.get('model'),
@@ -263,7 +283,7 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
         frames.append(frame('after_decision' if due else 'continuing'))
         if joint_settings is not None:
             previous_forecast=ScenarioForecast(bank.history,bank.snapshot(),point['time_seconds'],gp,
-                                              gp_version=gp_version,joint_settings=joint_settings)
+                                              gp_version=gp_version,joint_settings=joint_settings,allow_composite=compound)
         step=min(1.,100.-now,path_length(route)/a.speed_mps)
         if timing=='fixed' and event_number<len(EVENTS) and EVENTS[event_number]>now:step=min(step,EVENTS[event_number]-now)
         if step<=1e-9:break
@@ -283,7 +303,8 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
         source_revision_settings=asdict(revision_settings) if revision_settings is not None else None,
         source_renewal=source_renewal,source_replacement_events=deepcopy(getattr(bank,'replacement_events',[])),
         geometry_refinement=geometry_refinement,
-        path_search_policy=path_search,task_interface_version='task_source_v1' if task_source else None,
+        path_search_policy=path_search,task_interface_version='task_source_compound_v1' if compound else 'task_source_v1' if task_source else None,
+        compound_settings=asdict(compound_settings) if compound else None,
         timing_limitations=dict(synchronous_advisor=True,physical_state_frozen_during_callback=True,
                                model_latency_charged=False,post_decision_hover_seconds=.5),
         inference_organization='llm' if inference_advisor is not None else 'numeric_feedback',
@@ -292,6 +313,8 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
         initial_resources=initial_work.summary(),initial_searches=initial_search,
         metrics=dict(success=termination=='goal_reached',termination=termination,simulation_seconds=now,executed_length_m=spent,
             energy_used_wh=a.initial_energy_wh-energy,decision_count=len(decisions),fallbacks=sum(d.get('fallback') is not None for d in decisions+planning_failures),
+            path_fallbacks=sum(d.get('fallback') is not None for d in decisions+planning_failures),
+            inference_fallbacks=sum(not r['parser_accepted'] for e in inferences for r in e['rounds']),
             actual_model_calls=path_calls+inference_calls,path_model_calls=path_calls,inference_model_calls=inference_calls,
             unknown_model_call_receipts=unknown_inference+unknown_path,
             unknown_inference_call_receipts=unknown_inference,unknown_path_call_receipts=unknown_path,
@@ -299,8 +322,18 @@ def run(config,method,advisor=None,emit=None,*,timing='fixed',inference_advisor=
             accepted_model_responses=sum(bool(d['envelope'] and d['envelope'].get('timely') and not d['fallback']) for d in decisions),
             total_samples=initial_work.samples+sum(d['resources']['samples'] for d in decisions+planning_failures),
             total_edges=initial_work.edges+sum(d['resources']['edges'] for d in decisions+planning_failures),
-            inferred_jobs=sum(len(r['accepted_plan']['jobs']) for e in inferences for r in e['rounds']),
+            inferred_jobs=sum((int(r['accepted_plan']['action']=='fit') if e.get('revision_phase')=='compound_revision'
+                              else len(r['accepted_plan']['jobs'])) for e in inferences for r in e['rounds']),
             solver_calls=sum(e['resources']['solver_calls'] for e in inferences),residual_calls=sum(e['resources']['residual_calls'] for e in inferences),
+            compound_parameter_evaluations=sum(e['resources']['fitting']['parameter_evaluations'] for e in inferences
+                                              if e.get('revision_phase')=='compound_revision'),
+            compound_fit_kernel_terms=sum(e['resources']['fitting']['kernel_terms'] for e in inferences
+                                         if e.get('revision_phase')=='compound_revision'),
+            compound_feedback_kernel_terms=sum(e['resources']['feedback']['kernel_terms'] for e in inferences
+                                              if e.get('revision_phase')=='compound_revision'),
+            compound_common_kernel_terms=sum(e['resources']['common']['kernel_terms'] for e in inferences
+                                            if e.get('revision_phase')=='compound_revision'),
+            task_soft_gp_queries=sum(e['resources'].get('soft_gp_queries',0) for e in inferences),
             grid_proposals=sum(d['grid_search']['proposals'] for d in decisions if d['grid_search']),
             common_grid_proposals=sum(d['public']['task_context']['resources_after']['samples']-
                 d['public']['task_context']['resources_before']['samples']
