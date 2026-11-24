@@ -4,7 +4,7 @@
 
 - [交接与下一步](docs/AGENT_HANDOFF.md)：接手只需先读此页。
 - [方法](docs/method.md) · [维护约定](AGENTS.md)。
-- [回放与历史证据](outputs/index.html)：按需查看，不作为当前开发路线。
+- [试飞回放入口](outputs/index.html) · [E3 最新双图](outputs/passive_branch_event_E3_20261124/replay.html)：本次强 N 到达，LLM 组因转交异常未完成配对。
 
 活动代码仅在 `src/uav_em/`；`tests/`保留其回归测试。旧实验入口已删除，当前不开放新科学运行命令。
 

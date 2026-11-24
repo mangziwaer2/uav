@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>P8 · 条件路径图回放</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f6f5;color:#182827;font:15px/1.55 system-ui,sans-serif}
+main{max-width:1350px;margin:auto;padding:22px}header,.controls,.legend,footer{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+header{justify-content:space-between}h1{font-size:26px;margin:0 0 10px}h2{font-size:16px;margin:0 0 7px}
+a{color:#116c63}.controls{background:#e8efed;padding:10px;margin:12px 0 18px;border-block:1px solid #cad7d4}
+button,select{min-height:36px;border:1px solid #98aba5;border-radius:5px;background:white;padding:0 8px;font:inherit;color:inherit}
+button{cursor:pointer;min-width:36px}button:disabled{opacity:.5;cursor:default}input[type=range]{accent-color:#17746f;min-width:110px;flex:1}
+.panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}figure{margin:0;min-width:0}
+canvas{display:block;width:100%;height:auto;border:1px solid #9eada9}figcaption{margin-top:7px;min-height:3.1em}
+.legend{font-size:13px;margin:10px 0 16px}.legend i{display:inline-block;width:20px;vertical-align:middle;margin-right:5px}
+.flown{border-top:3px solid #087b70}.candidate{border-top:2px dashed #798887}.selected{border-top:3px dashed #087b70}
+.scale{height:11px;background:linear-gradient(90deg,#243947,#408477,#f0cc6b,#c84234)}
+.table{overflow-x:auto;border-top:1px solid #c7d3d0}table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums;text-align:right}
+th,td{padding:7px 9px;white-space:nowrap;border-bottom:1px solid #d4dfdb}th:first-child,td:first-child{text-align:left}
+tr[data-current="true"]{background:#e1f1e9}footer{margin-top:16px}output{min-width:110px}#choice{min-height:1.6em;margin:.5rem 0;font-variant-numeric:tabular-nums}
+@media(max-width:740px){main{padding:12px}.panels{grid-template-columns:1fr;gap:8px}h1{font-size:22px}}
+</style>
+<main>
+<header><h1>P8 · 条件路径图回放</h1><a href="../index.html">所有实验</a></header>
+<div class="controls">
+  <label>场景 <select id="case" aria-label="场景"></select></label>
+  <label>组 <select id="arm"><option value="condition">N · 条件规划</option><option value="fixed">N · 固定余程</option><option value="llm">LLM · 图策略</option></select></label>
+  <button id="play" aria-label="播放" title="播放">▶</button>
+  <button id="fork" aria-label="跳到点测决策" title="跳到点测决策">⤓</button>
+  <input id="clock" type="range" min="0" max="12" step="0.01" value="0" aria-label="飞行时间">
+  <output id="time" for="clock"></output>
+</div>
+<div class="panels">
+  <figure><h2>逐时真场 · 事后观察</h2><canvas id="truth" width="720" height="444" aria-label="合成真场、等效热点与已飞航迹"></canvas><figcaption id="truth-note"></figcaption></figure>
+  <figure><h2>公开路径图 · 冻结候选与点测</h2><canvas id="graph" width="720" height="444" aria-label="分岔、合法余程与已飞航迹"></canvas><figcaption id="graph-note"></figcaption></figure>
+</div>
+<div class="legend"><span><i class="flown"></i>已飞</span><span><i class="selected"></i>已选未飞</span><span><i class="candidate"></i>候选</span><span>左图 −100 <i class="scale" style="width:90px"></i> −65 dBm</span></div>
+<p id="choice"></p>
+<div class="table"><table><thead><tr><th>组</th><th>到达</th><th>余程</th><th>T (s)</th><th>Q</th><th>真值 T+Q</th><th>模型期望 T+Q</th><th>航程 (m)</th><th>能耗 (Wh)</th></tr></thead><tbody id="metrics"></tbody></table></div>
+<footer><a href="contract.md">冻结合同</a><a href="public_menu.json">公开决策图</a><a href="request.txt">请求</a><a href="receipt.json">回执状态</a><a href="results.json">全部结果</a></footer>
+</main>
+<script id="data" type="application/json">{{REPLAY_DATA}}</script>
+<script>
+"use strict";
+const byId = id => document.getElementById(id);
+const {result, menu, bounds, truth, dimensions, grid_step_s} = JSON.parse(byId("data").textContent);
+const scene = byId("case"), arm = byId("arm"), clock = byId("clock");
+const left = byId("truth").getContext("2d"), right = byId("graph").getContext("2d");
+const labels = {fixed:"N · 固定余程", condition:"N · 条件规划", llm:"LLM · 图策略"};
+const sceneLabels = {A1:"A1 · 模型族 A", A2:"A2 · 模型族 A", B1:"B1 · 模型族 B", B2:"B2 · 模型族 B", O:"O · 池外场"};
+const heatColors = [[36,57,71],[64,132,119],[240,204,107],[200,66,52]];
+const point = menu.ordinary_point;
+const fmt = (value, digits=2) => Number(value).toFixed(digits);
+let timer = null;
+
+for (const [index, item] of result.cases.entries()) scene.add(new Option(sceneLabels[item.id], index));
+if (result.receipts.status !== "accepted") labels.llm += "（数值回退）";
+arm.options[2].textContent = labels.llm;
+
+function xy(ctx, item) {
+  const [[x0,y0],[x1,y1]] = bounds;
+  return [(item[0]-x0)/(x1-x0)*ctx.canvas.width, (y1-item[1])/(y1-y0)*ctx.canvas.height];
+}
+function stroke(ctx, route, color, width, dash=[]) {
+  if (route.length < 2) return;
+  ctx.save();ctx.lineCap="round";ctx.lineJoin="round";ctx.setLineDash(dash);
+  ctx.beginPath();ctx.moveTo(...xy(ctx,route[0]));for (const vertex of route.slice(1)) ctx.lineTo(...xy(ctx,vertex));
+  ctx.strokeStyle=color;ctx.lineWidth=width;ctx.stroke();ctx.restore();
+}
+function dot(ctx, position, radius, fill) {
+  ctx.beginPath();ctx.arc(...xy(ctx,position),radius,0,2*Math.PI);ctx.fillStyle=fill;ctx.fill();
+  ctx.strokeStyle="#263a37";ctx.lineWidth=1;ctx.stroke();
+}
+function label(ctx, position, value, offsetX=8, offsetY=-7) {
+  const [x,y] = xy(ctx,position);ctx.font="bold 15px system-ui";ctx.strokeStyle="#f5faf8";ctx.lineWidth=4;
+  ctx.strokeText(value,x+offsetX,y+offsetY);ctx.fillStyle="#203330";ctx.fillText(value,x+offsetX,y+offsetY);
+}
+function building(ctx) {
+  for (const [x0,y0,x1,y1] of menu.building_boxes_m) {
+    const [x,y]=xy(ctx,[x0,y1]), [u,v]=xy(ctx,[x1,y0]);
+    ctx.fillStyle="#495754";ctx.fillRect(x,y,u-x,v-y);
+    ctx.strokeStyle="#85928b";ctx.lineWidth=1;ctx.strokeRect(x,y,u-x,v-y);
+  }
+}
+function heat(ctx, frame) {
+  const [cols,rows]=dimensions, dw=ctx.canvas.width/cols, dh=ctx.canvas.height/rows;
+  for (const [index,value] of frame.dbm.entries()) {
+    const shade=Math.max(0,Math.min(3,(value+100)*3/35)), low=Math.min(2,Math.floor(shade));
+    const channels=heatColors[low].map((n,ch)=>Math.round(n+(shade-low)*(heatColors[low+1][ch]-n)));
+    ctx.fillStyle=`rgb(${channels.join(",")})`;ctx.fillRect((index%cols)*dw,Math.floor(index/cols)*dh,dw+1,dh+1);
+  }
+}
+function splitPath(route, distance) {
+  const flown=[route[0]];
+  for (let index=1;index<route.length;index+=1) {
+    const start=route[index-1], end=route[index], length=Math.hypot(end[0]-start[0],end[1]-start[1]);
+    if (distance>=length) {flown.push(end);distance-=length;continue;}
+    const cursor=start.map((coord,axis)=>coord+(end[axis]-coord)*distance/length);
+    flown.push(cursor);return [flown,[cursor,...route.slice(index)]];
+  }
+  return [flown,[route.at(-1)]];
+}
+function draw() {
+  const current=result.cases[Number(scene.value)], key=arm.value, choice=current.choices[key];
+  const trace=current.traces[choice.route_id], stamp=Math.min(trace.T,Number(clock.value)), decided=stamp>=point.t_s;
+  const motionPath=decided?trace.path:menu.common_prefix;
+  const [flown,remaining]=splitPath(motionPath,stamp*trace.length_m/trace.T);
+  const frame=truth[current.id][Math.min(truth[current.id].length-1,Math.floor(stamp/grid_step_s))];
+  const samples=trace.points.filter(row=>row.time_seconds<=stamp);
+  heat(left,frame);building(left);
+  for (const center of frame.centers) {dot(left,center,6,"#ffcc78");label(left,center,"热点");}
+  right.fillStyle="#eaf0ed";right.fillRect(0,0,right.canvas.width,right.canvas.height);building(right);
+  for (const route of menu.routes) {
+    stroke(right,route.path,"#83938e",2,[8,6]);
+    const anchor=route.path[Math.max(1,Math.floor((route.path.length-1)/2))];
+    label(right,anchor,route.id,3,anchor[1]>point.xy[1]?-12:19);
+  }
+  stroke(right,remaining,"#087a6c",3,[9,6]);
+  for (const ctx of [left,right]) {
+    stroke(ctx,flown,"#083c35",6);stroke(ctx,flown,"#a0f5e5",3);
+    dot(ctx,flown.at(-1),6,"#fff");dot(ctx,menu.goal_m,5,"#9adebd");label(ctx,menu.goal_m,"G",-8,-12);
+  }
+  for (const sample of samples) dot(right,sample.position_m,3,"#f8faf8");
+  label(right,menu.common_prefix[0],"S",-9,20);label(right,point.xy,"W1",0,-15);
+  byId("time").value=`${fmt(stamp)} / ${fmt(trace.T)} s`;
+  byId("truth-note").textContent=`已飞 ${fmt(stamp*trace.length_m/trace.T,1)} m · 最近普通点测 ${fmt(samples.at(-1).interference_dbm,1)} dBm`;
+  byId("graph-note").textContent=decided?`W1 在 ${fmt(point.t_s,0)} 秒实测 ${fmt(current.feedback.measured_dbm)} dBm · 本组执行 ${choice.route_id}`
+    :`共同前缀 · W1 预测 H1 ${fmt(point.predictive_means_dbm[0])} / H2 ${fmt(point.predictive_means_dbm[1])} dBm`;
+  byId("choice").textContent=decided?`阈值 ${fmt(choice.threshold_dbm)} dBm · ${choice.bin==="below"?"低读数支":"高读数支"} · 原始读数后验 H1 ${(100*current.feedback.posterior[0]).toFixed(1)}% / H2 ${(100*current.feedback.posterior[1]).toFixed(1)}%`
+    :"下一普通点尚未发生";
+  const rows=Object.keys(labels).map(mode=>{
+    const record=current.choices[mode], metrics=current.traces[record.route_id];
+    const row=document.createElement("tr");row.dataset.current=String(mode===key);
+    for (const value of [labels[mode],metrics.stop==="arrived"?"到达":metrics.stop,record.route_id,fmt(metrics.T),fmt(metrics.Q),
+                         fmt(metrics.T_plus_Q),fmt(result.model_expected_tq[mode]),fmt(metrics.length_m,1),fmt(metrics.energy_wh)]) {
+      row.insertCell().textContent=value;
+    }
+    return row;
+  });
+  byId("metrics").replaceChildren(...rows);
+}
+function pause() {
+  if (timer!==null) window.clearInterval(timer);timer=null;
+  byId("play").textContent="▶";byId("play").title="播放";byId("play").setAttribute("aria-label","播放");
+}
+function configure(stamp) {
+  pause();const current=result.cases[Number(scene.value)], trace=current.traces[current.choices[arm.value].route_id];
+  clock.max=Math.ceil(100*trace.T)/100;clock.value=Math.min(stamp,Number(clock.max));draw();
+}
+byId("play").addEventListener("click",()=>{
+  if (timer!==null) {pause();return;}
+  if (Number(clock.value)>=Number(clock.max)) clock.value=0;
+  byId("play").textContent="Ⅱ";byId("play").title="暂停";byId("play").setAttribute("aria-label","暂停");
+  const started=performance.now(), from=Number(clock.value);
+  timer=window.setInterval(()=>{
+    clock.value=Math.min(Number(clock.max),from+(performance.now()-started)/1000);draw();
+    if (Number(clock.value)>=Number(clock.max)) pause();
+  },40);
+});
+byId("fork").addEventListener("click",()=>configure(point.t_s));
+scene.addEventListener("change",()=>configure(0));arm.addEventListener("change",()=>configure(Number(clock.value)));
+clock.addEventListener("input",()=>{pause();draw();});
+configure(point.t_s);
+</script>
+</html>

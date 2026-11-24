@@ -7,7 +7,7 @@ import numpy as np
 from scipy.linalg import cho_factor, cho_solve, solve_triangular
 
 from .planning import path_length
-from .point_gp import space_time_kernel, training_points
+from .point_gp import space_time_kernel, training_points, validate_points
 
 
 MODES = ("local", "full")
@@ -22,8 +22,9 @@ MIN_REDUCTION = 0.10
 class FixedPriorPosterior:
     """One frozen causal posterior. Distant receivers revert to a fixed prior."""
 
-    def __init__(self, history, geometry, now, settings):
-        points = training_points(history, geometry, now, settings)
+    def __init__(self, history, geometry, now, settings, *, exact_segment=False):
+        points = (validate_points(history, geometry, now) if exact_segment else
+                  training_points(history, geometry, now, settings))
         self.now, self.settings = now, settings
         self.xy = np.array([point["position_m"] for point in points], float).reshape(-1, 2)
         self.times = np.array([point["time_seconds"] for point in points], float)

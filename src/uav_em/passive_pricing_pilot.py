@@ -140,7 +140,10 @@ def _replay(seed, arms, grid):
 
 
 def run(authorized_digest):
-    contract = CONTRACT.read_bytes()
+    try:
+        contract = CONTRACT.read_bytes()
+    except FileNotFoundError as exc:
+        raise ValueError("execution requires the authorized P3 contract; archived contracts are closed") from exc
     digest = hashlib.sha256(contract).hexdigest()
     if authorized_digest != digest:
         raise ValueError("execution requires the SHA-256 of the authorized P3 contract")

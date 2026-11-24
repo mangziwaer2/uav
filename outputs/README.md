@@ -1,7 +1,7 @@
 # 结果入口
 
-从 [index.html](index.html)进入当前实验与回放。新实验单独建目录：入口 `index.html`、冻结合同、运行记录及可直接打开的回放。
+从 [index.html](index.html) 打开 [E2 局部动态干扰双图](passive_local_hotspots_E2_20261124/index.html) 和 E1 两场完整分岔双图。两项试跑均已关闭；合同、请求、回执与结果保留在各自目录。
 
-旧科学运行均已结束。各 `interference_*` 原件移至 `research_archive/runs/`，由[历史归档](research_archive/index.html)进入；合同、文献、维护记录和冻结源码同样保留。旧文件内的实现状态和下一步仅属历史。
+B0–P8 的回放和派生审计已整目录移入 [历史归档](research_archive/passive_pre_e1/index.html)，早期 `interference_*` 原件仍在 `research_archive/runs/`。旧合同在 `research_archive/docs/`，旧导航与方法快照在 `research_archive/passive_pre_e1/notes/`；内部历史路径与下一步不作为活动入口。
 
-当前路线见 [交接](../docs/AGENT_HANDOFF.md)。
+当前路线与开新预算前的要求见[交接](../docs/AGENT_HANDOFF.md)。

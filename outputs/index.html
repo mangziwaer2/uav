@@ -1,13 +1,19 @@
 <!doctype html>
-<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>实验与回放</title>
-<style>body{font:17px/1.7 system-ui;max-width:900px;margin:40px auto;padding:0 20px}a{color:#1766ad}td,th{padding:8px;text-align:left}table{border-collapse:collapse}tr{border-bottom:1px solid #ddd}</style>
-<h1>实验与回放</h1>
-<p>最新实验排在最前。P1、P2、P3 已完成并关闭预算；目前尚未证明 LLM 任务收益。</p>
-<table><tr><th>实验入口</th><th>状态与结果</th></tr>
-<tr><td><strong><a href="passive_pricing_P3_integral_audit_20261123/index.html">P3 积分步长只读复核</a></strong></td><td>2026-11-23 · 20 个冻结快照，三档步长首选均一致。两个场景的起飞风险首选均恢复最短路，未重飞。</td></tr>
-<tr><td><strong><a href="passive_pricing_P3_20261123/index.html">P3 固定复核下的三种定价</a></strong><br><a href="passive_pricing_P3_20261123/replay_43401.html">场景 43401 回放</a> · <a href="passive_pricing_P3_20261123/replay_43411.html">场景 43411 回放</a> · <a href="passive_pricing_P3_20261123/findings.md">结果解读</a></td><td>2026-11-23 · 6 条均到达。均值 GP 与最短路同轨；尾部风险定价一场改善、一场恶化。</td></tr>
-<tr><td><strong><a href="passive_trigger_P2_20261123/index.html">P2 固定时刻 vs 风险提前复核</a></strong><br><a href="passive_trigger_P2_20261123/replay_43301.html">场景 43301 回放</a> · <a href="passive_trigger_P2_20261123/replay_43311.html">场景 43311 回放</a></td><td>2026-11-23 · 已完成。4 条均到达；两场景均未提前触发，配对航迹与 T+Q 一致。</td></tr>
-<tr><td><strong><a href="passive_map_P1_20261123/index.html">P1 左真场 / 右决策快照</a></strong><br><a href="passive_map_P1_20261123/fork_audit/index.html">分岔复核</a> · <a href="passive_map_P1_20261123/results.json">结果</a> · <a href="passive_map_P1_20261123/contract.md">合同</a> · <a href="passive_map_P1_20261123/progress.jsonl">进度记录</a></td><td>2026-11-23 · 已完成。Local / Full 均到达，航迹相同，T+Q 均为 146.12。</td></tr>
-<tr><td><a href="basic_replay_B0_20261123/dual/index.html">B0 左真场 / 右决策快照</a> · <a href="basic_replay_B0_20261123/observer/index.html">两组航迹叠加与暴露曲线</a> · <a href="basic_replay_B0_20261123/index.html">原决策回放</a> · <a href="basic_replay_B0_20261123/observer/truth.gif">真值动图</a></td><td>发射机及全图功率仅供事后观察；单例、预算已关。</td></tr>
-<tr><td><a href="research_archive/index.html">历史归档</a></td><td>旧合同、文献、冻结源码和维护证据，按需查阅。</td></tr></table>
-<p><a href="../docs/AGENT_HANDOFF.md">当前交接与下一步</a> · <a href="../docs/method.md">方法</a></p></html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UAV 试飞与回放</title>
+<style>body{font:17px/1.7 system-ui;max-width:880px;margin:40px auto;padding:0 20px}a{color:#1766ad}</style>
+<h1>UAV 试飞与回放</h1>
+<h2>E3 新首分岔试飞</h2>
+<p>场景 43821。强 N 合规到达，实际 T+Q 为 73.56；LLM 组因请求转交错误在第 6 秒停止，不报告配对增量。</p>
+<p><a href="passive_branch_event_E3_20261124/replay.html">43821 · 双图回放</a> · <a href="passive_branch_event_E3_20261124/findings.md">结果与异常说明</a></p>
+<h2>E2 局部动态干扰</h2>
+<p>场景 43711 的预警覆盖峰值为可飞网格的 15.67%，存在合法低暴露绕行。LLM 与强 N 均在 25 秒改道，合法同轨到达，真实 T+Q 均为 354.36。E2 预算已关闭。</p>
+<p><a href="passive_local_hotspots_E2_20261124/index.html">43711 · 完整分岔双图</a> · <a href="passive_local_hotspots_E2_20261124/findings.md">结果解读</a> · <a href="passive_local_hotspots_E2_20261124/contract.md">冻结合同</a> · <a href="passive_local_hotspots_E2_20261124/results.json">结果数据</a></p>
+<h2>E1 事件触发选路</h2>
+<p>两场四条航迹均合法到达。LLM 四次明确选择原路并实际执行，与同菜单数值组同轨，尚未显示任务增量。E1 预算已关闭。</p>
+<ul>
+<li><a href="passive_event_choice_E1_20261124/replay_43621.html">43621 · 完整分岔双图</a>：6、9、12 秒咨询。</li>
+<li><a href="passive_event_choice_E1_20261124/replay_43641.html">43641 · 完整分岔双图</a>：1 秒咨询。</li>
+</ul>
+<p><a href="passive_event_choice_E1_20261124/index.html">E1 目录入口</a> · <a href="passive_event_choice_E1_20261124/findings.md">结果解读</a> · <a href="passive_event_choice_E1_20261124/contract.md">冻结合同</a> · <a href="passive_event_choice_E1_20261124/results.json">结果数据</a></p>
+<p><a href="../docs/AGENT_HANDOFF.md">当前交接</a> · <a href="../docs/method.md">方法与图外中间点计划</a> · <a href="research_archive/passive_pre_e1/index.html">历史回放与归档</a></p>
+</html>
