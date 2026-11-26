@@ -7,12 +7,14 @@ import time
 from uuid import UUID
 
 from .passive_local_repair import LocalRepair, resolve_repair, waypoint_domain, xy
+from .passive_repair_actions import ACTION_COLUMNS, SOURCE_COLUMNS
 
 
 PUBLIC_FIELDS = frozenset(("request_id", "t_s", "goal", "buildings", "flown_m", "cap_m", "energy_wh",
                            "reserve_wh", "peak_dbm", "window_s", "incumbent", "new_first_targets", "points",
                            "routes"))
 REPAIR_WAYPOINTS = "repair_waypoints_xy_m"
+OPTIONAL_PUBLIC_FIELDS = frozenset((REPAIR_WAYPOINTS, "flight_geometry", "locked_intervals_s", "action_table"))
 
 
 def _sha256(wire):
@@ -25,17 +27,18 @@ class RouteRequest:
     wire: bytes
     request_sha256: str
     route_count: int
+    action_count: int | None = None
 
 
 def seal_route_request(packet, instructions):
     """Serialize an allowlisted public packet once; pass the resulting bytes unchanged."""
-    if not isinstance(packet, dict) or not PUBLIC_FIELDS <= packet.keys() <= PUBLIC_FIELDS | {REPAIR_WAYPOINTS}:
+    if not isinstance(packet, dict) or not PUBLIC_FIELDS <= packet.keys() <= PUBLIC_FIELDS | OPTIONAL_PUBLIC_FIELDS:
         raise ValueError("unexpected public route input fields")
     if REPAIR_WAYPOINTS in packet:
         waypoint_domain(packet[REPAIR_WAYPOINTS])
     request_id, routes = packet["request_id"], packet["routes"]
     if (not isinstance(instructions, str) or not instructions.strip() or not isinstance(request_id, str)
-            or not request_id.strip() or not isinstance(routes, list) or not routes
+            or not request_id.strip() or not isinstance(routes, (list, tuple)) or not routes
             or any(not isinstance(row, (list, tuple)) or len(row) < 2 or type(row[0]) is not int or row[0] != index
                    for index, row in enumerate(routes))):
         raise ValueError("instructions, request ID and consecutive legal route IDs required")
@@ -43,9 +46,22 @@ def seal_route_request(packet, instructions):
            or type(point[0]) not in (int, float) or not 0 <= point[0] <= packet["t_s"]
            for point in packet["points"]):
         raise ValueError("route requests can only contain past or current five-column observations")
+    action_count = None
+    if "action_table" in packet:
+        table = packet["action_table"]
+        if (not isinstance(table, dict) or table.keys() != {"version", "time_only", "columns", "source_columns", "rows"}
+                or type(table["version"]) is not int or table["version"] != 1
+                or table["columns"] not in (ACTION_COLUMNS, list(ACTION_COLUMNS))
+                or table["source_columns"] not in (SOURCE_COLUMNS, list(SOURCE_COLUMNS))
+                or type(table["time_only"]) is not bool
+                or not isinstance(table["rows"], (tuple, list)) or len(table["rows"]) < len(routes)
+                or any(not isinstance(row, (tuple, list)) or len(row) != len(ACTION_COLUMNS)
+                       or type(row[0]) is not int or row[0] != index for index, row in enumerate(table["rows"]))):
+            raise ValueError("invalid public action table")
+        action_count = len(table["rows"])
     wire = json.dumps(dict(instructions=instructions, input=packet), allow_nan=False,
                       ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    return RouteRequest(request_id, wire, _sha256(wire), len(routes))
+    return RouteRequest(request_id, wire, _sha256(wire), len(routes), action_count)
 
 
 @dataclass(frozen=True)
@@ -53,6 +69,19 @@ class RouteSelection:
     route_id: int
     reason: str
     repair: LocalRepair | None
+
+
+@dataclass(frozen=True)
+class ActionSelection:
+    action_id: int
+    reason: str
+
+
+@dataclass(frozen=True)
+class ToolCall:
+    tool: str
+    args: dict
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -83,6 +112,13 @@ def _parse_reply(raw, request):
     if "\n" in line or "\r" in line:
         raise ValueError("expected one reply line")
     reply = json.loads(line, object_pairs_hook=_unique_keys)
+    if request.action_count is not None:
+        if (not isinstance(reply, dict) or reply.keys() != {"request_id", "action_id", "reason"}
+                or reply["request_id"] != request.request_id or type(reply["action_id"]) is not int
+                or not 0 <= reply["action_id"] < request.action_count
+                or not isinstance(reply["reason"], str) or not reply["reason"].strip()):
+            raise ValueError("explicit action ID from the frozen table and reason required")
+        return ActionSelection(reply["action_id"], reply["reason"])
     required = {"request_id", "route_id", "reason"}
     if (not isinstance(reply, dict) or not required <= reply.keys() <= required | {"repair"}
             or reply["request_id"] != request.request_id):
@@ -111,7 +147,7 @@ class RouteReceipt:
     session_id: str | None
     raw_reply: bytes
     status: str
-    selection: RouteSelection | None
+    selection: RouteSelection | ActionSelection | ToolCall | None
     elapsed_s: float
 
     @property
@@ -123,7 +159,7 @@ class RouteExchange:
     def __init__(self):
         self._sessions = set()
 
-    def submit(self, request, exchange):
+    def submit(self, request, exchange, *, parser=_parse_reply):
         """Exchange once through a trusted receiving adapter and retain the raw response."""
         start = time.monotonic()
         delivered = None
@@ -154,7 +190,7 @@ class RouteExchange:
         if not delivered.raw_reply:
             return finish("missing_reply", session_id)
         try:
-            selection = _parse_reply(delivered.raw_reply, request)
+            selection = parser(delivered.raw_reply, request)
         except (ValueError, RecursionError):
             return finish("invalid_reply", session_id)
         return finish("accepted", session_id, selection)
@@ -162,7 +198,8 @@ class RouteExchange:
 
 def resolve_route_receipt(request, receipt, *, geometry, aircraft, position, now, flown_m, energy_wh):
     """Resolve an accepted choice against the exact menu that was sent, with no GP veto."""
-    if (receipt.status != "accepted" or receipt.selection is None or receipt.request_id != request.request_id
+    if (receipt.status != "accepted" or not isinstance(receipt.selection, RouteSelection)
+            or receipt.request_id != request.request_id
             or receipt.request_sha256 != request.request_sha256 or receipt.received_sha256 != request.request_sha256
             or _sha256(request.wire) != request.request_sha256):
         raise ValueError("route receipt is not bound to this frozen request")

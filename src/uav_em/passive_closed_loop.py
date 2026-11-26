@@ -32,7 +32,7 @@ class CountedPosterior:
         self.now = posterior.now
 
     def predict(self, xy, times):
-        if self.ledger["queries"] + len(times) > MAX_QUERIES:
+        if self.ledger["queries"] + len(times) > self.ledger.get("query_limit", MAX_QUERIES):
             raise QueryLimit
         self.ledger["queries"] += len(times)
         return self.posterior.predict(xy, times)

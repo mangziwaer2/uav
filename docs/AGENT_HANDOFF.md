@@ -1,38 +1,22 @@
-# 当前交接（2026-11-24）
+# 当前交接（2026-11-26）
 
-目标是验证复杂动态电磁环境下，LLM 能否在同信息、同资源下改善 UAV 未飞路线的决策以降低真实全程 `T+Q`。**E2 已修正开发场景的可绕性，但尚未证明 LLM 任务收益。**
+**当前决定是让真实 LLM 直接调用现有数值算子。** 首轮只改变运行时的调度者。模型根据点测前缀及工具反馈，决定生成参数、比较对象和最终提交的未飞余程。两臂共享几何、GP 计价、约束及工具预算，以实际全程 `T+Q` 衡量任务效果。由 LLM 修改算子源码留作后续独立对照。[研究方法](method.md#当前主线llm-调用算子重规划)
 
-## 当前证据
+## 证据到哪一步
 
-[E3 新试飞双图](../outputs/passive_branch_event_E3_20261124/replay.html) · [结果与异常](../outputs/passive_branch_event_E3_20261124/findings.md)。新开发场景 `43821`，强 N 在第 6 秒改道、第 7 秒持续预警时因原方向变成备选再次复核，实际 `T+Q=73.56`，合规到达。LLM 独立请求人工转交时有一行数据不符，回执未执行；该臂在第 6 秒停止，不重试、不用 N 代选、无配对差值。E3 预算已关闭。
+- [RP1 三场同期双图与配对结果](../outputs/passive_repair_RP1_20261126/findings.md)：预抽单侧建筑、横跨直线的单楼、错列双楼各一场。两臂在三个场景均合法到达，`Δ(T+Q)` 依次为 −21.49、−12.55、+1.89。模型分别返回 14、43、38 个有效回执。RP1-01 的 LLM 生成并执行新余程后降低暴露，RP1-02 的 LLM 在三个检查点均保留原承诺，RP1-03 的 LLM 实际代价升高。RP1 已关闭，三场全部保留。
+- [LC2 静止回看](../outputs/development/llm_repair_checkpoint_lc2_20261125/index.html)：真实 LLM 走完 `generate → compare → generate → compare → commit`，根据反馈换方向，最后明确保留原路。没有推进飞行，证明工具闭环能用，不证明全程收益。
+- [E3 试飞双图](../outputs/passive_branch_event_E3_20261124/replay.html)：N 合规绕行并到达，实际 `T+Q=73.56`；LLM 臂在第 6 秒因请求转交异常停止，无配对差值。[E1/E2 双图](../outputs/index.html)中的两臂均同轨，未显示 LLM 增量。E1–E3、LC1/LC2 均已结束，不重跑补成绩。
+- [工程材料](../outputs/development/index.html)：RC1 是冻结的长请求传输压力夹具，本地替身已读通，未调用真实模型。这里的「公开包」只是允许 LLM 读取的当时信息，不是对外发布。保留证据即可，**不单独跑 RC1，不把报文容量、分页或压缩设为试飞门槛**；接收有实际阻塞时才修必要部分。
 
-[E2 局部干扰双图](../outputs/passive_local_hotspots_E2_20261124/index.html) · [结果](../outputs/passive_local_hotspots_E2_20261124/findings.md) · [已关闭合同](passive_local_hotspots_E2_contract.md)。固定开发场景 `43711` 的预警覆盖峰值为可飞网格点的 15.67%，且存在有绕行成本的低暴露合法路线。两臂第 6 秒同选原路，第 25 秒同选绕行，均合法到达，真实 `T+Q` 同为 354.36；未显示 LLM 增量。第 6 秒的菜单已含低暴露绕行，事后核算好于原路，但有限窗内共同 GP 上尾排序相反。
+## 下一步
 
-[E1 入口](../outputs/index.html) · [双图 43621](../outputs/passive_event_choice_E1_20261124/replay_43621.html) · [双图 43641](../outputs/passive_event_choice_E1_20261124/replay_43641.html) · [结果](../outputs/passive_event_choice_E1_20261124/findings.md) · [已关闭合同](passive_event_choice_E1_contract.md)。
+1. RP1 已完成现有算子的整程机制检验。后续先用已关闭证据核对三场的几何提议、比较和保留原路机制，重点解释 RP1-03 的代价上升和多轮调用开销。后续科学试飞另行冻结并授权。[RP1 冻结合约](passive_repair_RP1_contract.md)
+2. 触发后让 LLM 实际生成、比较并提交，可以保留原路；不设模型咨询次数上限，不让 N 代选。只使用当前位置带噪点测的历史、公开建筑／资源和已发生的反馈。未知 Q 不补零；共同核连续净空、原始全程 `1.25D0`、到达时间与能量。
+3. 每次新试飞汇报先给**同期 HTML 双图**：左为事后真场与实际航迹，右为当时点测、GP 支持／未知、候选、工具调用及提交。停飞保留各自前缀，候选不画成实飞；两臂都合法到达才报 `Δ(T+Q) = LLM − N`，模型等待另计。一对开发结果用于验证机制，不证明普遍优势。
 
-- 43621 在 6/9/12 秒咨询，43641 在 1 秒咨询。四份独立回执有效，LLM 均主动明确选择原路并实际执行，无弃权或数值回退。两场都与同菜单强数值 N 同轨到达，配对真实 `T+Q` 分别为 253.00、426.57。
-- 两场暴露了不同触发问题：43621 在 28 秒新预警前已用完预算；43641 持续预警未重触发，46 秒再越线时仅有一条合法余程。四次比较均只有 4.5 秒共同支持（6 秒窗）。每次删点重连都生成了新合法候选，但未被选中。咨询时仿真暂停，不能读作实时效果。
+## 接手入口
 
-## 接手顺序
-
-讨论未知段是否应计入 Q、全图预测或 MLP 是否值得做，先读[研究备忘录：未知路段怎么选](method.md#研究备忘录未知路段怎么选)。其中的选项和待办可随证据修订，不是冻结合同。
-
-**先把 LLM 决策链调通，再做增量对照。** 开发无需每次跑 N；验证增量时主配对为强 N 与 LLM。不限 LLM 调用次数、不继承旧三次复核上限、不让 N 代选；合法回复应实际执行。优先做[持续预警中的新分岔触发和分岔风险证据](method.md#优先改进的两处)，不先换 GP。规则见[下一轮的决策权与预算](method.md#下一轮的决策权与预算)。
-
-1. [分岔证据表](method.md#e1e2-分岔证据表)已完成。E2 第 6 秒两路立刻分开，线性期望 Q 已翻序；后来实测只验证原路预测偏低。E1 43621 在预算耗尽后出现了不同的合法走法；43641 在持续预警期间出现新首分岔，等到再次越线却已只剩原路。未触发帧只核几何和资源，风险可比性仍未知。不在已见场调参重跑，不把固定秒数搬到别的场景。
-2. 将“场景本身缺少可绕走廊”“走廊存在、但候选生成漏掉”“菜单有路、但在线证据不足”分开。双图看起来接近全图覆盖只是观察，不是不可绕的证明。后续独立合同预先定义场景分层、判据和种子，保留有绕行代价和困难场；真场只供独立事后诊断。
-3. **公开包原样交付、单段图外重连、锁定时间片计价及同算子强 N 已有确定性测试，尚未接入试飞。** 模拟会话只收到冻结字节；送达哈希不同则不开会话。合成地图中一个图外点能保留首分岔并缩短路线。新增候选缺支持不会缩小计价窗口，强 N 遍历公开有限动作域。不能合法重连只保留 LLM 同时指定的路线，不由 N 代选。边界见[方法](method.md#计划图外中间目标)。
-4. [复现顺序和原始文献](method.md#优先复现的已有方法)：下一步修复 E3 的分岔去重，再把共同工具接入独立新流程及双图回放。先冻结新合同、公开输入、强 N、总资源及停止条件，再开新科学运行或独立 LLM 会话；新试飞逐次保留双图和原始回执。
-
-## 实现与入口
-
-- [`passive_branch_event.py`](../src/uav_em/passive_branch_event.py) / [`passive_branch_event_pilot.py`](../src/uav_em/passive_branch_event_pilot.py)：E3 持续预警中的新分岔触发、可比证据分解及独立回执执行；不能用已关闭合同重新起飞。
-- [`passive_route_exchange.py`](../src/uav_em/passive_route_exchange.py) / [`passive_local_repair.py`](../src/uav_em/passive_local_repair.py)：未来合同可复用的冻结请求、绑定回执及合法子段重连，不是试飞入口。
-- [`passive_repair_pricing.py`](../src/uav_em/passive_repair_pricing.py) / [`passive_repair_search.py`](../src/uav_em/passive_repair_search.py)：锁定原菜单共同支持时间片、同动作域数值穷举；不改变 E3 的旧评分。
-- [`passive_local_hotspots_pilot.py`](../src/uav_em/passive_local_hotspots_pilot.py)：E2 局部场、完整剩余 T 加共同窗 Q 的同菜单强 N、冻结与配对执行。
-- [`passive_event_choice.py`](../src/uav_em/passive_event_choice.py)：风险预警、路线菜单、窗口评分。
-- [`passive_event_choice_pilot.py`](../src/uav_em/passive_event_choice_pilot.py)：E1 冻结、必选回执与配对执行。
-- [`passive_decision_replay.py`](../src/uav_em/passive_decision_replay.py) / [`passive_decision_replay.js`](../src/uav_em/passive_decision_replay.js)：P7 样式双图和决策分岔。沿用左真场右公开预测的布局；不以较简回放替代。
-- [`passive_route_actions.py`](../src/uav_em/passive_route_actions.py)：旧顶点 ID 接口，只映射既有路径，不能创建图外路线。E1 仍复用一些 P1–P7 辅助模块，不按实验名删源码或测试。
-
-先读[维护约定](../AGENTS.md)和[方法](method.md)，按 [README](../README.md)验证。旧证据见[归档入口](../outputs/research_archive/passive_pre_e1/index.html)，不照旧命令重跑。检查器保留 21 项已知历史缺失；这是历史原件问题，不等于当前 E1 链接或测试失败。不读隐藏 `fields` 或封存场景。
+- 搜索与提交：[共用工具](../src/uav_em/passive_repair_tools.py) · [数值调度](../src/uav_em/passive_repair_tool_policy.py)。
+- 执行与证据：[RP1 冻结与场景驱动](../src/uav_em/passive_repair_rp1.py) · [通用飞行执行](../src/uav_em/passive_repair_flight.py) · [配对评分与双图发布](../src/uav_em/passive_repair_pair.py)。三场真实配对均已验证日志与回放，RP1 各场的启动目录防止重复运行。
+- [维护约定](../AGENTS.md) · [验证命令和目录导航](../README.md) · [结果目录](../outputs/README.md)。不读封存场景、隐藏 `fields` 或归档旧计划；检查器保留 21 个已知历史缺失。

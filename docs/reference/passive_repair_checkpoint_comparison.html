@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>固定分岔与在线分岔 · 检查点对照</title>
+<style>
+body{font:16px/1.65 system-ui,sans-serif;color:#172f3a;margin:24px auto;padding:0 16px;max-width:1040px}
+h1{font-size:25px;line-height:1.3;margin:12px 0 4px}h2{font-size:18px;margin:24px 0 4px}p{margin:8px 0}
+a{color:#016a66}figure{margin:12px 0}img{display:block;width:100%;height:auto}figcaption{font-size:14px}
+.table{overflow-x:auto}table{border-collapse:collapse;text-align:left;font-variant-numeric:tabular-nums;width:100%;min-width:550px}
+th,td{padding:6px 12px 6px 0;border-bottom:1px solid #d9e2e7;vertical-align:top}th:first-child{width:48%}
+</style>
+<main>
+<h1>固定分岔与在线分岔：两个检查点</h1>
+<p>旧合成记录的离线诊断。两域共享当前位置、点测前缀、GP、已飞航程和剩余资源；没有新试飞或 LLM 调用。</p>
+<figure>
+  <img src="../../outputs/development/synthetic_repair_domain_comparison/routes.png" width="1800" height="630" alt="两帧候选路径，绿色是事后符合低暴露标准的在线候选，黑色虚线是直飞承诺路线，橙色点线是固定重连。">
+  <figcaption>绿色为事后满足门槛的在线候选，未实际飞过；黑色虚线为两域的 GP 首选。浅灰为其他在线候选，橙色点线为固定域重连。</figcaption>
+</figure>
+<h2>候选覆盖与资源</h2>
+<div class="table"><table>
+  <thead><tr><th scope="col">固定域 → 在线域</th><th scope="col">1 秒 · (655, 100)</th><th scope="col">2 秒 · (670, 100)</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">前缀点测数 / 剩余可用航程</th><td>2 / 210 m</td><td>3 / 195 m</td></tr>
+    <tr><th scope="row">合法原菜单 / 完整动作表</th><td>1 / 2 → 11 / 11</td><td>1 / 2 → 10 / 10</td></tr>
+    <tr><th scope="row">低暴露合法动作</th><td>0 → 6</td><td>0 → 2</td></tr>
+    <tr><th scope="row">前视 6 秒内的共同支持</th><td>前 5 秒 → 前 5 秒</td><td>前 5 秒 → 前 5 秒</td></tr>
+    <tr><th scope="row">重连尝试 / GP 计价点查询</th><td>1 / 24 → 12 / 132</td><td>1 / 24 → 9 / 120</td></tr>
+    <tr><th scope="row">封包字节（未发送）</th><td>2,633 → 6,733</td><td>2,688 → 6,185</td></tr>
+  </tbody>
+</table></div>
+<p>低暴露要求相对承诺路真实余程 Q 至少少 20%，且真实余程 T+Q 至少少 1。独立 40 m 网格参考域有 33/45、13/31 条路线达标（达标数 / 合法数）；这两组只枚举网格路线，不并入任何菜单。</p>
+<h2>共同窗口没有缩短，排序却反了</h2>
+<div class="table"><table>
+  <thead><tr><th scope="col">承诺路 vs 在线域事后最优动作</th><th scope="col">1 秒</th><th scope="col">2 秒</th></tr></thead>
+  <tbody>
+    <tr><th scope="row">并列最优的两个引导点</th><td>(700, 70)；(700, 130)</td><td>(715, 70)；(715, 130)</td></tr>
+    <tr><th scope="row">事后整段余程航时 T（秒）</th><td>11.00 → 11.85</td><td>10.00 → 10.89</td></tr>
+    <tr><th scope="row">事后整段余程 Q</th><td>80.45 → 40.96</td><td>57.55 → 38.00</td></tr>
+    <tr><th scope="row">事后整段余程 T+Q</th><td>91.45 → 52.81</td><td>67.55 → 48.89</td></tr>
+    <tr><th scope="row">同一 5 秒窗：完整 ΔT + 窗内真实 ΔQ</th><td>−37.95</td><td>−18.61</td></tr>
+    <tr><th scope="row">同一 5 秒窗：完整 ΔT + GP 窗内 ΔQ（期望 / 上尾）</th><td>+18.49 / +315.75</td><td>+26.71 / +448.80</td></tr>
+  </tbody>
+</table></div>
+<p>差值均为候选减承诺路，负值更好。两帧达标路线均在分岔后有 5 秒共同支持且可报价，但两种 GP 报价都偏向承诺路；强 N 在两域重算均首选直飞。事后真值只在动作表冻结后沿各自到达时钟积分，不能用于选路。共同支持不等于预测准确，也不是安全判定。</p>
+<p>第 1 秒固定域的重建表哈希、查询数和选择与旧记录一致；第 2 秒原记录没有冻结动作表。字节数是把每帧独立封包所得，不代表真实接收或最坏上界。本页没有配对任务成绩。</p>
+<p><a href="../../outputs/development/synthetic_repair_domain_comparison/comparison.json">完整对照数据</a> · <a href="../../outputs/development/synthetic_repair_action_table/index.html">旧合成双图回放</a> · <a href="../method.md#在线分岔生成开发版">生成方法</a></p>
+</main>
+</html>

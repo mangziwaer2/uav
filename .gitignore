@@ -10,6 +10,9 @@ venv/
 /outputs/*
 !/outputs/README.md
 !/outputs/index.html
+!/outputs/development/
+/outputs/development/*
+!/outputs/development/index.html
 !/outputs/research_archive/
 /outputs/research_archive/*
 !/outputs/research_archive/docs/
