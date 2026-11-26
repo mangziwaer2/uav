@@ -1,0 +1,60 @@
+{
+  "status": "authorized_pending_MC1_freeze",
+  "purpose": "Select the least expensive candidate that passes an independent task calibration.",
+  "candidates": [
+    {
+      "role": "first_calibration_candidate",
+      "requested_model_id": "gpt-5.6-luna",
+      "requested_reasoning_effort": "low",
+      "identity_status": "gateway_advertised_only",
+      "official_snapshot": null,
+      "verified_unit_prices": null
+    },
+    {
+      "role": "reference_candidate",
+      "requested_model_id": "gpt-5.6-sol",
+      "requested_reasoning_effort": "medium",
+      "identity_status": "gateway_advertised_only",
+      "official_snapshot": null,
+      "verified_unit_prices": null
+    },
+    {
+      "role": "additional_candidate",
+      "requested_model_id": "gpt-6.1-sol",
+      "requested_reasoning_effort": "medium",
+      "identity_status": "gateway_advertised_only",
+      "official_snapshot": null,
+      "verified_unit_prices": null
+    }
+  ],
+  "shared_settings": {
+    "transport": "isolated_cli_responses_gateway",
+    "fresh_session_per_case": true,
+    "external_tools": false,
+    "temperature": "backend_default_not_overridden",
+    "top_p": "backend_default_not_overridden",
+    "seed": "not_exposed",
+    "service_tier": "backend_default_not_overridden",
+    "output_token_hard_limit": "not_verified_not_claimed",
+    "output": "one_bound_json_object_two_distinct_ids_one_sentence_reason",
+    "logical_requests_per_case_per_candidate": 1,
+    "timeout_seconds_per_request": 180,
+    "retry_failed_logical_request": false,
+    "automatic_stronger_model_fallback": false,
+    "record_internal_network_reconnects": true
+  },
+  "proposed_calibration": {
+    "independent_cases": 12,
+    "layers": 4,
+    "cases_per_layer": 3,
+    "random_stream_prefix": "MC1-v1",
+    "logical_request_limit": 36,
+    "model_wait_seconds_limit": 6480,
+    "required_valid_replies_per_candidate": 12,
+    "maximum_candidate_minus_reference_mean_nll": 0.05,
+    "maximum_candidate_minus_numerical_pair_mean_nll": 0.05,
+    "nll_unit": "nat_per_point",
+    "selection": "Among candidates passing protocol and predictive criteria, minimize documented total actual calibration cost.",
+    "missing_price_policy": "Cost ranking remains undetermined; do not infer currency cost from token count alone."
+  }
+}

@@ -7,6 +7,50 @@ from .motion import advance_route
 from .passive_decision_replay import DATA, _payload, render
 
 
+def _quantity(value, unit, *, signed=False, digits=2):
+    if value is None:
+        return "未记录"
+    return f"{value:{'+' if signed else ''}.{digits}f} {unit}"
+
+
+def _alert_text(frame):
+    evidence = (frame.get("alert") or {}).get("evidence")
+    if evidence is None:
+        return None
+    reasons = dict(positive_residual="正预测残差", lookahead="前视功率越线", worsened="风险明显恶化",
+                   persistent="持续预警", waiting="等待新证据")
+    reason = evidence.get("reason")
+    parts = [f"共用预警：{reasons.get(reason, reason or '未记录')}（{'本帧启动复核' if evidence.get('review') else '本帧不启动复核'}）",
+             f"点测 {_quantity(evidence.get('measured_dbm'), 'dBm', digits=1)}",
+             "前视峰值 " + ("无支持/未记录" if evidence.get("peak_dbm") is None else
+                           _quantity(evidence["peak_dbm"], "dBm", digits=1)),
+             "残差 z=" + ("未记录" if evidence.get("residual_z") is None else f"{evidence['residual_z']:.2f}")]
+    for key, label in (("lookahead_alert", "前视触发"), ("residual_alert", "残差触发")):
+        parts.append(f"{label}：" + ("未记录" if evidence.get(key) is None else "是" if evidence[key] else "否"))
+    forecast = frame.get("forecast")
+    if forecast is None:
+        parts.append("旧预测：未记录")
+    else:
+        support = forecast.get("support")
+        parts.extend([
+            f"旧预测发布 {_quantity(forecast.get('issued_s'), 's', digits=1)} → "
+            f"验证 {_quantity(forecast.get('arrival_s'), 's', digits=1)}：{_quantity(forecast.get('dbm'), 'dBm', digits=1)}",
+            f"观测标准差 {_quantity(forecast.get('observation_std_db'), 'dB')}",
+            f"实测−旧预测 {_quantity(forecast.get('error_db'), 'dB', signed=True)}",
+            "预测支持：" + dict(local="近测", extended="延伸", unknown="未知").get(support, support or "未记录")])
+    return " · ".join(parts)
+
+
+def _route_progress_text(step):
+    parts = []
+    for key, label in (("first_leg_progress_m", "首段投影"), ("progress_2s_m", "前 2 s 净进展"),
+                       ("backward_projection_m", "累计回撤投影"), ("backward_distance_m", "回撤航段长度"),
+                       ("distance_left_m", "扣除完整余程的航程余量 distance_left_m=")):
+        if key in step:
+            parts.append(f"{label} {_quantity(step[key], 'm', signed=key in ('first_leg_progress_m', 'progress_2s_m'))}")
+    return "路线进展（候选余程；投影沿原起终点轴）：" + "；".join(parts) if parts else None
+
+
 def _same_polyline(first, second):
     return len(first) == len(second) and all(math.dist(a, b) <= 1e-7 for a, b in zip(first, second))
 
@@ -54,13 +98,16 @@ def _replay_arm(layout, entry):
             or not math.isclose(metrics["length_m"], frames[-1]["flown_m"])):
         raise ValueError("evaluation must match the recorded execution")
     _check_execution(layout, log, frames)
+    frames = [dict(frame, repair_alert_text=text) if (text := _alert_text(frame)) is not None else frame
+              for frame in frames]
     decisions = []
     for event in log["decisions"]:
         row = {key: value for key, value in event.items()
                if key not in ("exchange", "authority", "action_inputs", "tool_trace")}
         if "tool_trace" in event:
-            row["tool_steps"] = [turn["feedback"] or dict(status=turn["exchange"]["status"])
-                                 for turn in event["tool_trace"]]
+            steps = [turn["feedback"] or dict(status=turn["exchange"]["status"]) for turn in event["tool_trace"]]
+            row["tool_steps"] = [dict(step, route_progress_text=text) if (text := _route_progress_text(step)) else step
+                                 for step in steps]
         row["controller"] = event["authority"]
         decisions.append(row)
     return dict(log=dict(frames=frames, points=log["points"], decisions=decisions), evaluation=evaluation)
@@ -106,7 +153,12 @@ const decisionData =''',
             'exposure === null ? "未定价" : fmt(exposure), route.total === null ? "未定价" : fmt(route.total),\n'
             '                         selected ? "承诺" : "—"',
         'const alertText =': 'Object.assign(alertState, {new_branch:"发现新分岔", compute_budget:stopLabel("compute_budget"),\n'
-                             '    missing_reply:stopLabel("missing_reply")});\n  const alertText =',
+                             '    missing_reply:stopLabel("missing_reply"), positive_residual:"正预测残差",\n'
+                             '    lookahead:"前视功率越线", worsened:"风险明显恶化", persistent:"持续预警", waiting:"等待新证据"});\n'
+                             '  byId("alert-evidence").textContent = frame.repair_alert_text ?? "";\n'
+                             '  byId("alert-evidence").hidden = !frame.repair_alert_text;\n  const alertText =',
+        '<figcaption id="belief-info"></figcaption>': '<figcaption id="belief-info"></figcaption>'
+            '<p id="alert-evidence" hidden></p>',
         '${alertState[frame.alert.state]}': '${alertState[frame.alert.state] ?? stopLabel(frame.alert.state)}',
         '  const candidate = snapshot?.routes.find': '''  const repair = decision?.repair;
   if (repair) {
@@ -158,6 +210,11 @@ function path(ctx,''',
       (evidence.delta_tail_q == null ? "ΔQ 未定价" : `期望 ΔQ ${fmt(evidence.delta_expected_q)}，上尾 ΔQ ${fmt(evidence.delta_tail_q)}`) : "";
     item.style.overflowWrap = "anywhere";
     item.textContent = `${step.tool ?? "回执"}：${statuses[step.status] ?? stopLabel(step.status)}${coordinates}${route}${risk}${args}`;
+    if (step.route_progress_text) {
+      const progress = document.createElement("div");
+      progress.textContent = step.route_progress_text;
+      item.append(progress);
+    }
     return item;
   }));'''
     for before, after in edits.items():

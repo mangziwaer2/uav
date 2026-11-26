@@ -219,13 +219,15 @@ def parse_session(events):
             complete = True
         elif kind in ("item.started", "item.updated", "item.completed"):
             item = row["item"]
+            if item["type"] == "error":
+                continue
             if item["type"] not in ("reasoning", "agent_message"):
                 raise ValueError("non-message activity in isolated session")
             if item["type"] == "agent_message" and kind == "item.completed":
                 if final is not None:
                     raise ValueError("expected one model message")
                 final = item["text"].encode("utf-8")
-        elif kind != "turn.started":
+        elif kind not in ("turn.started", "error"):
             raise ValueError(f"unexpected session event: {kind}")
     if not session or not complete or final is None:
         raise ValueError("incomplete isolated session")

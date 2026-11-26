@@ -4,6 +4,8 @@ __pycache__/
 .venv/
 venv/
 /temp/*
+tests/
+tools/
 !/temp/README.md
 !/temp/debug_full_pipeline.py
 !/temp/debug_full_pipeline.md

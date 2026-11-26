@@ -10,6 +10,7 @@ from .passive_event_choice import alert
 from .passive_local_repair import waypoint_domain
 from .passive_model_advice import Flight
 from .passive_repair_actions import action_table_digest
+from .passive_repair_alert import RepairAlert, RepairAlertSettings
 from .passive_repair_geometry import FIXED_DOMAIN, ONLINE_DOMAIN, OnlineRepairGeometry, repair_domain
 from .passive_repair_pricing import LockedPrice
 from .passive_repair_review import RepairReview
@@ -80,7 +81,8 @@ def _tool_record(workspace, speed, now, status, selected, arm, trace):
 
 
 def fly_repair(geometry, aircraft, settings, sensor, *, arm, separation_m, min_post_s, waypoints=None,
-               request_prefix=None, transport=None, tool_geometry_limit=None, tool_query_limit=None):
+               request_prefix=None, transport=None, tool_geometry_limit=None, tool_query_limit=None,
+               tool_alert_settings=None, tool_route_progress=False):
     """Run one arm. The caller must freeze scientific inputs and resources before using live replies."""
     if arm not in ("numerical", "llm"):
         raise ValueError("unknown repair decision arm")
@@ -93,6 +95,11 @@ def fly_repair(geometry, aircraft, settings, sensor, *, arm, separation_m, min_p
         raise ValueError("tool mode needs online geometry and an explicit geometry budget")
     if tool_query_limit is not None and (not tool_mode or type(tool_query_limit) is not int or tool_query_limit <= 0):
         raise ValueError("an explicit query budget requires tool mode")
+    if tool_alert_settings is not None and (not tool_mode or not isinstance(tool_alert_settings, RepairAlertSettings)):
+        raise ValueError("repair alert settings require tool mode")
+    if type(tool_route_progress) is not bool or tool_route_progress and not tool_mode:
+        raise ValueError("route progress feedback requires tool mode")
+    trigger = None if tool_alert_settings is None else RepairAlert(tool_alert_settings)
     online = OnlineRepairGeometry(geometry, aircraft) if waypoints is None else None
     waypoints = () if online is not None else tuple(sorted(waypoint_domain(waypoints)))
     flight = Flight(geometry, aircraft, settings)
@@ -132,17 +139,21 @@ def fly_repair(geometry, aircraft, settings, sensor, *, arm, separation_m, min_p
                               selected=selected, authority="initial", status="initial", advanced_m=0.0)
             else:
                 peak, high = alert(flight.incumbent, counted, flight.now, flight.speed)
+                alert_evidence = None if trigger is None else trigger.check(frame, peak)
                 points = [(row["t"], *row["xy"], row["measured_dbm"], (row["forecast"] or {}).get("error_db"))
                           for row in flight.frames]
                 queries_before = flight.ledger["queries"]
                 request_id = f"{request_prefix}-{consultations + 1:03d}"
                 if tool_mode:
                     status, targets = "rearmed", ()
+                    if alert_evidence is not None:
+                        high, status = alert_evidence["review"], alert_evidence["reason"]
                     if high:
                         workspace = RepairToolWorkspace(
                             online, flight.incumbent, counted, now=flight.now, flown_m=flight.flown,
                             energy_wh=flight.energy, points=points, peak_dbm=peak, min_post_s=min_post_s,
-                            ledger=flight.ledger, geometry_limit=tool_geometry_limit)
+                            ledger=flight.ledger, geometry_limit=tool_geometry_limit, alert_evidence=alert_evidence,
+                            route_progress=tool_route_progress)
                         if arm == "llm":
                             status, selected = workspace.review(request_id, tool_exchange, transport)
                             trace = [dict(exchange=_exchange(request, receipt), feedback=feedback)
@@ -163,6 +174,8 @@ def fly_repair(geometry, aircraft, settings, sensor, *, arm, separation_m, min_p
                         flight.ledger["pricings"] += int(result.table is not None)
                         record = _review_record(flight, arm, result)
                 frame["alert"] = dict(peak_dbm=peak, active=high, state=status, new_targets=targets)
+                if alert_evidence is not None:
+                    frame["alert"]["evidence"] = alert_evidence
                 if record is not None:
                     record["pricing_queries"] = flight.ledger["queries"] - queries_before
 

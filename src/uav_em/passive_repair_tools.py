@@ -8,6 +8,7 @@ from .passive_closed_loop import QueryLimit
 from .passive_event_choice import HORIZON_S
 from .passive_local_repair import check_remaining_route, xy
 from .passive_map import LIMIT_S, _common_time
+from .motion import advance_route
 from .passive_repair_pricing import FrozenRepairPricing
 from .passive_repair_search import normalize_route
 from .passive_route_exchange import RouteRequest, ToolCall, _sha256, _unique_keys
@@ -58,7 +59,7 @@ def _parse_call(raw, request):
 
 class RepairToolWorkspace:
     def __init__(self, planner, incumbent, posterior, *, now, flown_m, energy_wh, points, peak_dbm,
-                 min_post_s, ledger, geometry_limit):
+                 min_post_s, ledger, geometry_limit, alert_evidence=None, route_progress=False):
         geometry, aircraft = planner.geometry, planner.aircraft
         incumbent = normalize_route(incumbent)
         if (len(incumbent) < 2 or incumbent[-1] != planner.goal or len(incumbent) != len(set(incumbent))
@@ -87,15 +88,19 @@ class RepairToolWorkspace:
         self.shortest_m = (min(baseline.distance_m, path_length(self.shortest_route))
                            if self.shortest_route else baseline.distance_m)
         self.hard_left_m = hard_cap - flown_m
+        self.route_progress = route_progress
         self.public = dict(
             t_s=now, xy_m=incumbent[0], goal_xy_m=planner.goal, flown_m=flown_m, cap_m=hard_cap,
             hard_left_m=self.hard_left_m, shortest_known_m=self.shortest_m, energy_wh=energy_wh,
             reserve_wh=aircraft.reserve_energy_wh, flight_power_w=aircraft.flight_power_w, remaining_time_s=LIMIT_S - now,
-            peak_dbm=_finite(peak_dbm), window_s=HORIZON_S, points=rows,
+            peak_dbm=None if peak_dbm is None and alert_evidence is not None else _finite(peak_dbm),
+            window_s=HORIZON_S, points=rows,
             geometry=dict(max_xy_m=geometry.high.tolist(), buildings=geometry.config.buildings,
                           obstacles_m=geometry.config.obstacles_m, speed_mps=aircraft.speed_mps,
                           mode=geometry.config.geometry_mode, altitude_m=aircraft.altitude_m,
                           clearance_m=geometry.clearance_m, vertical_clearance_m=aircraft.vertical_clearance_m))
+        if alert_evidence is not None:
+            self.public["alert"] = dict(alert_evidence)
 
     def _request(self, checkpoint_id, feedback):
         request_id = f"{checkpoint_id}/{len(self.turns) + 1}"
@@ -105,15 +110,36 @@ class RepairToolWorkspace:
                       comparisons=list(self.comparisons.values()), last_feedback=feedback)
         if "query_limit" in self.ledger:
             packet["gp_query_points_left"] = self.ledger["query_limit"] - self.ledger["queries"]
-        wire = json.dumps(dict(instructions=INSTRUCTIONS, input=packet), allow_nan=False,
+        instructions = INSTRUCTIONS
+        if self.route_progress:
+            instructions += (" Progress uses the original start-to-goal axis. A backwards leg may reduce exposure."
+                             " distance_left_m is the distance available beyond this candidate's full route to goal."
+                             " Consider progress and remaining room for later repairs with the locked-window Q.")
+        wire = json.dumps(dict(instructions=instructions, input=packet), allow_nan=False,
                           sort_keys=True, separators=(",", ":")).encode("utf-8")
         return RouteRequest(request_id, wire, _sha256(wire), len(self.routes))
 
     def _route_row(self, route_id, resolved):
         aircraft = self.state["aircraft"]
-        return dict(route_id=route_id, xy_m=resolved.route, distance_m=resolved.distance_m, time_s=resolved.time_s,
-                    distance_left_m=self.hard_left_m - resolved.distance_m,
-                    energy_after_wh=self.state["energy_wh"] - resolved.time_s * aircraft.flight_power_w / 3600)
+        row = dict(route_id=route_id, xy_m=resolved.route, distance_m=resolved.distance_m, time_s=resolved.time_s,
+                   distance_left_m=self.hard_left_m - resolved.distance_m,
+                   energy_after_wh=self.state["energy_wh"] - resolved.time_s * aircraft.flight_power_w / 3600)
+        if self.route_progress:
+            start, goal = self.planner.geometry.config.start_m, self.planner.goal
+            axis_length = math.dist(start, goal)
+            axis = tuple((end - origin) / axis_length for origin, end in zip(start, goal))
+
+            def project(head, tail):
+                return sum((end - origin) * component for origin, end, component in zip(head, tail, axis))
+
+            route = resolved.route
+            projections = [project(head, tail) for head, tail in zip(route, route[1:])]
+            _, prefix = advance_route(route, 2.0 * aircraft.speed_mps)
+            row.update(first_leg_progress_m=projections[0], progress_2s_m=project(route[0], prefix[-1]),
+                       backward_projection_m=sum(-step for step in projections if step < -1e-8),
+                       backward_distance_m=sum(math.dist(head, tail) for head, tail, step
+                                               in zip(route, route[1:], projections) if step < -1e-8))
+        return row
 
     def _route_id(self, value):
         if type(value) is not int or not 0 <= value < len(self.routes):

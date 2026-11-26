@@ -1,27 +1,21 @@
 <!doctype html>
-<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UAV 试飞与回放</title>
-<style>body{font:17px/1.7 system-ui;max-width:880px;margin:40px auto;padding:0 20px}a{color:#1766ad}</style>
-<h1>UAV 试飞与回放</h1>
-<h2>RP1 三个随机开发场（已关闭）</h2>
-<p>六次飞行全部合法到达，LLM 的全程 T+Q 两场降低、一场升高。</p>
-<ul>
-<li><a href="passive_repair_RP1_20261126/RP1-01/flight/replay.html">RP1-01 · 单侧建筑</a>，差值 −21.49。</li>
-<li><a href="passive_repair_RP1_20261126/RP1-02/flight/replay.html">RP1-02 · 横跨直线的单楼</a>，差值 −12.55。</li>
-<li><a href="passive_repair_RP1_20261126/RP1-03/flight/replay.html">RP1-03 · 错列双楼</a>，差值 +1.89。</li>
-</ul>
-<p><a href="passive_repair_RP1_20261126/findings.md">配对分析</a> · <a href="passive_repair_RP1_20261126/contract.md">冻结合同</a></p>
-<h2>E3 新首分岔试飞（已关闭）</h2>
-<p>场景 43821。强 N 合规到达，实际 T+Q 为 73.56；LLM 组因请求转交错误在第 6 秒停止，不报告配对增量。</p>
-<p><a href="passive_branch_event_E3_20261124/replay.html">43821 · 双图回放</a> · <a href="passive_branch_event_E3_20261124/findings.md">结果与异常说明</a></p>
-<h2>E2 局部动态干扰</h2>
-<p>场景 43711 的预警覆盖峰值为可飞网格的 15.67%，存在合法低暴露绕行。LLM 与强 N 均在 25 秒改道，合法同轨到达，真实 T+Q 均为 354.36。E2 预算已关闭。</p>
-<p><a href="passive_local_hotspots_E2_20261124/index.html">43711 · 完整分岔双图</a> · <a href="passive_local_hotspots_E2_20261124/findings.md">结果解读</a> · <a href="passive_local_hotspots_E2_20261124/contract.md">冻结合同</a> · <a href="passive_local_hotspots_E2_20261124/results.json">结果数据</a></p>
-<h2>E1 事件触发选路</h2>
-<p>两场四条航迹均合法到达。LLM 四次明确选择原路并实际执行，与同菜单数值组同轨，尚未显示任务增量。E1 预算已关闭。</p>
-<ul>
-<li><a href="passive_event_choice_E1_20261124/replay_43621.html">43621 · 完整分岔双图</a>：6、9、12 秒咨询。</li>
-<li><a href="passive_event_choice_E1_20261124/replay_43641.html">43641 · 完整分岔双图</a>：1 秒咨询。</li>
-</ul>
-<p><a href="passive_event_choice_E1_20261124/index.html">E1 目录入口</a> · <a href="passive_event_choice_E1_20261124/findings.md">结果解读</a> · <a href="passive_event_choice_E1_20261124/contract.md">冻结合同</a> · <a href="passive_event_choice_E1_20261124/results.json">结果数据</a></p>
-<p><a href="../docs/AGENT_HANDOFF.md">当前交接</a> · <a href="../docs/method.md">研究方法</a> · <a href="development/index.html">静止验收与工程记录（非试飞）</a> · <a href="research_archive/passive_pre_e1/index.html">历史回放与归档</a></p>
-</html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>UAV回放目录</title>
+<style>body{font:17px/1.8 system-ui;max-width:950px;margin:32px auto;padding:0 20px}a{color:#1766ad}td,th{padding:8px;border:1px solid #ccd5df;text-align:left}table{border-collapse:collapse}</style>
+<h1>UAV回放目录</h1>
+<p><a href="../docs/AGENT_HANDOFF.md">当前交接</a> · <a href="../docs/method.md">方法</a>。以下批次均已关闭。</p>
+<h2>RP3 · 最新三场配对</h2>
+<p>六臂均合法到达。Δ=LLM−N，平均T+Q上升8.75；未证明稳定LLM增量。</p>
+<table><tr><th>同期双图</th><th>N T+Q</th><th>LLM T+Q</th><th>Δ</th></tr>
+<tr><td><a href="passive_repair_RP3_20261126/RP3-01/flight/replay.html">单侧建筑</a></td><td>35.17</td><td>33.62</td><td>−1.55</td></tr>
+<tr><td><a href="passive_repair_RP3_20261126/RP3-02/flight/replay.html">横跨单楼</a></td><td>43.84</td><td>18.39</td><td>−25.45</td></tr>
+<tr><td><a href="passive_repair_RP3_20261126/RP3-03/flight/replay.html">错列双楼</a></td><td>21.54</td><td>74.79</td><td>+53.25</td></tr></table>
+<p><a href="passive_repair_RP3_20261126/index.html">本批入口</a> · <a href="passive_repair_RP3_20261126/findings.md">失败诊断</a> · <a href="passive_repair_RP3_20261126/audit.json">原件审计</a></p>
+<h2>较早证据</h2><ul>
+<li><a href="passive_repair_RP2_20261126/RP2-01/flight/replay.html">RP2原停飞双图</a>：接收器误拒，LLM在2秒停止，无配对差值；<a href="passive_repair_RP2_20261126/false_rejection_audit.json">误拒审计</a>。</li>
+<li>RP1六臂合法到达：<a href="passive_repair_RP1_20261126/RP1-01/flight/replay.html">单侧建筑 −21.49</a> · <a href="passive_repair_RP1_20261126/RP1-02/flight/replay.html">横跨单楼 −12.55</a> · <a href="passive_repair_RP1_20261126/RP1-03/flight/replay.html">错列双楼 +1.89</a>；<a href="passive_repair_RP1_20261126/findings.md">分析</a>。</li>
+<li><a href="passive_branch_event_E3_20261124/replay.html">E3双图</a>：N到达，LLM转交故障停飞，无配对差值。</li>
+<li><a href="passive_local_hotspots_E2_20261124/index.html">E2双图</a>：两臂同轨到达，无LLM增量。</li>
+<li>E1双图：<a href="passive_event_choice_E1_20261124/replay_43621.html">43621</a> · <a href="passive_event_choice_E1_20261124/replay_43641.html">43641</a>，两臂同轨。</li>
+<li><a href="equivalent_prediction_EP1_20261126/index.html">EP1静止预测</a> · <a href="equivalent_prediction_EP1_20261126/audit.md">停止审计</a>：冻结模型无通道，零有效回答。</li>
+<li><a href="model_calibration_MC1_20261126/audit.html">MC1完整账本</a> · <a href="model_calibration_MC1_20261126/index.html">四表静止预测</a>：旧网关额度不足，12次完整拒绝、1次中断，零有效回答。</li>
+</ul><p><a href="development/index.html">开发夹具（非试飞）</a> · <a href="research_archive/passive_pre_e1/index.html">历史回放</a> · <a href="research_archive/handoff_compaction_20261126.zip">旧文档ZIP</a></p></html>
